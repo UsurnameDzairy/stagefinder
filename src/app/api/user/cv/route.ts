@@ -4,6 +4,62 @@ import { prisma } from "@/lib/prisma";
 import { writeFile } from "fs/promises";
 import { join } from "path";
 import { parseCV } from "@/lib/cv-parser";
+import { extractTextFromPdf } from "@/lib/pdf-parser";
+
+/**
+ * Nettoyer le texte extrait d'un PDF des métadonnées et données brutes
+ */
+function cleanPdfText(text: string): string {
+  if (!text) return "";
+  
+  // Supprimer les métadonnées PDF courantes
+  let cleaned = text
+    // Supprimer les références xref et objets PDF
+    .replace(/\d+\s+\d+\s+obj[\s\S]*?endobj/gi, '')
+    .replace(/xref[\s\S]*?%%EOF/gi, '')
+    .replace(/startxref[\s\S]*$/gi, '')
+    .replace(/trailer[\s\S]*$/gi, '')
+    .replace(/%%EOF/gi, '')
+    // Supprimer les streams binaires
+    .replace(/stream[\s\S]*?endstream/gi, '')
+    // Supprimer les références d'objets
+    .replace(/\d+\s+\d+\s+R/g, '')
+    .replace(/\d+\s+\d+\s+n/g, '')
+    .replace(/\d+\s+\d+\s+f/g, '')
+    // Supprimer les métadonnées XMP
+    .replace(/<\?xpacket[\s\S]*?\?>/gi, '')
+    .replace(/xmp[:\w]+/gi, '')
+    .replace(/pdf[:\w]+/gi, '')
+    .replace(/dc[:\w]+/gi, '')
+    // Supprimer les codes hexadécimaux
+    .replace(/[A-F0-9]{4,}/gi, ' ')
+    // Supprimer les lignes avec uniquement des chiffres
+    .replace(/^\s*[\d\s]+\s*$/gm, '')
+    // Supprimer les caractères de contrôle et binaires
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '')
+    // Supprimer les lignes vides multiples
+    .replace(/\n{3,}/g, '\n\n')
+    // Supprimer les espaces multiples
+    .replace(/[ \t]{2,}/g, ' ')
+    // Nettoyer les lignes
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => {
+      // Garder seulement les lignes avec du contenu significatif
+      if (line.length < 2) return false;
+      // Ignorer les lignes qui ressemblent à des métadonnées PDF
+      if (/^(obj|endobj|stream|endstream|xref|trailer|startxref)$/i.test(line)) return false;
+      if (/^\d+\s+\d+\s+(obj|R|n|f)$/i.test(line)) return false;
+      if (/^[<>\[\]{}\/]+$/.test(line)) return false;
+      // Ignorer les lignes avec trop de caractères spéciaux
+      const specialChars = (line.match(/[^a-zA-ZÀ-ÿ0-9\s.,;:!?@\-'()]/g) || []).length;
+      if (specialChars > line.length * 0.5) return false;
+      return true;
+    })
+    .join('\n');
+  
+  return cleaned.trim();
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,34 +105,20 @@ export async function POST(req: NextRequest) {
     
     if (file.type === "application/pdf") {
       try {
-        // Utiliser pdf-parse pour extraire le texte du PDF
-        const pdf = require("pdf-parse/lib/pdf-parse.js");
-        const pdfData = await pdf(buffer);
-        extractedText = pdfData.text || "";
+        // Utiliser unpdf pour extraire le texte du PDF
+        console.log("🔍 Extracting text from PDF using unpdf...");
+        extractedText = await extractTextFromPdf(buffer);
+        
         console.log("PDF text extracted, length:", extractedText.length);
+        console.log("PDF text preview:", extractedText.substring(0, 500));
         
         // Parser le CV pour extraire les informations
-        if (extractedText) {
+        if (extractedText && extractedText.length > 50) {
           parsedData = parseCV(extractedText);
           console.log("Parsed CV data:", JSON.stringify(parsedData, null, 2));
         }
       } catch (error) {
         console.error("PDF parsing error:", error);
-        // Fallback: essayer d'extraire du texte brut
-        try {
-          const textContent = buffer.toString("utf-8");
-          // Chercher du texte lisible dans le PDF
-          const textMatches = textContent.match(/[\w\s@.,-]+/g);
-          if (textMatches) {
-            extractedText = textMatches.filter(m => m.trim().length > 2).join(" ");
-            if (extractedText.length > 50) {
-              parsedData = parseCV(extractedText);
-              console.log("Fallback parsed data:", JSON.stringify(parsedData, null, 2));
-            }
-          }
-        } catch (fallbackError) {
-          console.error("Fallback parsing error:", fallbackError);
-        }
       }
     } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
       try {
@@ -155,6 +197,34 @@ export async function POST(req: NextRequest) {
     // Si on a des données parsées, mettre à jour automatiquement le profil
     if (parsedData) {
       try {
+        console.log("=== CV PARSING RESULTS ===");
+        console.log("Nom complet:", parsedData.fullName);
+        console.log("Prénom:", parsedData.firstName);
+        console.log("Nom:", parsedData.lastName);
+        console.log("Email:", parsedData.email);
+        console.log("Téléphone:", parsedData.phone);
+        console.log("Compétences:", parsedData.skills.length, "trouvées");
+        console.log("Compétences par catégorie:", JSON.stringify(parsedData.skillsByCategory, null, 2));
+        console.log("Villes:", parsedData.cities);
+        console.log("Niveau d'études:", parsedData.educationLevel);
+        console.log("École:", parsedData.schoolName);
+        console.log("Expériences:", parsedData.experiences.length, "trouvées");
+        console.log("Langues:", parsedData.languages);
+        console.log("Domaines:", parsedData.domains);
+        console.log("=========================");
+
+        // Mettre à jour le nom/prénom de l'utilisateur si trouvés
+        if (parsedData.firstName || parsedData.lastName) {
+          await prisma.user.update({
+            where: { id: session.id },
+            data: {
+              firstName: parsedData.firstName || undefined,
+              lastName: parsedData.lastName || undefined,
+              name: parsedData.fullName || undefined,
+            },
+          });
+        }
+
         // Créer ou mettre à jour le profil avec les données extraites
         await prisma.profile.upsert({
           where: { userId: session.id },
@@ -164,12 +234,16 @@ export async function POST(req: NextRequest) {
             domains: parsedData.domains.join(", "),
             educationLevel: parsedData.educationLevel,
             schoolName: parsedData.schoolName,
+            phone: parsedData.phone,
+            languages: parsedData.languages.map(l => `${l.language}${l.level ? ` (${l.level})` : ''}`).join(", "),
           },
           update: {
             preferredCities: parsedData.cities.length > 0 ? parsedData.cities.join(", ") : undefined,
             domains: parsedData.domains.length > 0 ? parsedData.domains.join(", ") : undefined,
             educationLevel: parsedData.educationLevel || undefined,
             schoolName: parsedData.schoolName || undefined,
+            phone: parsedData.phone || undefined,
+            languages: parsedData.languages.length > 0 ? parsedData.languages.map(l => `${l.language}${l.level ? ` (${l.level})` : ''}`).join(", ") : undefined,
           },
         });
 
@@ -183,11 +257,35 @@ export async function POST(req: NextRequest) {
             },
           });
 
-          // Ajouter les nouvelles compétences
+          // Collecter toutes les compétences uniques
+          const allSkillsSet = new Set<string>();
+          const skillsWithCategory: { name: string; category: string }[] = [];
+          
+          // 1. Ajouter les compétences par catégorie (de la base de données)
+          for (const [category, skills] of Object.entries(parsedData.skillsByCategory)) {
+            for (const skill of skills) {
+              if (!allSkillsSet.has(skill.toLowerCase())) {
+                allSkillsSet.add(skill.toLowerCase());
+                skillsWithCategory.push({ name: skill, category });
+              }
+            }
+          }
+          
+          // 2. Ajouter les compétences extraites directement du CV (texte exact)
+          for (const skill of parsedData.skills) {
+            if (!allSkillsSet.has(skill.toLowerCase()) && skill.length >= 2) {
+              allSkillsSet.add(skill.toLowerCase());
+              skillsWithCategory.push({ name: skill, category: "extracted" });
+            }
+          }
+          
+          console.log("Compétences à sauvegarder:", skillsWithCategory.map(s => s.name));
+
           await prisma.userSkill.createMany({
-            data: parsedData.skills.map((skill) => ({
+            data: skillsWithCategory.map((skill) => ({
               userId: session.id,
-              name: skill,
+              name: skill.name,
+              category: skill.category,
               source: "cv",
             })),
             skipDuplicates: true,

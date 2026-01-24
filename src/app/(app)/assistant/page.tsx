@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
 import { Bot, Send, User, Sparkles, TrendingUp, Target, Lightbulb } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface Message {
   role: "user" | "assistant";
@@ -22,6 +24,7 @@ const QUICK_QUESTIONS = [
 ];
 
 export default function AssistantPage() {
+  const { t, language } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -96,162 +99,139 @@ Que souhaitez-vous savoir ?`,
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] max-w-5xl mx-auto flex flex-col">
-      <div className="mb-4">
-        <h1 className="text-2xl font-semibold text-zinc-50">Assistant Carrière IA</h1>
-        <p className="text-sm text-zinc-400 mt-1">
-          Conseils personnalisés basés sur votre profil
+    <div className="h-[calc(100vh-4rem)] max-w-5xl mx-auto flex flex-col space-y-6 pb-6">
+      <div className="flex flex-col gap-1 mb-8">
+        <h1 className="text-4xl font-serif font-normal tracking-tight text-white flex items-center gap-3">
+          <Bot className="h-6 w-6 text-zinc-400" />
+          {t("assistant.title")}
+        </h1>
+        <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em] mt-1">
+          {t("assistant.subtitle")}
         </p>
       </div>
 
       {context && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-blue-500/10 rounded">
-                  <User className="h-3 w-3 text-blue-500" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Profil", value: context.hasProfile ? "Optimal" : "Incomplet", icon: User, color: "text-zinc-100" },
+            { label: "Compétences", value: context.skillsCount, icon: Target, color: "text-zinc-300" },
+            { label: "Candidatures", value: context.applicationsCount, icon: TrendingUp, color: "text-zinc-400" },
+            { label: "Sauvegardes", value: context.savedOffersCount, icon: Sparkles, color: "text-white" },
+          ].map((item, i) => (
+            <Card key={i} className="bg-black border-zinc-900 shadow-none hover:border-zinc-800 transition-colors">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 bg-zinc-950 border border-zinc-900 rounded-lg">
+                  <item.icon className="h-3.5 w-3.5 text-zinc-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-zinc-400">Profil</p>
-                  <p className="text-sm font-semibold text-zinc-100">
-                    {context.hasProfile ? "Complet" : "À compléter"}
-                  </p>
+                  <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{item.label}</p>
+                  <p className={cn("text-sm font-bold tracking-tight", item.color)}>{item.value}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-green-500/10 rounded">
-                  <Target className="h-3 w-3 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-400">Compétences</p>
-                  <p className="text-sm font-semibold text-zinc-100">
-                    {context.skillsCount}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-purple-500/10 rounded">
-                  <TrendingUp className="h-3 w-3 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-400">Candidatures</p>
-                  <p className="text-sm font-semibold text-zinc-100">
-                    {context.applicationsCount}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-amber-500/10 rounded">
-                  <Sparkles className="h-3 w-3 text-amber-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-400">Offres sauvées</p>
-                  <p className="text-sm font-semibold text-zinc-100">
-                    {context.savedOffersCount}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
-      <Card className="flex-1 flex flex-col bg-zinc-900 border-zinc-800">
-        <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+      <Card className="flex-1 flex flex-col bg-black border-zinc-900 shadow-none overflow-hidden rounded-2xl relative">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none">
+          <Bot className="h-64 w-64 text-white" />
+        </div>
+        
+        <CardContent className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide relative z-10">
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex gap-3 ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              {message.role === "assistant" && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-white" />
-                </div>
+              className={cn(
+                "flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500",
+                message.role === "user" ? "flex-row-reverse" : "flex-row"
               )}
+            >
+              <div className={cn(
+                "flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center border transition-all shadow-sm",
+                message.role === "assistant" 
+                  ? "bg-white border-white text-black" 
+                  : "bg-zinc-950 border-zinc-900 text-zinc-400"
+              )}>
+                {message.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
+              </div>
               <div
-                className={`max-w-[80%] rounded-lg p-4 ${
+                className={cn(
+                  "max-w-[80%] rounded-2xl p-4 text-[14px] leading-relaxed font-medium shadow-sm",
                   message.role === "user"
-                    ? "bg-zinc-100 text-zinc-900"
-                    : "bg-zinc-800 text-zinc-100"
-                }`}
+                    ? "bg-zinc-900 text-zinc-100 border border-zinc-800"
+                    : "bg-zinc-950 text-zinc-300 border border-zinc-900"
+                )}
               >
-                <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                <div className="whitespace-pre-wrap">
                   {message.content}
                 </div>
               </div>
-              {message.role === "user" && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center">
-                  <User className="h-4 w-4 text-zinc-300" />
-                </div>
-              )}
             </div>
           ))}
           {loading && (
-            <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Bot className="h-4 w-4 text-white" />
+            <div className="flex gap-4 justify-start animate-pulse">
+              <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black">
+                <Bot className="h-4 w-4" />
               </div>
-              <div className="bg-zinc-800 rounded-lg p-4">
-                <Loader size="sm" />
+              <div className="bg-zinc-950 border border-zinc-900 rounded-2xl px-6 py-4 flex items-center">
+                <div className="flex gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-zinc-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-1.5 h-1.5 bg-zinc-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-1.5 h-1.5 bg-zinc-600 rounded-full animate-bounce" />
+                </div>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </CardContent>
 
-        <div className="border-t border-zinc-800 p-4 space-y-3">
+        <div className="p-6 bg-black border-t border-zinc-900 space-y-4">
           {messages.length === 1 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 animate-in fade-in duration-700">
               {QUICK_QUESTIONS.map((question) => (
-                <Button
+                <button
                   key={question}
-                  variant="secondary"
-                  size="sm"
                   onClick={() => handleQuickQuestion(question)}
                   disabled={loading}
-                  className="text-xs"
+                  className="px-5 py-2.5 rounded-full border border-zinc-800 bg-zinc-950/50 text-[11px] font-serif italic text-white hover:text-white hover:border-zinc-600 transition-all disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] shadow-sm"
                 >
-                  <Lightbulb className="h-3 w-3 mr-1" />
                   {question}
-                </Button>
+                </button>
               ))}
             </div>
           )}
 
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder="Posez votre question..."
-              disabled={loading}
-              className="flex-1"
-            />
-            <Button onClick={() => handleSend()} disabled={loading || !input.trim()}>
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 relative">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                placeholder="Décrivez votre objectif de carrière..."
+                disabled={loading}
+                className="h-12 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm rounded-2xl pl-5 pr-12 scrollbar-hide"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <span className="text-[10px] font-bold text-zinc-800 uppercase tracking-widest hidden sm:block">Press Enter</span>
+              </div>
+            </div>
+            <Button 
+              onClick={() => handleSend()} 
+              disabled={loading || !input.trim()}
+              className="bg-black hover:bg-zinc-900 text-white h-12 w-12 rounded-full border border-zinc-800 transition-all p-0 shadow-lg flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]"
+            >
               {loading ? (
                 <Loader size="sm" />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4 text-zinc-400" />
               )}
             </Button>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.2em]">
+              Propulsé par StageFinder Intelligence • Données sécurisées
+            </p>
           </div>
         </div>
       </Card>

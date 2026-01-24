@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { analyzeCVWithAI, generateImprovedCV } from "@/lib/openrouter";
 
 /**
  * Harvard-style CV Analyzer and Improver
@@ -401,8 +402,16 @@ export async function POST(req: NextRequest) {
         if (!cvText) {
           return NextResponse.json({ error: "CV text required" }, { status: 400 });
         }
-        const analysis = analyzeCV(cvText, language);
-        return NextResponse.json({ success: true, analysis });
+        
+        // Try AI-powered analysis first, fallback to rule-based if it fails
+        try {
+          const aiAnalysis = await analyzeCVWithAI(cvText);
+          return NextResponse.json({ success: true, analysis: aiAnalysis, method: 'ai' });
+        } catch (aiError) {
+          console.log('AI analysis failed, using rule-based analysis:', aiError);
+          const analysis = analyzeCV(cvText, language);
+          return NextResponse.json({ success: true, analysis, method: 'rules' });
+        }
       }
 
       case "improve": {
@@ -410,14 +419,30 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "CV text required" }, { status: 400 });
         }
         const lang = language as "fr" | "en";
-        const improvedCV = improveCVContent(cvText, lang);
-        const analysisResult = analyzeCV(improvedCV, lang);
-        return NextResponse.json({ 
-          success: true, 
-          improvedCV,
-          analysis: analysisResult,
-          actionVerbs: HARVARD_ACTION_VERBS[lang],
-        });
+        
+        // Try AI-powered improvement first
+        try {
+          const aiAnalysis = await analyzeCVWithAI(cvText);
+          const improvedCV = await generateImprovedCV(cvText, aiAnalysis.improvements);
+          return NextResponse.json({ 
+            success: true, 
+            improvedCV,
+            analysis: aiAnalysis,
+            method: 'ai',
+            actionVerbs: HARVARD_ACTION_VERBS[lang],
+          });
+        } catch (aiError) {
+          console.log('AI improvement failed, using rule-based improvement:', aiError);
+          const improvedCV = improveCVContent(cvText, lang);
+          const analysisResult = analyzeCV(improvedCV, lang);
+          return NextResponse.json({ 
+            success: true, 
+            improvedCV,
+            analysis: analysisResult,
+            method: 'rules',
+            actionVerbs: HARVARD_ACTION_VERBS[lang],
+          });
+        }
       }
 
       case "generate": {

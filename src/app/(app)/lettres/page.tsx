@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
-import { FileText, Copy, Download, Check } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
+import { FileText, Copy, Download, Check, Sparkles } from "lucide-react";
 
 export default function LettresPage() {
+  const { t } = useTranslation();
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
@@ -53,80 +55,85 @@ export default function LettresPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-24">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-50">Generation de lettres</h1>
-        <p className="text-sm text-zinc-400 mt-1">
-          Creez des lettres de motivation personnalisees
+    <div className="space-y-10 max-w-7xl mx-auto pb-24">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-4xl font-serif font-normal tracking-tight text-white flex items-center gap-3">
+          <FileText className="h-6 w-6 text-zinc-400" />
+          {t("letters.title")}
+        </h1>
+        <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em] mt-1">
+          {t("letters.subtitle")}
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Informations</CardTitle>
+      <div className="grid lg:grid-cols-2 gap-8 items-start">
+        <Card className="bg-black border-zinc-900 shadow-none">
+          <CardHeader className="p-6">
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("common.info")}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-zinc-300 block mb-1.5">
-                Entreprise
+          <CardContent className="p-6 pt-0 space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">
+                {t("applications.company")}
               </label>
               <Input
-                placeholder="Nom de l'entreprise"
+                placeholder="Ex: Goldman Sachs, Google, L'Oréal..."
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
+                className="h-11 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm"
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-zinc-300 block mb-1.5">
-                Poste
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">
+                {t("applications.position")}
               </label>
               <Input
-                placeholder="Titre du poste"
+                placeholder="Ex: Analyste Fusion-Acquisition, Product Manager..."
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
+                className="h-11 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm"
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-zinc-300 block mb-1.5">
-                Description de l'offre (optionnel)
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">
+                {t("letters.jobDescription")}
               </label>
               <textarea
-                placeholder="Collez la description pour une lettre plus personnalisee..."
+                placeholder={t("letters.jobDescriptionPlaceholder")}
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                rows={4}
-                className="flex w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 shadow-sm placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-500 resize-none"
+                rows={5}
+                className="flex w-full rounded-xl border border-zinc-900 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 shadow-none placeholder:text-zinc-700 focus-visible:outline-none focus-visible:border-zinc-500 transition-all resize-none font-medium leading-relaxed"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-zinc-300 block mb-1.5">
-                  Type de contrat
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">
+                  {t("offers.contractTypes")}
                 </label>
                 <select
                   value={contractType}
                   onChange={(e) => setContractType(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1 text-sm text-zinc-100 shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-500"
+                  className="flex h-11 w-full rounded-xl border border-zinc-900 bg-zinc-950 px-4 py-1 text-sm text-zinc-100 shadow-none focus:outline-none focus:border-zinc-500 transition-all font-medium"
                 >
                   <option value="stage">Stage</option>
                   <option value="alternance">Alternance</option>
-                  <option value="cdi">CDI</option>
+                  <option value="cdi">CDI / CDD</option>
                 </select>
               </div>
-              <div>
-                <label className="text-sm font-medium text-zinc-300 block mb-1.5">
-                  Langue
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">
+                  {t("settings.language")}
                 </label>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1 text-sm text-zinc-100 shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-500"
+                  className="flex h-11 w-full rounded-xl border border-zinc-900 bg-zinc-950 px-4 py-1 text-sm text-zinc-100 shadow-none focus:outline-none focus:border-zinc-500 transition-all font-medium"
                 >
-                  <option value="fr">Francais</option>
+                  <option value="fr">Français</option>
                   <option value="en">English</option>
                 </select>
               </div>
@@ -135,60 +142,68 @@ export default function LettresPage() {
             <Button
               onClick={handleGenerate}
               disabled={loading || !companyName || !jobTitle}
-              className="w-full"
+              className="w-full bg-black hover:bg-zinc-900 text-white h-12 rounded-full border border-zinc-800 shadow-xl transition-all mt-4 font-serif italic text-base hover:scale-[1.02] active:scale-[0.98]"
             >
               {loading ? (
                 <>
-                  <Loader size="sm" className="mr-2" />
-                  Generation en cours...
+                  <Loader size="sm" />
+                  <span className="ml-3">{t("common.generating")}</span>
                 </>
               ) : (
                 <>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Generer la lettre
+                  <Sparkles className="h-4 w-4 mr-3 text-zinc-400" />
+                  {t("letters.generate")}
                 </>
               )}
             </Button>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Resultat</CardTitle>
+        <Card className="bg-black border-zinc-900 shadow-none min-h-[600px] flex flex-col">
+          <CardHeader className="p-6 flex flex-row items-center justify-between border-b border-zinc-900/50">
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("common.result")}</CardTitle>
             {result && (
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={handleCopy}>
+                <Button variant="outline" size="sm" onClick={handleCopy} className="h-9 px-6 rounded-full text-[10px] font-serif italic tracking-tight border-zinc-800 transition-all text-white hover:text-white hover:bg-zinc-900">
                   {copied ? (
-                    <Check className="h-4 w-4 text-green-600" />
+                    <Check className="h-3.5 w-3.5 text-white" />
                   ) : (
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-3.5 w-3.5" />
                   )}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleDownload}>
-                  <Download className="h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={handleDownload} className="h-9 px-6 rounded-full text-[10px] font-serif italic tracking-tight border-zinc-800 transition-all text-white hover:text-white hover:bg-zinc-900">
+                  <Download className="h-3.5 w-3.5" />
                 </Button>
               </div>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 flex-1">
             {result ? (
-              <div className="bg-zinc-800 rounded-lg p-4">
-                <pre className="whitespace-pre-wrap text-sm text-zinc-200 font-sans leading-relaxed">
-                  {result}
-                </pre>
+              <div className="p-8 h-full animate-in fade-in duration-700">
+                <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-8 h-full shadow-inner">
+                  <pre className="whitespace-pre-wrap text-[13px] text-zinc-200 font-serif leading-relaxed h-full overflow-y-auto scrollbar-hide">
+                    {result}
+                  </pre>
+                </div>
               </div>
             ) : (
-              <div className="text-center py-12 text-zinc-400">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">La lettre generee apparaitra ici</p>
+              <div className="flex flex-col items-center justify-center h-full text-zinc-600 p-12 space-y-6">
+                <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-full opacity-20">
+                  <FileText className="h-12 w-12 text-white" />
+                </div>
+                <div className="text-center space-y-2">
+                  <p className="text-[13px] font-bold uppercase tracking-widest text-zinc-700">{t("common.awaitingGeneration")}</p>
+                  <p className="text-[12px] font-medium max-w-[240px] leading-relaxed">
+                    {t("letters.placeholder")}
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
     </div>
-  );
-}
+  );}
 
 function generateMockLetter(company: string, job: string, type: string, lang: string): string {
   if (lang === "en") {

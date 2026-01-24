@@ -82,12 +82,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { type, companyName, jobTitle, contactName, appliedDate, interviewDate } = body;
 
-    // Récupérer le profil utilisateur
+    // Récupérer le profil utilisateur avec le CV
     const user = await prisma.user.findUnique({
       where: { id: session.id },
       include: {
         profile: true,
         skills: true,
+        resumes: {
+          where: { isActive: true },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
     });
 
@@ -100,12 +105,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid email type" }, { status: 400 });
     }
 
+    // Extraire les données du CV actif
+    const activeResume = user.resumes[0];
+    let cvEducation = "";
+    let cvExperience = "";
+    
+    if (activeResume?.parsedData) {
+      try {
+        const parsedCV = JSON.parse(activeResume.parsedData);
+        cvEducation = parsedCV.education || "";
+        cvExperience = parsedCV.experience || "";
+      } catch (e) {
+        console.error("Error parsing CV data:", e);
+      }
+    }
+    
+    // Utiliser les données du CV si disponibles, sinon le profil
     const userName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || "Candidat";
     const userSkills = user.skills.map(s => s.name);
     const userDomains = user.profile?.domains?.split(",").map(d => d.trim()) || [];
-    const education = user.profile?.educationLevel 
-      ? `${user.profile.educationLevel}${user.profile.schoolName ? ` à ${user.profile.schoolName}` : ""}`
-      : "étudiant(e)";
+    
+    // Construire l'éducation à partir du CV ou du profil
+    let education = "étudiant(e)";
+    if (activeResume?.education) {
+      // Utiliser l'éducation extraite du CV
+      education = activeResume.education;
+    } else if (user.profile?.educationLevel) {
+      education = `${user.profile.educationLevel}${user.profile.schoolName ? ` à ${user.profile.schoolName}` : ""}`;
+    }
 
     // Générer le contenu personnalisé
     const motivation = generateMotivation(companyName, jobTitle, userDomains);

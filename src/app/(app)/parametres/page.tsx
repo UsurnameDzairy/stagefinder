@@ -5,7 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, Plus, Save, Trash2, Bell, BellRing, ToggleLeft, ToggleRight, Zap } from "lucide-react";
+import { Upload, X, Plus, Save, Trash2, Bell, BellRing, ToggleLeft, ToggleRight, Zap, Settings } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import { Loader } from "@/components/ui/loader";
 
 interface JobAlert {
   id: string;
@@ -20,6 +23,7 @@ interface JobAlert {
 }
 
 export default function ParametresPage() {
+  const { t } = useTranslation();
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
   const [preferredCities, setPreferredCities] = useState("");
@@ -316,453 +320,371 @@ export default function ParametresPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl pb-24">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-50">Parametres</h1>
-        <p className="text-sm text-zinc-400 mt-1">
-          Gerez votre profil et vos preferences
+    <div className="space-y-10 max-w-4xl pb-24">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-4xl font-serif font-normal tracking-tight text-white flex items-center gap-3">
+          <Settings className="h-6 w-6 text-zinc-400" />
+          {t("settings.title")}
+        </h1>
+        <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em] mt-1">
+          Configuration du profil et préférences stratégiques
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Avatar</CardTitle>
-          <CardDescription>
-            Personnalisez votre profil avec un avatar
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-3">
-            <Input
-              type="url"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="URL de votre avatar (ex: https://i.imgur.com/...)"
-              disabled={uploadingAvatar}
-            />
-            <Button 
-              onClick={handleAvatarUrlSubmit} 
-              disabled={uploadingAvatar || !avatarUrl.trim()}
-            >
-              {uploadingAvatar ? "..." : "Mettre à jour"}
-            </Button>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRemoveAvatar}
-              disabled={uploadingAvatar}
-            >
-              Supprimer l'avatar
-            </Button>
-          </div>
-          <p className="text-xs text-zinc-500">
-            Utilisez une URL d'image (JPEG, PNG, GIF). Recommandé: 200x200px
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card id="cv">
-        <CardHeader>
-          <CardTitle className="text-base">CV</CardTitle>
-          <CardDescription>
-            Importez votre CV pour ameliorer le matching
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.docx"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <div className="border-2 border-dashed border-zinc-700 rounded-lg p-8 text-center">
-            {uploadingCv ? (
-              <>
-                <div className="h-8 w-8 border-2 border-zinc-400 border-t-zinc-100 rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-sm text-zinc-300 mb-2">Analyse du CV en cours...</p>
-                <p className="text-xs text-zinc-500">Extraction des compétences et informations</p>
-              </>
-            ) : (
-              <>
-                <Upload className="h-8 w-8 text-zinc-400 mx-auto mb-3" />
-                <p className="text-sm text-zinc-300 mb-2">
-                  {cvFile ? `Fichier: ${cvFile.name}` : "Glissez votre CV ici ou cliquez pour sélectionner"}
-                </p>
-                <p className="text-xs text-zinc-500 mb-4">PDF ou DOCX, max 5MB</p>
-                <Button variant="secondary" size="sm" onClick={handleFileSelect}>
-                  {cvFile ? "Changer de fichier" : "Sélectionner un fichier"}
-                </Button>
-              </>
-            )}
-          </div>
-          {cvStatus && (
-            <div className={`mt-4 p-3 rounded-lg text-sm ${
-              cvStatus.includes("✅") ? "bg-green-900/30 text-green-300" :
-              cvStatus.includes("⚠️") ? "bg-yellow-900/30 text-yellow-300" :
-              cvStatus.includes("❌") ? "bg-red-900/30 text-red-300" :
-              "bg-zinc-800 text-zinc-300"
-            }`}>
-              {cvStatus}
+      <div className="grid gap-8">
+        {/* Avatar Section */}
+        <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Identité Visuelle</CardTitle>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">Personnalisez votre profil professionnel</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 pt-4 space-y-6">
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-zinc-950 border border-zinc-900 rounded-2xl">
+              <div className="h-20 w-20 rounded-full border-2 border-zinc-800 bg-black flex items-center justify-center overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar Preview" className="h-full w-full object-cover" />
+                ) : (
+                  <Upload className="h-8 w-8 text-zinc-800" />
+                )}
+              </div>
+              <div className="flex-1 space-y-4 w-full">
+                <div className="flex gap-2">
+                  <Input
+                    type="url"
+                    value={avatarUrl}
+                    onChange={(e) => setAvatarUrl(e.target.value)}
+                    placeholder="URL de votre image (ex: LinkedIn, Gravatar...)"
+                    disabled={uploadingAvatar}
+                    className="h-10 bg-black border-zinc-900 focus:border-white transition-all text-sm"
+                  />
+                  <Button 
+                    onClick={handleAvatarUrlSubmit} 
+                    disabled={uploadingAvatar || !avatarUrl.trim()}
+                    className="bg-black hover:bg-zinc-900 text-white font-serif italic text-sm px-8 h-10 rounded-full border border-zinc-800 shadow-lg transition-all hover:scale-105 active:scale-95"
+                  >
+                    {uploadingAvatar ? <Loader size="sm" /> : "Update"}
+                  </Button>
+                </div>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleRemoveAvatar}
+                    disabled={uploadingAvatar}
+                    className="h-8 px-4 rounded-full text-[10px] font-bold uppercase tracking-widest border-zinc-900 text-zinc-500 hover:text-red-400 transition-all"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                    Remove
+                  </Button>
+                  <span className="text-[10px] font-medium text-zinc-700 self-center uppercase tracking-wider">Recommandé: 200x200px</span>
+                </div>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Competences</CardTitle>
-          <CardDescription>
-            Ajoutez vos competences pour un meilleur matching
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill) => (
-              <Badge key={skill} variant="secondary" className="gap-1 pr-1">
-                {skill}
-                <button
-                  onClick={() => removeSkill(skill)}
-                  className="ml-1 p-0.5 hover:bg-zinc-300 rounded"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Ajouter une competence..."
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addSkill()}
+        {/* CV Section */}
+        <Card id="cv" className="bg-black border-zinc-900 shadow-none">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Base Documentaire</CardTitle>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">Extraction automatique par IA pour un matching chirurgical</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 pt-4">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.docx"
+              onChange={handleFileChange}
+              className="hidden"
             />
-            <Button variant="secondary" onClick={addSkill}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Preferences de recherche</CardTitle>
-          <CardDescription>
-            Configurez vos criteres de recherche par defaut
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-zinc-700 block mb-1.5">
-              Villes preferees
-            </label>
-            <Input
-              placeholder="Paris, Lyon, Bordeaux..."
-              value={preferredCities}
-              onChange={(e) => setPreferredCities(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-zinc-700 block mb-1.5">
-              Types de contrat
-            </label>
-            <div className="flex gap-2">
-              {["stage", "alternance", "cdi", "cdd"].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => toggleContractType(type)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${
-                    contractTypes.includes(type)
-                      ? "bg-zinc-900 text-white"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-zinc-700 block mb-1.5">
-              Domaines d'interet
-            </label>
-            <Input
-              placeholder="Tech, Finance, Marketing..."
-              value={domains}
-              onChange={(e) => setDomains(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Section Alertes */}
-      <Card id="alerts">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <BellRing className="h-4 w-4 text-yellow-500" />
-            Alertes emploi
-          </CardTitle>
-          <CardDescription>
-            Recevez des notifications quand une offre correspond à vos critères
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Liste des alertes */}
-          {alerts.length > 0 ? (
-            <div className="space-y-3">
-              {alerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={`p-3 rounded-lg border ${
-                    alert.isActive ? "border-green-500/30 bg-green-500/5" : "border-zinc-700 bg-zinc-800/50"
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-zinc-100">{alert.name}</h4>
-                        {alert.isActive ? (
-                          <Badge className="bg-green-500/20 text-green-400 text-[10px]">Active</Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-[10px]">Inactive</Badge>
-                        )}
-                      </div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {alert.domains.split(",").map((d) => (
-                          <Badge key={d} variant="outline" className="text-[10px]">
-                            {d.trim()}
-                          </Badge>
-                        ))}
-                      </div>
-                      <p className="text-xs text-zinc-500 mt-1">
-                        {alert.locations || "Toutes localisations"} • Score min: {alert.minMatchScore}% • {alert.frequency === "instant" ? "Instantané" : alert.frequency === "daily" ? "Quotidien" : "Hebdomadaire"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleAlert(alert.id, alert.isActive)}
-                        className="p-1.5 rounded hover:bg-zinc-700"
-                        title={alert.isActive ? "Désactiver" : "Activer"}
-                      >
-                        {alert.isActive ? (
-                          <ToggleRight className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <ToggleLeft className="h-5 w-5 text-zinc-500" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => deleteAlert(alert.id)}
-                        className="p-1.5 rounded hover:bg-zinc-700 text-zinc-400 hover:text-red-400"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+            <div className="border-2 border-dashed border-zinc-900 hover:border-zinc-700 bg-zinc-950/30 rounded-2xl p-10 text-center transition-all duration-300 group cursor-pointer" onClick={handleFileSelect}>
+              {uploadingCv ? (
+                <div className="space-y-4">
+                  <Loader size="lg" className="mx-auto" />
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-bold text-white uppercase tracking-[0.2em] animate-pulse">Intelligence Engine Processing...</p>
+                    <p className="text-[12px] text-zinc-600 font-medium italic">Analyse sémantique de votre parcours</p>
                   </div>
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl w-fit mx-auto group-hover:border-zinc-600 transition-all">
+                    <Upload className="h-8 w-8 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[13px] font-bold text-zinc-300 group-hover:text-white transition-colors">
+                      {cvFile ? cvFile.name : "Cliquez pour importer votre CV"}
+                    </p>
+                    <p className="text-[11px] font-bold text-zinc-700 uppercase tracking-widest">PDF ou DOCX (Max 5MB)</p>
+                  </div>
+                  <Button variant="outline" size="sm" className="h-10 px-8 rounded-full border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-900 text-[11px] font-bold uppercase tracking-widest transition-all">
+                    {cvFile ? "Change file" : "Select file"}
+                  </Button>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="text-center py-6 text-zinc-500">
-              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Aucune alerte configurée</p>
-              <p className="text-xs">Créez une alerte pour être notifié des nouvelles opportunités</p>
-            </div>
-          )}
+            {cvStatus && (
+              <div className={cn(
+                "mt-6 p-4 rounded-xl text-[12px] font-medium leading-relaxed border animate-in fade-in slide-in-from-top-2",
+                cvStatus.includes("✅") ? "bg-zinc-950 border-zinc-800 text-zinc-300" :
+                cvStatus.includes("⚠️") ? "bg-zinc-950 border-zinc-900 text-zinc-500" :
+                "bg-zinc-950 border-zinc-900 text-red-400"
+              )}>
+                {cvStatus}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Formulaire nouvelle alerte */}
-          {showAlertForm ? (
-            <div className="border border-zinc-700 rounded-lg p-4 space-y-3 bg-zinc-800/50">
-              <h4 className="font-medium text-zinc-200 text-sm">Nouvelle alerte</h4>
-              
-              <div>
-                <label className="text-xs text-zinc-400 block mb-1">Nom de l'alerte *</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Skills Section */}
+          <Card className="bg-black border-zinc-900 shadow-none">
+            <CardHeader className="p-6 pb-2">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Hard & Soft Skills</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 pt-4 space-y-6">
+              <div className="flex flex-wrap gap-1.5 min-h-[40px]">
+                {skills.map((skill) => (
+                  <span key={skill} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-bold text-zinc-400 group">
+                    {skill}
+                    <button
+                      onClick={() => removeSkill(skill)}
+                      className="text-zinc-700 hover:text-white transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
                 <Input
-                  placeholder="Ex: Stage Finance Paris"
-                  value={newAlert.name}
-                  onChange={(e) => setNewAlert({ ...newAlert, name: e.target.value })}
-                  className="bg-zinc-900"
+                  placeholder="Python, Finance, Leadership..."
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addSkill()}
+                  className="h-10 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm"
+                />
+                <Button onClick={addSkill} className="bg-black hover:bg-zinc-900 text-white h-10 w-10 p-0 border border-zinc-800 rounded-full shadow-lg transition-all hover:scale-110 active:scale-90">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Preferences Section */}
+          <Card className="bg-black border-zinc-900 shadow-none">
+            <CardHeader className="p-6 pb-2">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Paramètres de Recherche</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 pt-4 space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Villes cibles</label>
+                <Input
+                  placeholder="Paris, London, Remote..."
+                  value={preferredCities}
+                  onChange={(e) => setPreferredCities(e.target.value)}
+                  className="h-10 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm"
                 />
               </div>
 
-              <div>
-                <label className="text-xs text-zinc-400 block mb-1">Domaines * (séparés par des virgules)</label>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Formats contractuels</label>
+                <div className="flex flex-wrap gap-2">
+                  {["stage", "alternance", "cdi", "cdd"].map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => toggleContractType(type)}
+                      className={cn(
+                        "px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest border transition-all",
+                        contractTypes.includes(type)
+                          ? "bg-zinc-800 border-zinc-600 text-white shadow-inner"
+                          : "bg-black border-zinc-900 text-zinc-600 hover:border-zinc-700"
+                      )}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Domaines d'expertise</label>
                 <Input
-                  placeholder="Finance, Tech, Marketing..."
-                  value={newAlert.domains}
-                  onChange={(e) => setNewAlert({ ...newAlert, domains: e.target.value })}
-                  className="bg-zinc-900"
+                  placeholder="Banking, AI, Web Dev..."
+                  value={domains}
+                  onChange={(e) => setDomains(e.target.value)}
+                  className="h-10 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm"
                 />
               </div>
+            </CardContent>
+          </Card>
+        </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-zinc-400 block mb-1">Mots-clés</label>
-                  <Input
-                    placeholder="React, Python..."
-                    value={newAlert.keywords}
-                    onChange={(e) => setNewAlert({ ...newAlert, keywords: e.target.value })}
-                    className="bg-zinc-900"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-zinc-400 block mb-1">Localisations</label>
-                  <Input
-                    placeholder="Paris, Lyon..."
-                    value={newAlert.locations}
-                    onChange={(e) => setNewAlert({ ...newAlert, locations: e.target.value })}
-                    className="bg-zinc-900"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-zinc-400 block mb-1">Score minimum (%)</label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={newAlert.minMatchScore}
-                    onChange={(e) => setNewAlert({ ...newAlert, minMatchScore: parseInt(e.target.value) || 50 })}
-                    className="bg-zinc-900"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-zinc-400 block mb-1">Fréquence</label>
-                  <select
-                    value={newAlert.frequency}
-                    onChange={(e) => setNewAlert({ ...newAlert, frequency: e.target.value })}
-                    className="w-full h-9 px-3 rounded-md bg-zinc-900 border border-zinc-700 text-sm text-zinc-100"
+        {/* Alerts Section Premium */}
+        <Card id="alerts" className="bg-black border-zinc-900 shadow-none overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+            <Bell className="h-32 w-32 text-white" />
+          </div>
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
+              <BellRing className="h-4 w-4 text-zinc-400" />
+              Système d'Alertes Stratégiques
+            </CardTitle>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">Surveillance en temps réel des flux d'opportunités</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 pt-4 space-y-6">
+            {alerts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {alerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className={cn(
+                      "p-5 rounded-2xl border transition-all duration-300 relative group",
+                      alert.isActive ? "bg-zinc-950 border-zinc-800" : "bg-black border-zinc-900 opacity-60"
+                    )}
                   >
-                    <option value="instant">Instantané</option>
-                    <option value="daily">Quotidien</option>
-                    <option value="weekly">Hebdomadaire</option>
-                  </select>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-[14px] text-zinc-100 tracking-tight">{alert.name}</h4>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {alert.domains.split(",").map((d) => (
+                            <span key={d} className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-zinc-900 text-zinc-500 border border-zinc-800">
+                              {d.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => toggleAlert(alert.id, alert.isActive)}
+                          className="h-8 w-8 rounded-full border border-zinc-900 flex items-center justify-center hover:border-zinc-600 transition-all"
+                        >
+                          {alert.isActive ? (
+                            <ToggleRight className="h-5 w-5 text-white" />
+                          ) : (
+                            <ToggleLeft className="h-5 w-5 text-zinc-700" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => deleteAlert(alert.id)}
+                          className="h-8 w-8 rounded-full border border-zinc-900 flex items-center justify-center hover:border-zinc-700 hover:bg-zinc-900 text-zinc-700 hover:text-white transition-all"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-widest pt-4 border-t border-zinc-900/50">
+                      <span>{alert.locations || "Global"}</span>
+                      <span>Min Score: {alert.minMatchScore}%</span>
+                      <span>{alert.frequency}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-zinc-950/30 border border-dashed border-zinc-900 rounded-3xl space-y-4">
+                <div className="p-4 bg-black border border-zinc-900 rounded-full w-fit mx-auto">
+                  <Bell className="h-6 w-6 text-zinc-800" />
+                </div>
+                <p className="text-[13px] font-medium text-zinc-600">Aucune surveillance active configurée.</p>
+              </div>
+            )}
+
+            {showAlertForm ? (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 space-y-6 animate-in fade-in slide-in-from-top-4">
+                <h4 className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Configuration de l'alerte</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Nom du flux *</label>
+                    <Input
+                      placeholder="Ex: Banking London"
+                      value={newAlert.name}
+                      onChange={(e) => setNewAlert({ ...newAlert, name: e.target.value })}
+                      className="bg-black border-zinc-900 h-10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Secteurs *</label>
+                    <Input
+                      placeholder="Tech, Luxury..."
+                      value={newAlert.domains}
+                      onChange={(e) => setNewAlert({ ...newAlert, domains: e.target.value })}
+                      className="bg-black border-zinc-900 h-10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Localisations</label>
+                    <Input
+                      placeholder="Paris, New York..."
+                      value={newAlert.locations}
+                      onChange={(e) => setNewAlert({ ...newAlert, locations: e.target.value })}
+                      className="bg-black border-zinc-900 h-10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Fréquence</label>
+                    <select
+                      value={newAlert.frequency}
+                      onChange={(e) => setNewAlert({ ...newAlert, frequency: e.target.value })}
+                      className="w-full h-10 px-4 rounded-xl bg-black border border-zinc-900 text-sm font-medium"
+                    >
+                      <option value="instant">Temps Réel</option>
+                      <option value="daily">Quotidien</option>
+                      <option value="weekly">Hebdomadaire</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-4 border-t border-zinc-900">
+                  <Button onClick={() => setShowAlertForm(false)} variant="ghost" className="h-10 px-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white rounded-full">Annuler</Button>
+                  <Button onClick={createAlert} className="flex-1 bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-full border border-zinc-800 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">Activer la surveillance</Button>
                 </div>
               </div>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => setShowAlertForm(true)}
+                className="w-full h-12 border-zinc-900 bg-black hover:bg-zinc-900 text-zinc-400 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter une nouvelle règle de flux
+              </Button>
+            )}
+          </CardContent>
+        </Card>
 
-              <div className="flex gap-2 pt-2">
-                <Button onClick={createAlert} size="sm" className="flex-1">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Créer l'alerte
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => setShowAlertForm(false)}>
-                  Annuler
-                </Button>
+        {/* Account Controls Section Premium */}
+        <Card className="bg-black border-zinc-900 shadow-none border-zinc-800/20">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Commandes Systèmes</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 pt-4 space-y-4">
+            <div className="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-900 rounded-2xl transition-all hover:border-zinc-800 group">
+              <div className="space-y-1">
+                <p className="text-[13px] font-bold text-zinc-200 group-hover:text-white">Portabilité des données</p>
+                <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Téléchargement archive RGPD</p>
               </div>
+              <Button variant="outline" size="sm" onClick={handleExportData} className="h-9 px-8 rounded-full border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest">Exporter</Button>
             </div>
-          ) : (
-            <Button
-              variant="secondary"
-              onClick={() => setShowAlertForm(true)}
-              className="w-full"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Créer une alerte
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Section Scraping Automatique */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Zap className="h-4 w-4 text-yellow-500" />
-            Scraping Automatique
-          </CardTitle>
-          <CardDescription>
-            Recevez automatiquement les nouvelles offres correspondant à votre profil
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <h4 className="text-sm font-medium text-blue-400 mb-2">Comment ça marche ?</h4>
-            <ul className="text-xs text-zinc-400 space-y-1">
-              <li>• Le système scrape automatiquement toutes les 2 heures</li>
-              <li>• Recherche basée sur vos domaines, villes et types de contrat</li>
-              <li>• Notifications instantanées pour chaque nouvelle offre</li>
-              <li>• 100% données réelles (LinkedIn, Indeed, HelloWork, WTTJ)</li>
-            </ul>
-          </div>
-
-          <div className="flex items-center justify-between py-3 border-b border-zinc-700">
-            <div>
-              <p className="text-sm font-medium text-zinc-100">Déclencher maintenant</p>
-              <p className="text-xs text-zinc-400">Lance une recherche immédiate pour votre profil</p>
+            
+            <div className="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-900 rounded-2xl transition-all hover:border-zinc-800 group">
+              <div className="space-y-1">
+                <p className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-200">Destruction du compte</p>
+                <p className="text-[11px] font-medium text-zinc-700 uppercase tracking-wider">Cette action est irréversible</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleDeleteAccount} className="h-9 px-8 rounded-full text-zinc-700 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest transition-all">Supprimer</Button>
             </div>
-            <Button 
-              variant="default" 
-              size="sm" 
-              onClick={async () => {
-                try {
-                  const response = await fetch('/api/cron/auto-scrape', {
-                    method: 'POST',
-                  });
-                  const data = await response.json();
-                  if (response.ok) {
-                    alert('✅ ' + data.message);
-                  } else {
-                    alert('❌ Erreur: ' + (data.error || 'Erreur inconnue'));
-                  }
-                } catch (error) {
-                  alert('❌ Erreur réseau');
-                }
-              }}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-            >
-              <Zap className="h-4 w-4 mr-1" />
-              Lancer
-            </Button>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="text-xs text-zinc-500">
-            <p className="mb-1">📋 <strong>Profil actuel:</strong></p>
-            {domains && <p>• Domaines: {domains}</p>}
-            {preferredCities && <p>• Villes: {preferredCities}</p>}
-            {contractTypes.length > 0 && <p>• Contrats: {contractTypes.join(', ')}</p>}
-            {skills.length > 0 && <p>• Compétences: {skills.slice(0, 3).join(', ')}</p>}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Compte</CardTitle>
-          <CardDescription>
-            Gerez les parametres de votre compte
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between py-3 border-b">
-            <div>
-              <p className="text-sm font-medium text-zinc-100">Exporter mes donnees</p>
-              <p className="text-xs text-zinc-400">Telecharger toutes vos donnees (RGPD)</p>
-            </div>
-            <Button variant="secondary" size="sm" onClick={handleExportData}>Exporter</Button>
-          </div>
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <p className="text-sm font-medium text-red-400">Supprimer mon compte</p>
-              <p className="text-xs text-zinc-400">Cette action est irreversible</p>
-            </div>
-            <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>
-              <Trash2 className="h-4 w-4 mr-1" />
-              Supprimer
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end">
-        <Button onClick={handleSaveSettings}>
-          <Save className="h-4 w-4 mr-2" />
-          Enregistrer les modifications
-        </Button>
+        <div className="flex justify-end gap-4">
+          <Button 
+            onClick={handleSaveSettings} 
+            className="bg-black hover:bg-zinc-900 text-white h-12 px-10 rounded-full border border-zinc-800 transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] font-serif italic text-base hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Save className="h-4 w-4 mr-3" />
+            Sauvegarder la configuration
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +11,10 @@ import { Loader } from "@/components/ui/loader";
 import {
   FileText, Upload, Sparkles, CheckCircle2, AlertTriangle,
   Copy, Download, RefreshCw, TrendingUp, Lightbulb, GraduationCap,
-  Globe, Zap
+  Globe, Zap, MapPin
 } from "lucide-react";
+
+import { useTranslation } from "@/lib/i18n";
 
 interface CVAnalysis {
   score: number;
@@ -35,14 +38,55 @@ interface ActionVerbs {
 }
 
 export default function CVImproverPage() {
+  const { t } = useTranslation();
   const [cvText, setCvText] = useState("");
   const [language, setLanguage] = useState<"fr" | "en">("fr");
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<CVAnalysis | null>(null);
   const [improvedCV, setImprovedCV] = useState<string | null>(null);
   const [generatedCV, setGeneratedCV] = useState<string | null>(null);
   const [actionVerbs, setActionVerbs] = useState<ActionVerbs | null>(null);
   const [activeTab, setActiveTab] = useState<"analyze" | "improve" | "generate" | "verbs">("analyze");
+
+  // Upload CV file (PDF)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Vérifier le type de fichier
+    if (!file.name.endsWith('.pdf') && !file.name.endsWith('.txt') && !file.name.endsWith('.docx')) {
+      alert(t("applications.cvUpload.unsupportedFormat") || "Format non supporté. Utilisez PDF, TXT ou DOCX.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadedFileName(file.name);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/cv/parse', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      
+      if (data.success && data.text) {
+        setCvText(data.text);
+      } else {
+        alert(data.error || t("applications.cvUpload.errorReading") || "Erreur lors de la lecture du fichier");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert(t("applications.cvUpload.errorUploading") || "Erreur lors de l'upload du fichier");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Load suggestions on mount
   useEffect(() => {
@@ -132,53 +176,51 @@ export default function CVImproverPage() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-400";
-    if (score >= 60) return "text-yellow-400";
-    if (score >= 40) return "text-orange-400";
-    return "text-red-400";
+    if (score >= 80) return "text-white";
+    if (score >= 60) return "text-zinc-300";
+    if (score >= 40) return "text-zinc-500";
+    return "text-zinc-700";
   };
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-10 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-50 flex items-center gap-2">
-            <GraduationCap className="h-6 w-6 text-amber-500" />
+        <div className="flex flex-col gap-1">
+          <h1 className="text-4xl font-serif font-normal tracking-tight text-white flex items-center gap-3">
+            <GraduationCap className="h-6 w-6 text-zinc-400" />
             CV Improver
           </h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
             {language === "fr" 
               ? "Analysez et améliorez votre CV avec le vocabulaire Harvard"
               : "Analyze and improve your CV with Harvard-style vocabulary"}
           </p>
         </div>
         
-        {/* Language Toggle */}
-        <div className="flex items-center gap-2 bg-zinc-800 rounded-lg p-1">
+        {/* Language Toggle Premium */}
+        <div className="flex items-center gap-1 p-1 bg-zinc-950 border border-zinc-900 rounded-xl">
           <button
             onClick={() => setLanguage("fr")}
-            className={`px-3 py-1.5 rounded text-sm flex items-center gap-1 ${
-              language === "fr" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-zinc-200"
+            className={`px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
+              language === "fr" ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-600 hover:text-zinc-400"
             }`}
           >
-            <Globe className="h-3 w-3" />
             FR
           </button>
           <button
             onClick={() => setLanguage("en")}
-            className={`px-3 py-1.5 rounded text-sm flex items-center gap-1 ${
-              language === "en" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-zinc-200"
+            className={`px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
+              language === "en" ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-600 hover:text-zinc-400"
             }`}
           >
-            <Globe className="h-3 w-3" />
             EN
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-zinc-700 pb-2">
+      {/* Tabs Premium */}
+      <div className="flex gap-1 p-1 bg-zinc-950/50 border border-zinc-900 rounded-2xl w-fit">
         {[
           { id: "analyze", icon: TrendingUp, label: language === "fr" ? "Analyser" : "Analyze" },
           { id: "improve", icon: Sparkles, label: language === "fr" ? "Améliorer" : "Improve" },
@@ -188,13 +230,13 @@ export default function CVImproverPage() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-300 ${
               activeTab === tab.id
-                ? "bg-zinc-800 text-white border-b-2 border-amber-500"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-white text-black shadow-lg"
+                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50"
             }`}
           >
-            <tab.icon className="h-4 w-4" />
+            <tab.icon className="h-3.5 w-3.5" />
             {tab.label}
           </button>
         ))}
@@ -202,108 +244,184 @@ export default function CVImproverPage() {
 
       {/* Analyze Tab */}
       {activeTab === "analyze" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-zinc-700">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Upload className="h-4 w-4 text-blue-500" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card className="bg-black border-zinc-900 shadow-none">
+            <CardHeader className="p-6">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                <Upload className="h-4 w-4 text-zinc-400" />
                 {language === "fr" ? "Votre CV" : "Your CV"}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-[13px] text-zinc-600 font-medium">
                 {language === "fr" 
-                  ? "Collez le contenu de votre CV pour l'analyser"
-                  : "Paste your CV content to analyze it"}
+                  ? "Uploadez votre CV ou collez le contenu textuel"
+                  : "Upload your CV or paste the raw content"}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="px-6 pb-6 space-y-6">
+              {/* Upload Zone Premium */}
+              <div className="border-2 border-dashed border-zinc-900 hover:border-zinc-700 bg-zinc-950/30 rounded-2xl p-8 text-center transition-all duration-300 group cursor-pointer relative">
+                <input
+                  type="file"
+                  accept=".pdf,.txt,.docx"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  disabled={uploading}
+                />
+                {uploading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader size="sm" />
+                    <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest animate-pulse">
+                      {language === "fr" ? "Lecture en cours..." : "Reading file..."}
+                    </span>
+                  </div>
+                ) : uploadedFileName ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-3 bg-white rounded-xl shadow-xl">
+                      <FileText className="h-6 w-6 text-black" />
+                    </div>
+                    <span className="text-[13px] font-bold text-zinc-200 tracking-tight">{uploadedFileName}</span>
+                    <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest group-hover:text-zinc-400 transition-colors">
+                      {language === "fr" ? "Changer le fichier" : "Change file"}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl group-hover:border-zinc-600 transition-all">
+                      <Upload className="h-6 w-6 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                    </div>
+                    <span className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                      {language === "fr" 
+                        ? "Sélectionner un fichier"
+                        : "Select a file"}
+                    </span>
+                    <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.2em]">PDF, TXT, DOCX</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-zinc-900" />
+                <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.2em]">
+                  {language === "fr" ? "OU TEXTE BRUT" : "OR RAW TEXT"}
+                </span>
+                <div className="flex-1 h-px bg-zinc-900" />
+              </div>
+
               <Textarea
                 placeholder={language === "fr" 
                   ? "Collez le contenu de votre CV ici..."
                   : "Paste your CV content here..."}
                 value={cvText}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCvText(e.target.value)}
-                rows={15}
-                className="bg-zinc-900 text-sm"
+                rows={10}
+                className="bg-zinc-950 border-zinc-900 text-[13px] font-medium leading-relaxed p-4 focus:border-zinc-700 transition-all scrollbar-hide"
               />
-              <Button onClick={analyzeCV} disabled={loading || !cvText.trim()} className="w-full">
-                {loading ? <Loader size="sm" className="mr-2" /> : <TrendingUp className="h-4 w-4 mr-2" />}
-                {language === "fr" ? "Analyser mon CV" : "Analyze my CV"}
+              <Button 
+                onClick={analyzeCV} 
+                disabled={loading || !cvText.trim()} 
+                className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-base h-12 rounded-full border border-zinc-800 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {loading ? <Loader size="sm" /> : <TrendingUp className="h-4 w-4 mr-3 text-zinc-400" />}
+                {language === "fr" ? "Lancer l'analyse" : "Start analysis"}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Analysis Results */}
-          <Card className="border-zinc-700">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                {language === "fr" ? "Résultats de l'analyse" : "Analysis Results"}
+          {/* Analysis Results Premium */}
+          <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
+            <CardHeader className="p-6">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                <CheckCircle2 className="h-4 w-4 text-zinc-400" />
+                {language === "fr" ? "Intelligence Report" : "Analysis Intelligence"}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-6 pb-6">
               {analysis ? (
-                <div className="space-y-6">
-                  {/* Score */}
-                  <div className="text-center p-4 bg-zinc-800 rounded-lg">
-                    <p className="text-sm text-zinc-400 mb-2">
-                      {language === "fr" ? "Score de votre CV" : "CV Score"}
-                    </p>
-                    <p className={`text-5xl font-bold ${getScoreColor(analysis.score)}`}>
-                      {analysis.score}
-                    </p>
-                    <p className="text-xs text-zinc-500 mt-1">/100</p>
+                <div className="space-y-8 animate-in fade-in duration-500">
+                  {/* Score Premium */}
+                  <div className="relative p-8 bg-zinc-950 border border-zinc-900 rounded-3xl overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+                      <Sparkles className="h-24 w-24 text-white" />
+                    </div>
+                    <div className="text-center relative z-10">
+                      <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] mb-4">
+                        Harvard Compatibility Score
+                      </p>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className={cn("text-7xl font-bold tracking-tighter", getScoreColor(analysis.score))}>
+                          {analysis.score}
+                        </span>
+                        <span className="text-zinc-700 font-bold text-xl">/100</span>
+                      </div>
+                      <div className="mt-6 h-1 bg-zinc-900 rounded-full w-48 mx-auto overflow-hidden">
+                        <div 
+                          className={cn("h-full transition-all duration-1000", 
+                            analysis.score >= 80 ? "bg-white" : 
+                            analysis.score >= 60 ? "bg-zinc-400" : "bg-zinc-700"
+                          )} 
+                          style={{ width: `${analysis.score}%` }} 
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Strengths */}
-                  {analysis.strengths.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-green-400 mb-2 flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" />
-                        {language === "fr" ? "Points forts" : "Strengths"}
-                      </h4>
-                      <ul className="space-y-1">
-                        {analysis.strengths.map((s, i) => (
-                          <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
-                            <span className="text-green-500">✓</span> {s}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <div className="grid grid-cols-1 gap-6">
+                    {analysis.strengths.length > 0 && (
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                          {language === "fr" ? "Points forts identifiés" : "Identified Strengths"}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.strengths.map((s, i) => (
+                            <span key={i} className="px-3 py-1.5 rounded-lg bg-zinc-950 border border-zinc-900 text-[12px] font-medium text-zinc-300">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Weaknesses */}
-                  {analysis.weaknesses.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-orange-400 mb-2 flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        {language === "fr" ? "Points à améliorer" : "Areas to Improve"}
-                      </h4>
-                      <ul className="space-y-1">
-                        {analysis.weaknesses.map((w, i) => (
-                          <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
-                            <span className="text-orange-500">!</span> {w}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Suggestions */}
-                  {analysis.suggestions.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-blue-400 mb-2 flex items-center gap-1">
-                        <Lightbulb className="h-3 w-3" />
-                        {language === "fr" ? "Suggestions" : "Suggestions"}
-                      </h4>
-                      <div className="space-y-2">
-                        {analysis.suggestions.map((s, i) => (
-                          <div key={i} className="p-2 bg-zinc-800 rounded text-xs">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge variant="outline" className="text-[10px]">{s.category}</Badge>
+                    {/* Weaknesses */}
+                    {analysis.weaknesses.length > 0 && (
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                          {language === "fr" ? "Axe d'optimisation" : "Optimization Axis"}
+                        </h4>
+                        <div className="space-y-2">
+                          {analysis.weaknesses.map((w, i) => (
+                            <div key={i} className="flex items-start gap-3 p-3 bg-zinc-950/50 border border-zinc-900 rounded-xl">
+                              <AlertTriangle className="h-3.5 w-3.5 text-zinc-600 mt-0.5" />
+                              <span className="text-[12px] font-medium text-zinc-400 leading-relaxed">{w}</span>
                             </div>
-                            <p className="text-zinc-500 line-through">{s.original}</p>
-                            <p className="text-green-400">→ {s.improved}</p>
-                            <p className="text-zinc-400 mt-1 italic">{s.reason}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Suggestions Premium */}
+                  {analysis.suggestions.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t border-zinc-900">
+                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Harvard Recommendations</h4>
+                      <div className="space-y-3">
+                        {analysis.suggestions.map((s, i) => (
+                          <div key={i} className="group p-4 bg-zinc-950 border border-zinc-900 rounded-2xl hover:border-zinc-700 transition-all">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-zinc-900 text-zinc-500 border border-zinc-800">
+                                {s.category}
+                              </span>
+                            </div>
+                            <div className="space-y-2 mb-3">
+                              <p className="text-[11px] font-medium text-zinc-600 line-through decoration-zinc-800">{s.original}</p>
+                              <div className="flex items-start gap-2">
+                                <span className="text-white mt-0.5">→</span>
+                                <p className="text-[13px] font-bold text-zinc-100 tracking-tight">{s.improved}</p>
+                              </div>
+                            </div>
+                            <p className="text-[11px] font-medium text-zinc-500 italic leading-relaxed">{s.reason}</p>
                           </div>
                         ))}
                       </div>
@@ -311,9 +429,15 @@ export default function CVImproverPage() {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-12 text-zinc-500">
-                  <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>{language === "fr" ? "Collez votre CV pour obtenir une analyse" : "Paste your CV to get an analysis"}</p>
+                <div className="text-center py-32 space-y-6">
+                  <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-full w-fit mx-auto opacity-20">
+                    <TrendingUp className="h-12 w-12 text-white" />
+                  </div>
+                  <p className="text-[13px] font-medium text-zinc-600 max-w-[240px] mx-auto leading-relaxed">
+                    {language === "fr" 
+                      ? "En attente de données pour générer votre rapport d'analyse Harvard." 
+                      : "Awaiting data to generate your Harvard analysis report."}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -323,54 +447,63 @@ export default function CVImproverPage() {
 
       {/* Improve Tab */}
       {activeTab === "improve" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-zinc-700">
-            <CardHeader>
-              <CardTitle className="text-base">
-                {language === "fr" ? "CV Original" : "Original CV"}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-500">
+          <Card className="bg-black border-zinc-900 shadow-none">
+            <CardHeader className="p-6">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                {language === "fr" ? "CV ORIGINAL" : "ORIGINAL CV"}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="px-6 pb-6 space-y-6">
               <Textarea
                 placeholder={language === "fr" 
                   ? "Collez votre CV ici..."
                   : "Paste your CV here..."}
                 value={cvText}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCvText(e.target.value)}
-                rows={20}
-                className="bg-zinc-900 text-sm font-mono"
+                rows={18}
+                className="bg-zinc-950 border-zinc-900 text-[13px] font-mono leading-relaxed p-4 focus:border-zinc-700 transition-all scrollbar-hide"
               />
-              <Button onClick={improveCV} disabled={loading || !cvText.trim()} className="w-full bg-amber-600 hover:bg-amber-500">
-                {loading ? <Loader size="sm" className="mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                {language === "fr" ? "Améliorer avec vocabulaire Harvard" : "Improve with Harvard vocabulary"}
+              <Button 
+                onClick={improveCV} 
+                disabled={loading || !cvText.trim()} 
+                className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-base h-12 rounded-full border border-zinc-800 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {loading ? <Loader size="sm" /> : <Sparkles className="h-4 w-4 mr-3 text-zinc-400" />}
+                {language === "fr" ? "Améliorer avec l'IA" : "Improve with AI"}
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="border-zinc-700 border-amber-500/30">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-amber-500" />
-                {language === "fr" ? "CV Amélioré" : "Improved CV"}
+          <Card className="bg-black border-zinc-900 shadow-none border-zinc-800/50">
+            <CardHeader className="p-6 flex flex-row items-center justify-between">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                <GraduationCap className="h-4 w-4 text-zinc-400" />
+                {language === "fr" ? "RÉSULTAT OPTIMISÉ" : "OPTIMIZED RESULT"}
               </CardTitle>
               {improvedCV && (
-                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(improvedCV)}>
-                  <Copy className="h-4 w-4" />
+                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(improvedCV)} className="h-8 text-zinc-500 hover:text-white hover:bg-zinc-900">
+                  <Copy className="h-3.5 w-3.5 mr-2" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Copy</span>
                 </Button>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-6 pb-6">
               {improvedCV ? (
                 <Textarea
                   value={improvedCV}
                   readOnly
-                  rows={20}
-                  className="bg-zinc-900 text-sm font-mono text-green-300"
+                  rows={18}
+                  className="bg-zinc-950 border-zinc-900 text-[13px] font-mono text-zinc-200 leading-relaxed p-4 scrollbar-hide"
                 />
               ) : (
-                <div className="text-center py-20 text-zinc-500">
-                  <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>{language === "fr" ? "Votre CV amélioré apparaîtra ici" : "Your improved CV will appear here"}</p>
+                <div className="text-center py-32 space-y-6">
+                  <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-full w-fit mx-auto opacity-20">
+                    <Sparkles className="h-12 w-12 text-white" />
+                  </div>
+                  <p className="text-[13px] font-medium text-zinc-600 max-w-[240px] mx-auto leading-relaxed">
+                    {language === "fr" ? "Votre CV optimisé avec le vocabulaire Harvard apparaîtra ici." : "Your optimized CV with Harvard vocabulary will appear here."}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -380,37 +513,44 @@ export default function CVImproverPage() {
 
       {/* Generate Tab */}
       {activeTab === "generate" && (
-        <div className="max-w-4xl mx-auto">
-          <Card className="border-zinc-700">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2">
-                <GraduationCap className="h-5 w-5 text-amber-500" />
+        <div className="max-w-4xl mx-auto animate-in fade-in duration-500">
+          <Card className="bg-black border-zinc-900 shadow-none">
+            <CardHeader className="p-8 text-center">
+              <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-full w-fit mx-auto mb-6">
+                <GraduationCap className="h-8 w-8 text-zinc-400" />
+              </div>
+              <CardTitle className="text-xl font-bold tracking-tight text-white mb-2">
                 {language === "fr" ? "Générer un CV Harvard" : "Generate Harvard CV"}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-[13px] text-zinc-500 font-medium max-w-sm mx-auto">
                 {language === "fr"
-                  ? "Créez un CV professionnel basé sur votre profil avec le vocabulaire Harvard"
-                  : "Create a professional CV based on your profile with Harvard vocabulary"}
+                  ? "Créez un CV professionnel complet basé sur votre profil et les standards académiques Harvard."
+                  : "Create a complete professional CV based on your profile and Harvard academic standards."}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button onClick={generateCV} disabled={loading} className="w-full bg-amber-600 hover:bg-amber-500">
-                {loading ? <Loader size="sm" className="mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
-                {language === "fr" ? "Générer mon CV Harvard" : "Generate my Harvard CV"}
+            <CardContent className="px-8 pb-8 space-y-8">
+              <Button 
+                onClick={generateCV} 
+                disabled={loading} 
+                className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-base h-12 rounded-full border border-zinc-800 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {loading ? <Loader size="sm" /> : <FileText className="h-4 w-4 mr-3 text-zinc-400" />}
+                {language === "fr" ? "Générer mon CV Premium" : "Generate my Premium CV"}
               </Button>
 
               {generatedCV && (
-                <div className="relative">
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedCV)}>
-                      <Copy className="h-4 w-4" />
+                <div className="relative group animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all z-10">
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(generatedCV)} className="h-9 border-zinc-800 bg-zinc-950/80 backdrop-blur text-zinc-400 hover:text-white">
+                      <Copy className="h-3.5 w-3.5 mr-2" />
+                      Copier
                     </Button>
                   </div>
                   <Textarea
                     value={generatedCV}
                     readOnly
-                    rows={25}
-                    className="bg-zinc-900 text-sm font-mono"
+                    rows={22}
+                    className="bg-zinc-950 border-zinc-900 text-[13px] font-mono leading-relaxed p-8 focus:border-zinc-700 transition-all scrollbar-hide"
                   />
                 </div>
               )}
@@ -421,31 +561,30 @@ export default function CVImproverPage() {
 
       {/* Action Verbs Tab */}
       {activeTab === "verbs" && actionVerbs && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
           {Object.entries(actionVerbs).map(([category, verbs]) => (
-            <Card key={category} className="border-zinc-700">
-              <CardHeader>
-                <CardTitle className="text-sm capitalize flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-amber-500" />
+            <Card key={category} className="bg-black border-zinc-900 shadow-none group hover:border-zinc-700 transition-all duration-300">
+              <CardHeader className="p-5 pb-2">
+                <CardTitle className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                  <Zap className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
                   {category === "leadership" ? (language === "fr" ? "Leadership" : "Leadership") :
-                   category === "achievement" ? (language === "fr" ? "Accomplissement" : "Achievement") :
+                   category === "achievement" ? (language === "fr" ? "Impact" : "Achievement") :
                    category === "analysis" ? (language === "fr" ? "Analyse" : "Analysis") :
                    category === "communication" ? (language === "fr" ? "Communication" : "Communication") :
-                   category === "creation" ? (language === "fr" ? "Création" : "Creation") :
-                   (language === "fr" ? "Amélioration" : "Improvement")}
+                   category === "creation" ? (language === "fr" ? "Innovation" : "Creation") :
+                   (language === "fr" ? "Optimisation" : "Improvement")}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
+              <CardContent className="p-5 pt-4">
+                <div className="flex flex-wrap gap-1.5">
                   {(verbs as string[]).map((verb) => (
-                    <Badge
+                    <button
                       key={verb}
-                      variant="secondary"
-                      className="cursor-pointer hover:bg-amber-600 hover:text-white transition-colors"
                       onClick={() => copyToClipboard(verb)}
+                      className="px-2.5 py-1 rounded-md bg-zinc-900/50 border border-zinc-900 text-[11px] font-medium text-zinc-400 hover:text-white hover:border-zinc-700 hover:bg-zinc-900 transition-all"
                     >
                       {verb}
-                    </Badge>
+                    </button>
                   ))}
                 </div>
               </CardContent>

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
-import { Building2, Briefcase, TrendingUp, AlertCircle, CheckCircle, Play, Database } from "lucide-react";
+import { Building2, Search, TrendingUp, AlertCircle, CheckCircle, Play, Database } from "lucide-react";
 
 export default function ScraperAdminPage() {
   const [loading, setLoading] = useState(false);
@@ -41,11 +42,14 @@ export default function ScraperAdminPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl pb-24">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-50">Scraper Admin</h1>
-        <p className="text-sm text-zinc-400 mt-1">
-          Gérez le scraping des offres des grandes entreprises
+    <div className="space-y-10 max-w-6xl pb-24">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-4xl font-serif font-normal tracking-tight text-white flex items-center gap-3">
+          <Database className="h-6 w-6 text-zinc-400" />
+          Scraper Control Center
+        </h1>
+        <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
+          Supervision technique et orchestration du scraping des flux d'opportunités.
         </p>
       </div>
 
@@ -53,235 +57,153 @@ export default function ScraperAdminPage() {
         {sectors.map((sector) => (
           <Card
             key={sector.id}
-            className={`cursor-pointer transition-all ${
+            className={cn(
+              "cursor-pointer transition-all duration-300 bg-black border shadow-none relative overflow-hidden group",
               selectedSector === sector.id
-                ? "ring-2 ring-zinc-500 bg-zinc-800"
-                : "hover:bg-zinc-800"
-            }`}
+                ? "border-white ring-1 ring-white/20"
+                : "border-zinc-900 hover:border-zinc-700"
+            )}
             onClick={() => setSelectedSector(sector.id)}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-zinc-300">{sector.name}</p>
-                  <p className="text-2xl font-bold text-zinc-50 mt-1">{sector.count}</p>
-                </div>
-                <Building2 className="h-8 w-8 text-zinc-500" />
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">{sector.name}</p>
+                <Building2 className={cn("h-3.5 w-3.5 transition-colors", selectedSector === sector.id ? "text-white" : "text-zinc-800 group-hover:text-zinc-600")} />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold tracking-tighter text-white">{sector.count}</span>
+                <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest">Entities</span>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Lancer le scraping</CardTitle>
-          <CardDescription>
-            Récupérer les dernières offres de stages et programmes des grandes entreprises
-          </CardDescription>
+      <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
+        <CardHeader className="p-6 border-b border-zinc-900/50">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Exécution du Scraper</CardTitle>
+              <CardDescription className="text-[13px] text-zinc-600 font-medium">Récupération synchrone des offres et programmes stratégiques</CardDescription>
+            </div>
+            {selectedSector !== "all" && (
+              <span className="px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+                Target: {sectors.find((s) => s.id === selectedSector)?.name}
+              </span>
+            )}
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
+        <CardContent className="p-8 space-y-8">
+          <div className="flex flex-col items-center justify-center py-10 space-y-6">
+            <div className={cn(
+              "p-6 rounded-full border transition-all duration-700",
+              loading ? "bg-white border-white shadow-[0_0_30px_rgba(255,255,255,0.2)]" : "bg-zinc-950 border-zinc-900"
+            )}>
+              <Play className={cn("h-10 w-10 transition-all", loading ? "text-black scale-90" : "text-zinc-800")} />
+            </div>
+            
             <Button
               onClick={handleScrape}
               disabled={loading}
-              className="w-full sm:w-auto"
+              className="bg-black hover:bg-zinc-900 text-white h-12 px-12 font-bold text-[11px] uppercase tracking-[0.2em] border border-zinc-800 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
             >
               {loading ? (
-                <>
-                  <Loader size="sm" className="mr-2" />
-                  Scraping en cours...
-                </>
+                <div className="flex items-center gap-3">
+                  <Loader size="sm" />
+                  <span>Traitement en cours...</span>
+                </div>
               ) : (
-                <>
-                  <Play className="h-4 w-4 mr-2" />
-                  Démarrer le scraping
-                </>
+                "Initialiser le processus"
               )}
             </Button>
-            {selectedSector !== "all" && (
-              <Badge variant="secondary">
-                Secteur: {sectors.find((s) => s.id === selectedSector)?.name}
-              </Badge>
-            )}
           </div>
 
           {results && (
-            <div className="mt-6 space-y-4">
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {results.success ? (
                 <>
                   <div className="grid gap-4 md:grid-cols-3">
-                    <Card className="bg-zinc-800 border-zinc-700">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-green-500/10 rounded-lg">
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-zinc-400">Entreprises scrapées</p>
-                            <p className="text-2xl font-bold text-zinc-50">
-                              {results.stats.companiesScraped}
-                            </p>
-                          </div>
+                    {[
+                      { label: "Secteurs traités", value: results.stats.companiesScraped, icon: CheckCircle },
+                      { label: "Flux analysés", value: results.stats.totalJobsFound, icon: Search },
+                      { label: "Entités stockées", value: results.stats.jobsSaved, icon: Database },
+                    ].map((stat, i) => (
+                      <div key={i} className="p-5 bg-zinc-950 border border-zinc-900 rounded-2xl">
+                        <div className="flex items-center gap-3 mb-3">
+                          <stat.icon className="h-3.5 w-3.5 text-zinc-600" />
+                          <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">{stat.label}</p>
                         </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-zinc-800 border-zinc-700">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-500/10 rounded-lg">
-                            <Briefcase className="h-5 w-5 text-blue-500" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-zinc-400">Offres trouvées</p>
-                            <p className="text-2xl font-bold text-zinc-50">
-                              {results.stats.totalJobsFound}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-zinc-800 border-zinc-700">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-purple-500/10 rounded-lg">
-                            <Database className="h-5 w-5 text-purple-500" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-zinc-400">Nouvelles offres</p>
-                            <p className="text-2xl font-bold text-zinc-50">
-                              {results.stats.jobsSaved}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        <p className="text-3xl font-bold tracking-tighter text-white">{stat.value}</p>
+                      </div>
+                    ))}
                   </div>
 
-                  <Card className="bg-zinc-800 border-zinc-700">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Détails par entreprise</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {results.results.map((result: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              {result.success ? (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <AlertCircle className="h-4 w-4 text-red-500" />
-                              )}
-                              <span className="text-sm font-medium text-zinc-200">
-                                {result.company}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {result.success ? (
-                                <Badge variant="secondary">
-                                  {result.jobCount} offres
-                                </Badge>
-                              ) : (
-                                <Badge variant="destructive">Erreur</Badge>
-                              )}
-                            </div>
+                  <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden">
+                    <div className="p-4 border-b border-zinc-900 bg-black/40">
+                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Log détaillé des entités</h4>
+                    </div>
+                    <div className="divide-y divide-zinc-900 max-h-[400px] overflow-y-auto scrollbar-hide">
+                      {results.results.map((result: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between p-4 hover:bg-zinc-900/30 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className={cn(
+                              "h-2 w-2 rounded-full",
+                              result.success ? "bg-zinc-400" : "bg-zinc-800"
+                            )} />
+                            <span className="text-[13px] font-bold text-zinc-300 tracking-tight">{result.company}</span>
                           </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                          <div className="flex items-center gap-3">
+                            {result.success ? (
+                              <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest">{result.jobCount} opportunités</span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-zinc-950 text-zinc-700 border border-zinc-900">Failure</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </>
               ) : (
-                <Card className="bg-red-500/10 border-red-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="h-5 w-5 text-red-500" />
-                      <div>
-                        <p className="text-sm font-medium text-red-400">
-                          Erreur lors du scraping
-                        </p>
-                        <p className="text-xs text-red-300 mt-1">
-                          {results.error || "Une erreur est survenue"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-2xl flex items-center gap-4">
+                  <AlertCircle className="h-5 w-5 text-zinc-700" />
+                  <div className="space-y-1">
+                    <p className="text-[13px] font-bold text-zinc-500 uppercase tracking-widest">System Error</p>
+                    <p className="text-[12px] font-medium text-zinc-700">{results.error || "Une erreur critique est survenue lors du traitement."}</p>
+                  </div>
+                </div>
               )}
             </div>
           )}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Entreprises ciblées</CardTitle>
-          <CardDescription>
-            Liste des grandes entreprises financières et leurs programmes
-          </CardDescription>
+      <Card className="bg-black border-zinc-900 shadow-none">
+        <CardHeader className="p-6">
+          <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Scope de Surveillance</CardTitle>
+          <CardDescription className="text-[13px] text-zinc-600 font-medium">Structure du périmètre d'analyse automatique</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-zinc-300 mb-2">Finance (15)</h3>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "Goldman Sachs",
-                  "JP Morgan",
-                  "Morgan Stanley",
-                  "BNP Paribas",
-                  "Société Générale",
-                  "Crédit Agricole",
-                  "Rothschild & Co",
-                  "Lazard",
-                  "Barclays",
-                  "HSBC",
-                  "Citi",
-                  "Deutsche Bank",
-                  "UBS",
-                  "Credit Suisse",
-                  "Natixis",
-                ].map((company) => (
-                  <Badge key={company} variant="secondary">
+        <CardContent className="p-6 pt-0 space-y-8">
+          {[
+            { title: "Finance Intelligence", companies: ["Goldman Sachs", "JP Morgan", "Morgan Stanley", "BNP Paribas", "Société Générale", "Crédit Agricole", "Rothschild & Co", "Lazard", "Barclays", "HSBC", "Citi", "Deutsche Bank", "UBS", "Credit Suisse", "Natixis"] },
+            { title: "Big Tech Ecosystem", companies: ["Google", "Meta", "Microsoft", "Amazon", "Apple"] },
+            { title: "Strategic Consulting", companies: ["McKinsey & Company", "Boston Consulting Group", "Bain & Company", "Deloitte", "PwC"] },
+          ].map((scope, i) => (
+            <div key={i} className="space-y-4">
+              <h3 className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.3em] flex items-center gap-3">
+                <div className="h-px flex-1 bg-zinc-900" />
+                {scope.title}
+                <div className="h-px flex-1 bg-zinc-900" />
+              </h3>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {scope.companies.map((company) => (
+                  <span key={company} className="px-3 py-1.5 rounded-lg border border-zinc-900 bg-zinc-950/50 text-[11px] font-bold text-zinc-500 hover:text-zinc-300 hover:border-zinc-700 transition-all cursor-default">
                     {company}
-                  </Badge>
+                  </span>
                 ))}
               </div>
             </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-zinc-300 mb-2">Tech (5)</h3>
-              <div className="flex flex-wrap gap-2">
-                {["Google", "Meta", "Microsoft", "Amazon", "Apple"].map((company) => (
-                  <Badge key={company} variant="secondary">
-                    {company}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-zinc-300 mb-2">Conseil (5)</h3>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "McKinsey & Company",
-                  "Boston Consulting Group",
-                  "Bain & Company",
-                  "Deloitte",
-                  "PwC",
-                ].map((company) => (
-                  <Badge key={company} variant="secondary">
-                    {company}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
+          ))}
         </CardContent>
       </Card>
     </div>

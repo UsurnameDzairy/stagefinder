@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -168,109 +169,119 @@ export function ScraperPreview({ isActive, searchQuery, location, jobId }: Scrap
   };
 
   return (
-    <div className="fixed bottom-20 right-4 z-[9998] w-80">
-      <Card className="bg-zinc-900/95 backdrop-blur-sm border-zinc-700 shadow-2xl">
-        <CardHeader className="py-2 px-3 border-b border-zinc-800">
+    <div className="fixed bottom-24 right-6 z-[9998] w-80 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Card className="bg-black/90 backdrop-blur-xl border-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden rounded-2xl relative">
+        <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none">
+          <Terminal className="h-24 w-24 text-white" />
+        </div>
+
+        <CardHeader className="py-3 px-4 border-b border-zinc-900 bg-zinc-950/50 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Terminal className="h-4 w-4 text-emerald-500" />
-              <CardTitle className="text-sm text-zinc-100">Scraper Live</CardTitle>
-              {isActive && progress < 100 && (
-                <Badge variant="outline" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/50 text-xs">
-                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                  {progress}%
-                </Badge>
-              )}
-              {progress >= 100 && (
-                <Badge variant="outline" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/50 text-xs">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Terminé
-                </Badge>
-              )}
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg">
+                <Terminal className="h-3.5 w-3.5 text-zinc-400" />
+              </div>
+              <CardTitle className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Scraper Engine</CardTitle>
             </div>
-            <div className="flex items-center gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
+            <div className="flex items-center gap-1.5">
+              <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="h-6 w-6"
+                className="h-7 w-7 rounded-lg border border-zinc-900 bg-black text-zinc-600 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"
               >
-                {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
+                {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+              </button>
+              <button
                 onClick={() => setIsVisible(false)}
-                className="h-6 w-6"
+                className="h-7 w-7 rounded-lg border border-zinc-900 bg-black text-zinc-600 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"
               >
-                <EyeOff className="h-3 w-3" />
-              </Button>
+                <EyeOff className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         </CardHeader>
 
         {isExpanded && (
-          <CardContent className="p-3 space-y-3">
-            {/* Progress Bar */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">{getStepLabel(step)}</span>
-                <span className="text-zinc-500">{progress}%</span>
+          <CardContent className="p-4 space-y-5 relative z-10">
+            {/* Progress Bar Premium */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-baseline px-0.5">
+                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{getStepLabel(step)}</span>
+                <span className="text-sm font-bold tracking-tighter text-white">{progress}%</span>
               </div>
-              <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500"
+                  className="h-full bg-white rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
 
-            {/* Sources Status */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* Sources Status monochrome */}
+            <div className="grid grid-cols-1 gap-1.5">
               {sources.map((source) => (
                 <div 
                   key={source.name}
-                  className={`flex items-center gap-2 p-2 rounded-md text-xs ${
-                    source.status === "scraping" ? "bg-blue-500/20 border border-blue-500/30" :
-                    source.status === "done" ? "bg-emerald-500/20 border border-emerald-500/30" :
-                    source.status === "error" ? "bg-red-500/20 border border-red-500/30" :
-                    "bg-zinc-800/50 border border-zinc-700"
-                  }`}
-                >
-                  {source.status === "scraping" && <Loader2 className="h-3 w-3 animate-spin text-blue-400" />}
-                  {source.status === "done" && <CheckCircle className="h-3 w-3 text-emerald-400" />}
-                  {source.status === "error" && <XCircle className="h-3 w-3 text-red-400" />}
-                  {source.status === "idle" && <Globe className="h-3 w-3 text-zinc-500" />}
-                  <span className={`flex-1 ${
-                    source.status === "scraping" ? "text-blue-300" :
-                    source.status === "done" ? "text-emerald-300" :
-                    source.status === "error" ? "text-red-300" :
-                    "text-zinc-400"
-                  }`}>
-                    {source.name}
-                  </span>
-                  {source.status === "done" && source.jobsFound > 0 && (
-                    <Badge className="bg-emerald-500/30 text-emerald-300 text-[10px] px-1">
-                      {source.jobsFound}
-                    </Badge>
+                  className={cn(
+                    "flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300",
+                    source.status === "scraping" ? "bg-zinc-950 border-zinc-800 animate-pulse" :
+                    source.status === "done" ? "bg-zinc-950 border-zinc-900" :
+                    source.status === "error" ? "bg-zinc-950 border-zinc-700" :
+                    "bg-black border-zinc-900 opacity-40"
                   )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      source.status === "done" ? "bg-white" : 
+                      source.status === "scraping" ? "bg-zinc-400" : 
+                      source.status === "error" ? "bg-zinc-700" :
+                      "bg-zinc-800"
+                    )} />
+                    <span className={cn(
+                      "text-[11px] font-bold tracking-tight",
+                      source.status === "done" ? "text-zinc-100" : "text-zinc-500"
+                    )}>
+                      {source.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {source.status === "scraping" && (
+                      <div className="flex gap-0.5">
+                        <div className="w-0.5 h-0.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                        <div className="w-0.5 h-0.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                        <div className="w-0.5 h-0.5 bg-zinc-400 rounded-full animate-bounce" />
+                      </div>
+                    )}
+                    {source.status === "done" && source.jobsFound > 0 && (
+                      <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+                        {source.jobsFound} jobs
+                      </span>
+                    )}
+                    {source.status === "error" && <XCircle className="h-3 w-3 text-zinc-600" />}
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Total Jobs */}
+            {/* Total Summary */}
             {resultsCount > 0 && (
-              <div className="flex items-center justify-between px-2 py-1 bg-zinc-800/50 rounded-md">
-                <span className="text-xs text-zinc-400">Total offres réelles:</span>
-                <Badge className="bg-emerald-500 text-white">{resultsCount}</Badge>
+              <div className="flex items-center justify-between px-3 py-2 bg-zinc-950 border border-zinc-900 rounded-xl">
+                <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Extracted entities:</span>
+                <span className="text-[11px] font-black text-white tracking-tighter">{resultsCount}</span>
               </div>
             )}
 
-            {/* Info */}
-            <div className="bg-black/50 rounded-md p-2 font-mono text-[10px] text-zinc-500">
-              <p>🔍 Recherche: {searchQuery || "N/A"}</p>
-              <p>📍 Lieu: {location || "Paris"}</p>
-              <p className="text-emerald-400 mt-1">✓ Données 100% réelles (Puppeteer)</p>
+            {/* Terminal Info */}
+            <div className="bg-[#050505] border border-zinc-900 rounded-xl p-3 font-mono text-[9px] space-y-1">
+              <div className="flex items-center gap-1.5 opacity-40 mb-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
+                <span className="uppercase tracking-widest">System Params</span>
+              </div>
+              <p className="text-zinc-600 truncate">QUERY: {searchQuery || "N/A"}</p>
+              <p className="text-zinc-600 truncate">LOC: {location || "GLOBAL"}</p>
+              <p className="text-zinc-400 pt-1 border-t border-zinc-900/50">
+                <span className="text-white">{'>>'}</span> VERIFIED DATA STREAM
+              </p>
             </div>
           </CardContent>
         )}

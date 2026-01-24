@@ -1,20 +1,22 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { Sidebar } from "@/components/layout/sidebar";
-import { FloatingAssistant } from "@/components/assistant/floating-assistant";
+import Navbar from "@/components/ui/navbar";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
 
   if (!session) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   return (
-    <div className="flex h-screen bg-zinc-950">
-      <Sidebar user={session} />
-      <main className="flex-1 overflow-auto p-8 bg-zinc-950 ml-60">{children}</main>
-      <FloatingAssistant />
+    <div className="flex flex-col h-screen bg-black overflow-hidden">
+      <Navbar user={session} />
+      <main className="flex-1 overflow-y-auto bg-black relative pt-16">
+        <div className="max-w-7xl mx-auto p-8 md:p-10 lg:p-12">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

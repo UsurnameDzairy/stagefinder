@@ -26,10 +26,10 @@ const ColorOrb: React.FC<OrbProps> = ({
   spinDuration = 20,
 }) => {
   const fallbackTones = {
-    base: "oklch(95% 0.02 264.695)",
-    accent1: "oklch(75% 0.15 350)",
-    accent2: "oklch(80% 0.12 200)",
-    accent3: "oklch(78% 0.14 280)",
+    base: "oklch(20% 0 0)",
+    accent1: "oklch(40% 0 0)",
+    accent2: "oklch(30% 0 0)",
+    accent3: "oklch(35% 0 0)",
   }
 
   const palette = { ...fallbackTones, ...tones }
@@ -54,7 +54,7 @@ const ColorOrb: React.FC<OrbProps> = ({
 
   return (
     <div
-      className={cn("color-orb", className)}
+      className={cn("color-orb opacity-40", className)}
       style={{
         width: dimension,
         height: dimension,
@@ -237,13 +237,13 @@ export function MorphPanel({ onSubmit }: MorphPanelProps) {
         ref={wrapperRef}
         data-panel
         className={cx(
-          "bg-zinc-900 border-zinc-800 relative z-3 flex flex-col items-center overflow-hidden border shadow-2xl"
+          "bg-black border-zinc-900 relative z-3 flex flex-col items-center overflow-hidden border shadow-2xl"
         )}
         initial={false}
         animate={{
           width: showForm ? FORM_WIDTH : "auto",
           height: showForm ? FORM_HEIGHT : 44,
-          borderRadius: showForm ? 14 : 20,
+          borderRadius: showForm ? 24 : 22,
         }}
         transition={{
           type: "spring",
@@ -266,7 +266,7 @@ function DockBar() {
   const { showForm, triggerOpen } = useFormContext()
   return (
     <footer className="mt-auto flex h-[44px] items-center justify-center whitespace-nowrap select-none">
-      <div className="flex items-center justify-center gap-2 px-3 max-sm:h-10 max-sm:px-2">
+      <div className="flex items-center justify-center gap-2 px-4">
         <div className="flex w-fit items-center gap-2">
           <AnimatePresence mode="wait">
             {showForm ? (
@@ -285,27 +285,26 @@ function DockBar() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <ColorOrb dimension="24px" tones={{ base: "oklch(22.64% 0 0)" }} />
+                <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <Button
+        <button
           type="button"
-          className="flex h-fit flex-1 justify-end rounded-full px-2 !py-0.5"
-          variant="ghost"
+          className="flex h-fit flex-1 justify-end rounded-full px-2 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
           onClick={triggerOpen}
         >
-          <span className="truncate text-zinc-100">Ask AI</span>
-        </Button>
+          Intelligence Hub
+        </button>
       </div>
     </footer>
   )
 }
 
-const FORM_WIDTH = 360
-const FORM_HEIGHT = 200
+const FORM_WIDTH = 400
+const FORM_HEIGHT = 220
 
 interface InputFormProps {
   ref: React.Ref<HTMLTextAreaElement>
@@ -350,44 +349,30 @@ function InputForm({ ref, onSuccess, onSubmit }: InputFormProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ type: "spring", stiffness: 550 / SPEED_FACTOR, damping: 45, mass: 0.7 }}
-            className="flex h-full flex-col p-1"
+            className="flex h-full flex-col p-4"
           >
-            <div className="flex justify-between py-1">
-              <p className="text-zinc-100 z-2 ml-[38px] flex items-center gap-[6px] select-none">
-                AI Input
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-1">
+                QUERY INTERFACE
               </p>
               <button
                 type="submit"
                 ref={btnRef}
-                className="text-zinc-100 right-4 mt-1 flex -translate-y-[3px] cursor-pointer items-center justify-center gap-1 rounded-[12px] bg-transparent pr-1 text-center select-none"
+                className="text-white flex items-center gap-2 rounded-xl bg-zinc-900 border border-zinc-800 px-3 py-1.5 hover:bg-zinc-800 transition-all active:scale-95"
               >
                 <KeyHint>⌘</KeyHint>
-                <KeyHint className="w-fit">Enter</KeyHint>
+                <span className="text-[10px] font-bold uppercase tracking-widest">Execute</span>
               </button>
             </div>
             <textarea
               ref={ref}
-              placeholder="Ask me anything..."
+              placeholder="Décrivez votre requête stratégique..."
               name="message"
-              className="h-full w-full resize-none scroll-py-2 rounded-md p-4 outline-0 bg-zinc-800 text-zinc-100 placeholder:text-zinc-500"
+              className="h-full w-full resize-none rounded-2xl p-4 outline-0 bg-zinc-950 border border-zinc-900 text-[13px] font-medium leading-relaxed text-zinc-100 placeholder:text-zinc-700 focus:border-white transition-all scrollbar-hide"
               required
               onKeyDown={handleKeys}
               spellCheck={false}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-2 left-3"
-          >
-            <ColorOrb dimension="24px" tones={{ base: "oklch(22.64% 0 0)" }} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -401,7 +386,7 @@ function KeyHint({ children, className }: { children: string; className?: string
   return (
     <kbd
       className={cx(
-        "text-zinc-100 flex h-6 w-fit items-center justify-center rounded-sm border border-zinc-700 px-[6px] font-sans",
+        "text-zinc-500 flex h-5 w-fit items-center justify-center rounded-md border border-zinc-800 px-1.5 font-sans text-[10px] font-bold",
         className
       )}
     >

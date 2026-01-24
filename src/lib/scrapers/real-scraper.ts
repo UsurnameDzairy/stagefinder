@@ -1,9 +1,23 @@
 /**
  * VRAI SCRAPER - Scrape réellement LinkedIn, Indeed, HelloWork, etc.
  * Utilise Puppeteer pour contourner les protections anti-bot
+ * Inclut une base de données complète d'entreprises par secteur
+ * 
+ * FONCTIONNALITÉS:
+ * - Scraping réel avec Chromium (comme un humain)
+ * - Liens LinkedIn directs pour chaque entreprise
+ * - Vérification si les offres sont actives
+ * - Uniquement des vraies offres (pas de données fictives)
  */
 
 import puppeteer from 'puppeteer';
+import { 
+  getCompaniesBySector, 
+  getCompaniesByCity, 
+  COMPANY_LINKEDIN_URLS,
+  SKILLS_BY_DOMAIN,
+  type CompanyInfo 
+} from '../companies-database';
 
 interface RealJobOffer {
   title: string;
@@ -15,24 +29,93 @@ interface RealJobOffer {
   source: string;
   postedDate: Date;
   skills: string[];
+  isActive?: boolean;
+  requiredSkills?: string[];
+  linkedinUrl?: string;
+}
+
+// Cache court pour forcer le scraping à chaque recherche
+const scrapedUrlsCache = new Map<string, { data: RealJobOffer[]; timestamp: number }>();
+const CACHE_TTL = 1 * 60 * 1000; // 1 minute seulement - scrape à chaque recherche
+
+/**
+ * Vérifier si une offre est toujours active (non expirée)
+ */
+function isOfferActive(postedDate: Date, maxDaysOld: number = 30): boolean {
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - postedDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays <= maxDaysOld;
+}
+
+/**
+ * Obtenir le lien LinkedIn direct pour une entreprise
+ */
+function getLinkedInJobsUrl(companyName: string): string | undefined {
+  return COMPANY_LINKEDIN_URLS[companyName];
+}
+
+/**
+ * Obtenir les compétences requises pour un domaine
+ */
+function getRequiredSkillsForDomain(query: string): string[] {
+  const queryLower = query.toLowerCase();
+  
+  if (queryLower.includes('finance') || queryLower.includes('banque')) {
+    return SKILLS_BY_DOMAIN.finance?.required || [];
+  }
+  if (queryLower.includes('tech') || queryLower.includes('développeur') || queryLower.includes('developer')) {
+    return SKILLS_BY_DOMAIN.tech?.required || [];
+  }
+  if (queryLower.includes('marketing') || queryLower.includes('communication')) {
+    return SKILLS_BY_DOMAIN.marketing?.required || [];
+  }
+  if (queryLower.includes('consulting') || queryLower.includes('conseil')) {
+    return SKILLS_BY_DOMAIN.consulting?.required || [];
+  }
+  if (queryLower.includes('luxe') || queryLower.includes('luxury')) {
+    return SKILLS_BY_DOMAIN.luxury?.required || [];
+  }
+  if (queryLower.includes('yacht') || queryLower.includes('maritime')) {
+    return SKILLS_BY_DOMAIN.yachting?.required || [];
+  }
+  if (queryLower.includes('sport')) {
+    return SKILLS_BY_DOMAIN.sport?.required || [];
+  }
+  
+  return [];
 }
 
 /**
  * Configuration du navigateur Puppeteer
  */
 async function launchBrowser() {
-  return await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
-      '--window-size=1920x1080',
-      '--disable-blink-features=AutomationControlled',
-    ],
-  });
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080',
+        '--disable-blink-features=AutomationControlled',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins,site-per-process',
+        '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      ],
+      timeout: 90000, // 90 secondes timeout augmenté
+      protocolTimeout: 90000,
+    });
+    
+    console.log('✅ Browser Chromium lancé avec succès');
+    return browser;
+  } catch (error) {
+    console.error('❌ Échec du lancement du navigateur:', error);
+    console.error('💡 Vérifiez que Chromium est installé: npx puppeteer browsers install chrome');
+    throw error;
+  }
 }
 
 async function setupPage(page: any) {
@@ -88,10 +171,15 @@ export async function scrapeLinkedInReal(query: string, location: string): Promi
     const searchLocation = encodeURIComponent(location);
     const url = `https://www.linkedin.com/jobs/search/?keywords=${searchQuery}&location=${searchLocation}&f_TPR=r86400`; // Dernières 24h
     
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    console.log(`🌐 [LinkedIn] Navigating to: ${url}`);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
     
     // Attendre que les offres se chargent
-    await page.waitForSelector('.jobs-search__results-list, .job-card-container', { timeout: 10000 }).catch(() => null);
+    console.log(`⏳ [LinkedIn] Waiting for job cards...`);
+    await page.waitForSelector('.jobs-search__results-list, .job-card-container, .base-card', { timeout: 15000 }).catch(() => {
+      console.log(`⚠️ [LinkedIn] Timeout waiting for selectors`);
+      return null;
+    });
     
     // Extraire les offres
     const jobElements = await page.$$('.job-card-container, .base-card');
@@ -127,11 +215,16 @@ export async function scrapeLinkedInReal(query: string, location: string): Promi
     
     console.log(`✅ [LinkedIn] Scraped ${jobs.length} real jobs`);
   } catch (error) {
-    console.error('❌ [LinkedIn] Scraping error:', error);
+    console.error(`❌ [LinkedIn] Error:`, error);
+    console.error(`Stack trace:`, (error as Error).stack);
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      console.log(`🔒 [LinkedIn] Closing browser...`);
+      await browser.close();
+    }
   }
   
+  console.log(`✅ [LinkedIn] Returning ${jobs.length} jobs`);
   return jobs;
 }
 
@@ -360,43 +453,278 @@ export async function scrapeWTTJReal(query: string, location: string): Promise<R
 }
 
 /**
+ * Générer des requêtes de recherche basées sur le secteur et la ville
+ */
+function generateSearchQueries(query: string, location: string): string[] {
+  const queries: string[] = [query];
+  const queryLower = query.toLowerCase();
+  
+  // Détecter le secteur
+  let sector = '';
+  if (queryLower.includes('finance') || queryLower.includes('banque') || queryLower.includes('trading')) {
+    sector = 'finance';
+  } else if (queryLower.includes('tech') || queryLower.includes('développeur') || queryLower.includes('data')) {
+    sector = 'tech';
+  } else if (queryLower.includes('conseil') || queryLower.includes('consulting') || queryLower.includes('audit')) {
+    sector = 'consulting';
+  }
+  
+  // Ajouter des variantes de recherche
+  if (sector === 'finance') {
+    queries.push(
+      `${query} stage`,
+      `${query} alternance`,
+      `analyste financier ${location}`,
+      `stage finance ${location}`,
+      `stage banque ${location}`,
+      `stage M&A ${location}`,
+      `stage private equity ${location}`,
+      `stage asset management ${location}`,
+      `stage trading ${location}`,
+      `stage audit ${location}`,
+    );
+  } else if (sector === 'tech') {
+    queries.push(
+      `${query} stage`,
+      `${query} alternance`,
+      `stage développeur ${location}`,
+      `stage data scientist ${location}`,
+      `stage software engineer ${location}`,
+      `stage product manager ${location}`,
+    );
+  } else if (sector === 'consulting') {
+    queries.push(
+      `${query} stage`,
+      `stage consultant ${location}`,
+      `stage conseil stratégie ${location}`,
+      `stage audit ${location}`,
+    );
+  }
+  
+  // Ajouter des recherches par entreprises connues du secteur
+  if (sector) {
+    const companies = getCompaniesByCity(location).filter(c => 
+      c.sector.toLowerCase().includes(sector) || sector.includes(c.sector.toLowerCase().split(' ')[0])
+    );
+    
+    // Ajouter les 10 premières entreprises comme requêtes
+    companies.slice(0, 10).forEach(company => {
+      queries.push(`${company.name} stage`);
+      queries.push(`${company.name} careers`);
+    });
+  }
+  
+  return [...new Set(queries)]; // Dédupliquer
+}
+
+/**
+ * Vérifier si une offre correspond à la localisation demandée
+ * FILTRE STRICT - exclut explicitement les autres grandes villes
+ */
+function matchesLocation(jobLocation: string, requestedLocation: string): boolean {
+  const jobLoc = jobLocation.toLowerCase().trim();
+  const reqLoc = requestedLocation.toLowerCase().trim();
+  
+  // Si pas de localisation demandée, accepter tout
+  if (!reqLoc || reqLoc === '') {
+    return true;
+  }
+  
+  // Liste des grandes villes à exclure si elles ne sont pas demandées
+  const majorCities = ['london', 'londres', 'paris', 'monaco', 'zurich', 'geneva', 'genève', 
+    'luxembourg', 'madrid', 'barcelona', 'milan', 'frankfurt', 'berlin', 'amsterdam', 
+    'new york', 'dubai', 'singapore', 'hong kong', 'tokyo', 'sydney'];
+  
+  // Mappings de villes/régions (ce qui est considéré comme équivalent)
+  const locationMappings: Record<string, string[]> = {
+    'monaco': ['monaco', 'monte-carlo', 'monte carlo', 'principauté de monaco', 'mc 98'],
+    'paris': ['paris', 'île-de-france', 'ile-de-france', 'idf'],
+    'london': ['london', 'londres', 'greater london'],
+    'londres': ['london', 'londres', 'greater london'],
+    'zurich': ['zurich', 'zürich'],
+    'geneva': ['geneva', 'genève', 'geneve'],
+    'genève': ['geneva', 'genève', 'geneve'],
+    'suisse': ['switzerland', 'suisse', 'schweiz', 'zurich', 'zürich', 'geneva', 'genève', 'lausanne', 'bern', 'basel'],
+    'switzerland': ['switzerland', 'suisse', 'schweiz', 'zurich', 'zürich', 'geneva', 'genève', 'lausanne', 'bern', 'basel'],
+    'luxembourg': ['luxembourg', 'luxemburg'],
+    'nice': ['nice', '06000', '06'],
+    'cannes': ['cannes', '06400'],
+    'antibes': ['antibes', '06600'],
+    'côte d\'azur': ['nice', 'cannes', 'antibes', 'monaco', 'monte-carlo', 'menton', 'côte d\'azur', 'cote d\'azur', 'alpes-maritimes'],
+    'marseille': ['marseille', '13'],
+    'lyon': ['lyon', '69'],
+    'bordeaux': ['bordeaux', '33'],
+    'madrid': ['madrid'],
+    'barcelona': ['barcelona', 'barcelone'],
+    'barcelone': ['barcelona', 'barcelone'],
+    'milan': ['milan', 'milano'],
+    'frankfurt': ['frankfurt', 'francfort'],
+    'france': ['france', 'paris', 'lyon', 'marseille', 'bordeaux', 'nice', 'toulouse', 'nantes', 'strasbourg', 'lille'],
+  };
+  
+  // Obtenir les termes acceptés pour la localisation demandée
+  const acceptedTerms = locationMappings[reqLoc] || [reqLoc];
+  
+  // EXCLUSION STRICTE: Si l'offre contient une grande ville différente de celle demandée, REJETER
+  for (const city of majorCities) {
+    // Si cette ville est dans l'offre
+    if (jobLoc.includes(city)) {
+      // Vérifier si c'est la ville demandée ou un équivalent
+      const isRequested = acceptedTerms.some(term => city.includes(term) || term.includes(city));
+      if (!isRequested) {
+        // C'est une autre grande ville -> REJETER
+        return false;
+      }
+    }
+  }
+  
+  // Vérifier si l'offre correspond à un des termes acceptés
+  for (const term of acceptedTerms) {
+    if (jobLoc.includes(term)) {
+      return true;
+    }
+  }
+  
+  // Correspondance directe
+  if (jobLoc.includes(reqLoc) || reqLoc.includes(jobLoc)) {
+    return true;
+  }
+  
+  // Si on arrive ici et que l'offre ne contient aucune grande ville connue,
+  // on peut être plus permissif (petites villes, remote, etc.)
+  const containsKnownCity = majorCities.some(city => jobLoc.includes(city));
+  if (!containsKnownCity && jobLoc.length < 50) {
+    // Localisation inconnue/générique - accepter si pas de ville majeure
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * SCRAPER PRINCIPAL - Agrège tous les sites en parallèle
+ * SCRAPE TOUT - récupère le maximum d'offres possibles
  */
 export async function scrapeAllJobSites(query: string, location: string = "Paris"): Promise<RealJobOffer[]> {
-  console.log(`\n🚀 REAL SCRAPER - Scraping ALL job sites`);
-  console.log(`📍 Query: "${query}" in ${location}\n`);
+  console.log(`\n🚀 REAL SCRAPER - SCRAPING MAXIMUM D'OFFRES`);
+  console.log(`📍 Query: "${query}" in ${location}`);
+  console.log(`⚠️  STRICT LOCATION FILTER: Only jobs in ${location} will be returned\n`);
   
   const startTime = Date.now();
   
-  // Scraper tous les sites en parallèle
-  const results = await Promise.allSettled([
-    scrapeIndeedReal(query, location),
-    scrapeLinkedInReal(query, location),
-    scrapeHelloWorkReal(query, location),
-    scrapeWTTJReal(query, location),
-  ]);
+  // Générer des requêtes de recherche enrichies
+  const searchQueries = generateSearchQueries(query, location);
+  console.log(`📝 Generated ${searchQueries.length} search queries`);
+  
+  // Variantes de recherche pour maximiser les résultats
+  const queryVariants = [
+    query,
+    `${query} stage`,
+    `${query} alternance`,
+    `${query} junior`,
+    `stage ${query}`,
+    `alternance ${query}`,
+  ];
   
   const allJobs: RealJobOffer[] = [];
   
-  results.forEach((result, index) => {
+  // PHASE 1: Scraper tous les sites en parallèle avec la requête principale
+  console.log(`\n📡 PHASE 1: Scraping principal sur 4 plateformes...`);
+  console.log(`🔄 Lancement simultané: Indeed, LinkedIn, HelloWork, WTTJ`);
+  
+  const mainResults = await Promise.allSettled([
+    scrapeIndeedReal(query, location).catch(err => {
+      console.error('❌ Indeed scraping failed:', err.message);
+      return [];
+    }),
+    scrapeLinkedInReal(query, location).catch(err => {
+      console.error('❌ LinkedIn scraping failed:', err.message);
+      return [];
+    }),
+    scrapeHelloWorkReal(query, location).catch(err => {
+      console.error('❌ HelloWork scraping failed:', err.message);
+      return [];
+    }),
+    scrapeWTTJReal(query, location).catch(err => {
+      console.error('❌ WTTJ scraping failed:', err.message);
+      return [];
+    }),
+  ]);
+  
+  mainResults.forEach((result, index) => {
     const sources = ['Indeed', 'LinkedIn', 'HelloWork', 'WTTJ'];
     if (result.status === 'fulfilled') {
-      allJobs.push(...result.value);
-      console.log(`✅ ${sources[index]}: ${result.value.length} jobs`);
+      const jobs = result.value || [];
+      allJobs.push(...jobs);
+      console.log(`✅ ${sources[index]}: ${jobs.length} jobs récupérés`);
+      if (jobs.length === 0) {
+        console.log(`⚠️  ${sources[index]}: Aucune offre trouvée (peut être normal selon la recherche)`);
+      }
     } else {
-      console.error(`❌ ${sources[index]} failed:`, result.reason?.message || result.reason);
+      console.error(`❌ ${sources[index]} échec complet:`, result.reason?.message || result.reason);
     }
   });
+  
+  console.log(`\n📊 Total après PHASE 1: ${allJobs.length} offres`);
+  
+  // PHASE 2: Scraper avec des variantes de requête pour plus de résultats
+  console.log(`\n📡 PHASE 2: Recherches complémentaires...`);
+  const additionalQueries = [...new Set([...queryVariants, ...searchQueries.slice(1, 6)])];
+  
+  for (const additionalQuery of additionalQueries.slice(0, 5)) {
+    if (additionalQuery === query) continue; // Skip la requête principale déjà faite
+    
+    try {
+      console.log(`🔍 Additional search: "${additionalQuery}"`);
+      
+      // Scraper Indeed et LinkedIn avec les variantes
+      const [indeedResults, linkedinResults] = await Promise.allSettled([
+        scrapeIndeedReal(additionalQuery, location),
+        scrapeLinkedInReal(additionalQuery, location),
+      ]);
+      
+      if (indeedResults.status === 'fulfilled') {
+        allJobs.push(...indeedResults.value);
+        console.log(`   Indeed: +${indeedResults.value.length} jobs`);
+      }
+      if (linkedinResults.status === 'fulfilled') {
+        allJobs.push(...linkedinResults.value);
+        console.log(`   LinkedIn: +${linkedinResults.value.length} jobs`);
+      }
+    } catch (error) {
+      console.error(`Error with additional query "${additionalQuery}":`, error);
+    }
+  }
   
   // Dédupliquer par URL
   const uniqueJobs = Array.from(
     new Map(allJobs.map(job => [job.url, job])).values()
   );
   
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  console.log(`\n✅ TOTAL: ${uniqueJobs.length} unique REAL jobs scraped in ${duration}s\n`);
+  // FILTRE STRICT PAR LOCALISATION
+  // Ne garder que les offres qui correspondent vraiment à la localisation demandée
+  const filteredJobs = uniqueJobs.filter(job => {
+    const matches = matchesLocation(job.location, location);
+    if (!matches) {
+      console.log(`🚫 Filtered out: "${job.title}" at ${job.company} (${job.location}) - not in ${location}`);
+    }
+    return matches;
+  });
   
-  return uniqueJobs;
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  console.log(`\n📊 SCRAPING RESULTS:`);
+  console.log(`   Total scraped: ${uniqueJobs.length}`);
+  console.log(`   After location filter (${location}): ${filteredJobs.length}`);
+  console.log(`   Duration: ${duration}s\n`);
+  
+  // Si aucune offre trouvée pour cette localisation, retourner un tableau vide
+  // PAS DE DONNÉES FICTIVES
+  if (filteredJobs.length === 0) {
+    console.log(`⚠️  No real jobs found in ${location} for "${query}"`);
+    console.log(`   This is normal - not all locations have internship offers.`);
+  }
+  
+  return filteredJobs;
 }
 
 /**

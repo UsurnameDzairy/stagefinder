@@ -97,61 +97,61 @@ export function ProgressTracker({
   const stages = getStages();
 
   return (
-    <div className="relative">
+    <div className="relative pt-2">
       <div className="flex items-center justify-between">
         {stages.map((stage, index) => (
           <div key={stage.id} className="flex flex-col items-center relative flex-1">
-            {/* Ligne de connexion */}
+            {/* Ligne de connexion premium */}
             {index < stages.length - 1 && (
               <div
-                className={`absolute top-4 left-1/2 w-full h-0.5 ${
+                className={cn(
+                  "absolute top-[18px] left-[50%] w-full h-[1px] transition-all duration-500",
                   stage.status === "completed"
-                    ? "bg-green-500"
-                    : stage.status === "failed"
-                    ? "bg-red-500"
-                    : "bg-zinc-700"
-                }`}
-                style={{ transform: "translateX(50%)" }}
+                    ? "bg-white"
+                    : "bg-zinc-900"
+                )}
               />
             )}
             
-            {/* Icône du stage */}
+            {/* Icône du stage épurée */}
             <div
-              className={`relative z-10 p-2 rounded-full ${
+              className={cn(
+                "relative z-10 p-2 rounded-xl border transition-all duration-500",
                 stage.status === "completed"
-                  ? "bg-green-500 text-white"
+                  ? "bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                   : stage.status === "current"
-                  ? "bg-blue-500 text-white animate-pulse"
+                  ? "bg-black border-white text-white animate-pulse"
                   : stage.status === "failed"
-                  ? "bg-red-500 text-white"
-                  : "bg-zinc-700 text-zinc-400"
-              }`}
+                  ? "bg-zinc-950 border-zinc-700 text-zinc-400"
+                  : "bg-black border-zinc-900 text-zinc-700"
+              )}
             >
               {stage.status === "current" ? (
-                <Clock className="h-5 w-5" />
+                <Clock className="h-4 w-4" />
               ) : (
-                stage.icon
+                <div className="scale-90 opacity-90">{stage.icon}</div>
               )}
             </div>
             
-            {/* Label */}
+            {/* Label raffiné */}
             <span
-              className={`mt-2 text-xs font-medium ${
+              className={cn(
+                "mt-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors duration-500",
                 stage.status === "completed"
-                  ? "text-green-400"
+                  ? "text-zinc-300"
                   : stage.status === "current"
-                  ? "text-blue-400"
+                  ? "text-white"
                   : stage.status === "failed"
-                  ? "text-red-400"
-                  : "text-zinc-500"
-              }`}
+                  ? "text-zinc-500"
+                  : "text-zinc-700"
+              )}
             >
               {stage.label}
             </span>
             
-            {/* Date */}
+            {/* Date subtile */}
             {stage.date && (
-              <span className="text-[10px] text-zinc-500">{stage.date}</span>
+              <span className="text-[9px] font-medium text-zinc-600 mt-0.5 tracking-wider">{stage.date}</span>
             )}
           </div>
         ))}
@@ -184,20 +184,22 @@ export function MiniProgressTracker({
 
   if (progress === -1) {
     return (
-      <div className="w-full h-2 bg-zinc-700 rounded-full overflow-hidden">
-        <div className="h-full bg-red-500 w-full" />
+      <div className="w-full h-[2px] bg-zinc-900 rounded-full overflow-hidden">
+        <div className="h-full bg-zinc-700 w-full" />
       </div>
     );
   }
 
   return (
-    <div className="w-full h-2 bg-zinc-700 rounded-full overflow-hidden">
+    <div className="w-full h-[2px] bg-zinc-950 rounded-full overflow-hidden border-zinc-900/30">
       <div
-        className={`h-full transition-all duration-500 ${
-          progress === 100 ? "bg-green-500" : "bg-blue-500"
-        }`}
+        className={cn(
+          "h-full transition-all duration-700 ease-in-out",
+          progress === 100 ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.3)]" : "bg-zinc-600"
+        )}
         style={{ width: `${progress}%` }}
       />
     </div>
   );
 }
+

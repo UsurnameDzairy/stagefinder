@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { chatWithAssistant as callOpenRouterChat } from "@/lib/openrouter";
 
 export interface UserContext {
   profile?: {
@@ -142,10 +143,155 @@ export async function generateAssistantResponse(
 ): Promise<string> {
   const lastMessage = messages[messages.length - 1];
   const userMessage = lastMessage.content.toLowerCase();
+  const originalMessage = lastMessage.content;
   
   // Extraire le contexte de page si présent
   const pageContextMatch = lastMessage.content.match(/\[Contexte: ([^\]]+)\]/);
   const pageContext = pageContextMatch ? pageContextMatch[1] : "";
+  
+  // Nettoyer le message du contexte pour l'analyse
+  const cleanMessage = originalMessage.replace(/\[Contexte: [^\]]+\]\s*/g, '').trim();
+
+  // ============================================
+  // RÉPONSES CONVERSATIONNELLES NATURELLES
+  // ============================================
+  
+  // Questions sur le CV / copier-coller
+  if (
+    userMessage.includes("copier") || 
+    userMessage.includes("coller") ||
+    userMessage.includes("juste copié") ||
+    userMessage.includes("copie") ||
+    (userMessage.includes("cv") && (userMessage.includes("là") || userMessage.includes("ça")))
+  ) {
+    return `Je comprends ta remarque ! 😊 En fait, ce que tu vois à gauche c'est ton CV original, et à droite c'est la version que je peux t'aider à améliorer.
+
+**Ce que je peux faire pour toi :**
+
+1. **Reformuler tes expériences** avec un vocabulaire plus impactant (style Harvard/McKinsey)
+2. **Mettre en valeur tes compétences** de manière plus percutante
+3. **Optimiser la structure** pour les ATS (systèmes de tri automatique)
+4. **Adapter le ton** selon le secteur visé (finance, tech, conseil...)
+
+**Dis-moi ce que tu veux améliorer :**
+- "Améliore mon résumé professionnel"
+- "Reformule mes expériences"
+- "Rends mon CV plus impactant pour la finance"
+- "Ajoute des verbes d'action"
+
+Qu'est-ce qui t'intéresse ? 🎯`;
+  }
+
+  // Salutations
+  if (
+    userMessage.match(/^(salut|hello|bonjour|hey|coucou|yo|hi)\s*[!?.]?$/i) ||
+    userMessage.includes("ça va") ||
+    userMessage.includes("comment vas")
+  ) {
+    const name = context.profile?.schoolName ? ` ! Je vois que tu es à ${context.profile.schoolName}` : "";
+    return `Salut${name} ! 👋
+
+Je suis là pour t'aider avec ta recherche de stage/emploi. Qu'est-ce que je peux faire pour toi aujourd'hui ?
+
+Tu peux me demander :
+• D'analyser ton profil
+• De te recommander des entreprises
+• D'améliorer ton CV
+• De te donner des conseils stratégiques
+
+Dis-moi tout ! 😊`;
+  }
+
+  // Remerciements
+  if (
+    userMessage.match(/^(merci|thanks|thx|cool|super|parfait|génial|top)\s*[!?.]?$/i)
+  ) {
+    return `Avec plaisir ! 😊 N'hésite pas si tu as d'autres questions. Je suis là pour t'aider à décrocher le stage/job de tes rêves ! 🚀`;
+  }
+
+  // Questions sur l'assistant lui-même
+  if (
+    userMessage.includes("qui es-tu") ||
+    userMessage.includes("tu es qui") ||
+    userMessage.includes("c'est quoi") ||
+    userMessage.includes("tu fais quoi") ||
+    userMessage.includes("tu peux faire")
+  ) {
+    return `Je suis ton assistant carrière IA ! 🤖✨
+
+**Mon job c'est de t'aider à :**
+
+🎯 **Trouver le bon stage/emploi**
+- Analyser ton profil et tes compétences
+- Te recommander des entreprises qui matchent
+- Te suggérer des postes adaptés
+
+📝 **Améliorer tes candidatures**
+- Optimiser ton CV (vocabulaire Harvard, verbes d'action)
+- T'aider avec tes lettres de motivation
+- Te préparer aux entretiens
+
+📊 **Définir ta stratégie**
+- Identifier tes forces et axes d'amélioration
+- Créer un plan d'action personnalisé
+- Te donner des conseils sectoriels (finance, tech, conseil...)
+
+Je connais ton profil, tes compétences et tes candidatures. Pose-moi n'importe quelle question ! 💪`;
+  }
+
+  // Questions générales / incompréhension
+  if (
+    userMessage.includes("quoi") ||
+    userMessage.includes("hein") ||
+    userMessage.includes("comprends pas") ||
+    userMessage.includes("c'est quoi ça")
+  ) {
+    return `Pas de souci, je t'explique ! 😊
+
+Tu es sur **StageFinder**, une app qui t'aide à trouver des stages et emplois. 
+
+**Sur cette page (CV Improver) :**
+- À gauche : ton CV original
+- À droite : la version améliorée que je peux générer
+
+**Ce que tu peux faire :**
+1. Clique sur "Améliorer avec vocabulaire Harvard" pour upgrader ton CV
+2. Pose-moi des questions sur ta recherche d'emploi
+3. Demande-moi des conseils personnalisés
+
+Qu'est-ce que tu veux savoir ? 🎯`;
+  }
+
+  // Questions sur l'amélioration du CV
+  if (
+    userMessage.includes("améliorer") ||
+    userMessage.includes("ameliorer") ||
+    userMessage.includes("améliore") ||
+    userMessage.includes("upgrade") ||
+    userMessage.includes("mieux")
+  ) {
+    return `Super, je vais t'aider à améliorer ton CV ! 🚀
+
+**Voici ce que je te propose :**
+
+1. **Vocabulaire Harvard/McKinsey**
+   - "Managed" → "Spearheaded"
+   - "Helped" → "Facilitated"
+   - "Made" → "Engineered"
+
+2. **Quantifier tes résultats**
+   - "Augmenté les ventes" → "Increased sales by 25% ($50K revenue)"
+   - "Géré une équipe" → "Led cross-functional team of 5 members"
+
+3. **Structure optimisée**
+   - Action verb + Task + Result (méthode STAR)
+   - Bullet points percutants
+   - Mots-clés pour les ATS
+
+**Clique sur le bouton "Améliorer avec vocabulaire Harvard"** pour voir la magie opérer ! ✨
+
+Ou dis-moi quelle partie spécifique tu veux améliorer (résumé, expériences, compétences...) ?`;
+  }
 
   // Analyse de page spécifique
   if (pageContext.includes("page Offres")) {
@@ -168,7 +314,8 @@ export async function generateAssistantResponse(
   if (
     userMessage.includes("profil") ||
     userMessage.includes("analyse") ||
-    userMessage.includes("évaluer")
+    userMessage.includes("évaluer") ||
+    userMessage.includes("forces")
   ) {
     return generateProfileAnalysis(context);
   }
@@ -177,7 +324,9 @@ export async function generateAssistantResponse(
   if (
     userMessage.includes("entreprise") ||
     userMessage.includes("société") ||
-    userMessage.includes("où postuler")
+    userMessage.includes("où postuler") ||
+    userMessage.includes("boîte") ||
+    userMessage.includes("boite")
   ) {
     return generateCompanyRecommendations(context);
   }
@@ -186,7 +335,9 @@ export async function generateAssistantResponse(
   if (
     userMessage.includes("poste") ||
     userMessage.includes("stage") ||
-    userMessage.includes("opportunité")
+    userMessage.includes("opportunité") ||
+    userMessage.includes("job") ||
+    userMessage.includes("emploi")
   ) {
     return generateJobRecommendations(context);
   }
@@ -195,7 +346,8 @@ export async function generateAssistantResponse(
   if (
     userMessage.includes("compétence") ||
     userMessage.includes("skill") ||
-    userMessage.includes("apprendre")
+    userMessage.includes("apprendre") ||
+    userMessage.includes("formation")
   ) {
     return generateSkillsAdvice(context);
   }
@@ -204,21 +356,150 @@ export async function generateAssistantResponse(
   if (
     userMessage.includes("stratégie") ||
     userMessage.includes("comment") ||
-    userMessage.includes("conseil")
+    userMessage.includes("conseil") ||
+    userMessage.includes("aide")
   ) {
     return generateSearchStrategy(context);
   }
 
-  // Réponse par défaut
-  return `Bonjour ! Je suis votre assistant carrière personnalisé. Je peux vous aider à :
+  // Entretiens
+  if (
+    userMessage.includes("entretien") ||
+    userMessage.includes("interview") ||
+    userMessage.includes("préparer")
+  ) {
+    return generateInterviewAdvice(context);
+  }
 
-📊 **Analyser votre profil** - Identifier vos forces et opportunités
-🏢 **Recommander des entreprises** - Trouver les meilleures entreprises pour vous
-💼 **Suggérer des postes** - Découvrir les opportunités qui matchent votre profil
-🎯 **Développer vos compétences** - Conseils pour renforcer votre candidature
-📈 **Optimiser votre stratégie** - Plan d'action pour votre recherche
+  // Lettre de motivation
+  if (
+    userMessage.includes("lettre") ||
+    userMessage.includes("motivation") ||
+    userMessage.includes("cover letter")
+  ) {
+    return `Pour ta lettre de motivation, voici mes conseils ! 📝
 
-Que souhaitez-vous savoir ?`;
+**Structure gagnante :**
+
+1. **Accroche percutante** (2-3 lignes)
+   - Pourquoi cette entreprise spécifiquement
+   - Ce qui te motive dans le poste
+
+2. **Ton parcours** (1 paragraphe)
+   - Tes expériences les plus pertinentes
+   - Tes compétences clés pour le poste
+
+3. **Ce que tu apportes** (1 paragraphe)
+   - Valeur ajoutée concrète
+   - Exemples de réalisations
+
+4. **Conclusion** (2-3 lignes)
+   - Réitérer ta motivation
+   - Appel à l'action
+
+**💡 Astuce :** Va sur la page "Lettres" pour générer une lettre personnalisée automatiquement !
+
+Tu veux que je t'aide avec une lettre spécifique ? Dis-moi l'entreprise et le poste ! 🎯`;
+  }
+
+  // Pour les questions complexes, utiliser OpenRouter AI
+  try {
+    const conversationHistory = messages
+      .filter(m => m.role !== 'system')
+      .slice(-5) // Garder les 5 derniers messages pour le contexte
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+    
+    const userContextForAI = {
+      skills: context.skills.map(s => s.name),
+      targetRole: context.profile?.domains || undefined,
+      experience: context.resumes[0]?.experience || undefined,
+    };
+    
+    const aiResponse = await callOpenRouterChat(
+      cleanMessage,
+      conversationHistory,
+      userContextForAI
+    );
+    
+    return aiResponse;
+  } catch (error) {
+    console.error('OpenRouter AI failed, using fallback:', error);
+    // Fallback sur réponse conversationnelle si l'API échoue
+    return generateConversationalResponse(cleanMessage, context);
+  }
+}
+
+// Nouvelle fonction pour les réponses conversationnelles
+function generateConversationalResponse(message: string, context: UserContext): string {
+  const { profile, skills, applications } = context;
+  
+  // Construire une réponse personnalisée basée sur le contexte
+  let response = `Je suis là pour t'aider ! 😊\n\n`;
+  
+  if (message.length < 10) {
+    response += `Tu peux me poser n'importe quelle question sur :\n\n`;
+  } else {
+    response += `Je n'ai pas bien compris ta question, mais je peux t'aider avec :\n\n`;
+  }
+  
+  response += `📊 **Ton profil** - "Analyse mon profil", "Quelles sont mes forces ?"\n`;
+  response += `🏢 **Entreprises** - "Quelles entreprises me recommandes-tu ?"\n`;
+  response += `💼 **Postes** - "Quels stages correspondent à mon profil ?"\n`;
+  response += `📝 **CV** - "Comment améliorer mon CV ?"\n`;
+  response += `✉️ **Lettres** - "Aide-moi avec ma lettre de motivation"\n`;
+  response += `🎯 **Stratégie** - "Quelle stratégie adopter ?"\n\n`;
+  
+  // Ajouter un conseil personnalisé
+  if (applications.length === 0) {
+    response += `💡 **Mon conseil :** Tu n'as pas encore de candidatures. Commence par explorer les offres sur la page "Offres" !`;
+  } else if (skills.length < 5) {
+    response += `💡 **Mon conseil :** Ajoute plus de compétences à ton profil pour améliorer les recommandations !`;
+  } else {
+    response += `💡 **Mon conseil :** Tu as ${skills.length} compétences et ${applications.length} candidatures. Continue comme ça ! 🚀`;
+  }
+  
+  return response;
+}
+
+// Nouvelle fonction pour les conseils d'entretien
+function generateInterviewAdvice(context: UserContext): string {
+  const { profile } = context;
+  
+  let advice = `🎤 **Préparation aux entretiens**\n\n`;
+  
+  advice += `**Les 3 types de questions à préparer :**\n\n`;
+  
+  advice += `1. **Questions "Fit" (comportementales)**\n`;
+  advice += `   - "Parlez-moi de vous" (pitch 2 min)\n`;
+  advice += `   - "Pourquoi cette entreprise ?"\n`;
+  advice += `   - "Vos forces/faiblesses ?"\n`;
+  advice += `   - "Un défi que vous avez surmonté ?"\n\n`;
+  
+  advice += `2. **Questions techniques**\n`;
+  if (profile?.domains?.toLowerCase().includes("finance")) {
+    advice += `   - Valorisation d'entreprise (DCF, multiples)\n`;
+    advice += `   - Analyse de marché\n`;
+    advice += `   - Actualité financière\n\n`;
+  } else {
+    advice += `   - Questions sur tes compétences techniques\n`;
+    advice += `   - Cas pratiques\n`;
+    advice += `   - Projets réalisés\n\n`;
+  }
+  
+  advice += `3. **Questions de motivation**\n`;
+  advice += `   - "Où vous voyez-vous dans 5 ans ?"\n`;
+  advice += `   - "Pourquoi ce secteur ?"\n`;
+  advice += `   - "Vos questions pour nous ?"\n\n`;
+  
+  advice += `**💡 Méthode STAR pour répondre :**\n`;
+  advice += `- **S**ituation : Contexte\n`;
+  advice += `- **T**ask : Ta mission\n`;
+  advice += `- **A**ction : Ce que tu as fait\n`;
+  advice += `- **R**esult : Résultats concrets\n\n`;
+  
+  advice += `Tu veux que je t'aide à préparer une question spécifique ? 🎯`;
+  
+  return advice;
 }
 
 function analyzeOffersPage(context: UserContext, userMessage: string): string {

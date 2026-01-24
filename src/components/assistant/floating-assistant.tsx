@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
-import { MorphPanel } from "@/components/ui/morph-panel";
-import { Bot, X, Send, Minimize2, Maximize2 } from "lucide-react";
+import { Bot, X, Send, Minimize2, Maximize2, RotateCcw } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -127,40 +126,47 @@ export function FloatingAssistant() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-4 right-4 z-[9999]">
-        <MorphPanel onSubmit={handleMorphSubmit} />
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="h-14 w-14 rounded-2xl bg-white text-black shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border-none"
+        >
+          <Bot className="h-6 w-6 transition-transform group-hover:rotate-12" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-zinc-900 rounded-full border-2 border-white animate-pulse" />
+        </button>
       </div>
     );
   }
 
   if (isMinimized) {
     return (
-      <div className="fixed bottom-4 right-4 z-[9999]">
-        <Card className="bg-zinc-900 border-zinc-800 shadow-2xl">
-          <CardContent className="p-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Bot className="h-5 w-5 text-white" />
+      <div className="fixed bottom-6 right-6 z-[9999] animate-in fade-in slide-in-from-bottom-4">
+        <Card className="bg-black border-zinc-900 shadow-2xl overflow-hidden">
+          <CardContent className="p-3 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-black">
+              <Bot className="h-5 w-5" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-zinc-100">Assistant IA</p>
-              <p className="text-xs text-zinc-400">En ligne</p>
+            <div className="flex-1 min-w-[120px]">
+              <p className="text-[11px] font-bold text-zinc-100 uppercase tracking-widest">Assistant IA</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="w-1 h-1 bg-zinc-400 rounded-full animate-pulse" />
+                <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Awaiting...</p>
+              </div>
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setIsMinimized(false)}
-              className="h-8 w-8"
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setIsOpen(false)}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setIsMinimized(false)}
+                className="h-8 w-8 rounded-lg border border-zinc-900 bg-black text-zinc-500 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="h-8 w-8 rounded-lg border border-zinc-900 bg-black text-zinc-500 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -168,91 +174,129 @@ export function FloatingAssistant() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999] w-96 h-[600px] flex flex-col">
-      <Card className="flex-1 flex flex-col bg-zinc-900 border-zinc-800 shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Bot className="h-5 w-5 text-white" />
+    <div className="fixed bottom-6 right-6 z-[9999] w-[400px] h-[600px] flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Card className="flex-1 flex flex-col bg-black border-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden rounded-3xl relative">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none">
+          <Bot className="h-48 w-48 text-white" />
+        </div>
+
+        {/* Header Premium */}
+        <div className="flex items-center justify-between p-6 border-b border-zinc-900 bg-zinc-950/50 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-black shadow-xl">
+              <Bot className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-zinc-100">Assistant IA</p>
-              <p className="text-xs text-zinc-400">En ligne</p>
+              <p className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Career Intelligence</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Active Engine</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                setMessages([]);
+                const pageContext = PAGE_CONTEXTS[pathname] || "";
+                const greeting = `👋 Bonjour ! Je suis votre assistant IA.${pageContext ? `\n\n${pageContext}` : ""}\n\nComment puis-je vous aider ?`;
+                setMessages([{ role: "assistant", content: greeting }]);
+              }}
+              className="h-8 w-8 rounded-lg border border-zinc-900 bg-black text-zinc-600 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"
+              title="Reset"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
+            <button
               onClick={() => setIsMinimized(true)}
-              className="h-8 w-8"
+              className="h-8 w-8 rounded-lg border border-zinc-900 bg-black text-zinc-600 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"
+              title="Minimize"
             >
-              <Minimize2 className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
+              <Minimize2 className="h-3.5 w-3.5" />
+            </button>
+            <button
               onClick={() => setIsOpen(false)}
-              className="h-8 w-8"
+              className="h-8 w-8 rounded-lg border border-zinc-900 bg-black text-zinc-600 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"
+              title="Close"
             >
-              <X className="h-4 w-4" />
-            </Button>
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
 
-        <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Messages List épurée */}
+        <CardContent className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide relative z-10">
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex gap-2 ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              {message.role === "assistant" && (
-                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-white" />
-                </div>
+              className={cn(
+                "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
+                message.role === "user" ? "flex-row-reverse" : "flex-row"
               )}
+            >
+              <div className={cn(
+                "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border transition-all",
+                message.role === "assistant" 
+                  ? "bg-white border-white text-black shadow-md" 
+                  : "bg-zinc-950 border-zinc-900 text-zinc-500"
+              )}>
+                {message.role === "assistant" ? <Bot className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+              </div>
               <div
-                className={`max-w-[85%] rounded-lg p-3 ${
+                className={cn(
+                  "max-w-[85%] rounded-2xl p-4 text-[13px] leading-relaxed font-medium",
                   message.role === "user"
-                    ? "bg-zinc-100 text-zinc-900"
-                    : "bg-zinc-800 text-zinc-100"
-                }`}
+                    ? "bg-zinc-900 text-zinc-100 border border-zinc-800"
+                    : "bg-zinc-950 text-zinc-300 border border-zinc-900 shadow-sm"
+                )}
               >
-                <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                <div className="whitespace-pre-wrap">
                   {message.content}
                 </div>
               </div>
             </div>
           ))}
           {loading && (
-            <div className="flex gap-2 justify-start">
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Bot className="h-4 w-4 text-white" />
+            <div className="flex gap-3 justify-start animate-pulse">
+              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white flex items-center justify-center text-black">
+                <Bot className="h-3.5 w-3.5" />
               </div>
-              <div className="bg-zinc-800 rounded-lg p-3">
-                <Loader size="sm" />
+              <div className="bg-zinc-950 border border-zinc-900 rounded-2xl px-5 py-3 flex items-center">
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 bg-zinc-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-1 h-1 bg-zinc-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-1 h-1 bg-zinc-600 rounded-full animate-bounce" />
+                </div>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </CardContent>
 
-        <div className="border-t border-zinc-800 p-3">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder="Posez votre question..."
-              disabled={loading}
-              className="flex-1"
-            />
-            <Button onClick={handleSend} disabled={loading || !input.trim()} size="icon">
+        {/* Input Premium */}
+        <div className="p-6 bg-black border-t border-zinc-900">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 relative">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                placeholder="Ask intelligence..."
+                disabled={loading}
+                className="h-11 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-[13px] rounded-xl pl-4 pr-10"
+              />
+            </div>
+            <button 
+              onClick={handleSend} 
+              disabled={loading || !input.trim()}
+              className="h-11 w-11 rounded-xl bg-white text-black flex items-center justify-center transition-all hover:bg-zinc-200 disabled:opacity-20 active:scale-95 shadow-xl border-none"
+            >
               {loading ? <Loader size="sm" /> : <Send className="h-4 w-4" />}
-            </Button>
+            </button>
           </div>
+          <p className="text-[9px] font-bold text-zinc-800 uppercase tracking-[0.3em] text-center mt-4">
+            Encrypted Session • Neural Engine Active
+          </p>
         </div>
       </Card>
     </div>

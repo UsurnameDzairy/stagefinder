@@ -1,19 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader } from "@/components/ui/loader";
-import {
-  Search,
-  Brain,
-  Layers,
-  BarChart3,
-  Lightbulb,
-  Check,
-  X,
-  Clock,
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Check, X, Database, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SearchJobStatus {
   id: string;
@@ -31,20 +22,11 @@ interface SearchCompilationModalProps {
   onCancel: () => void;
 }
 
-const STEPS = [
-  { id: "RESUME_ANALYSIS", label: "Analyse du CV et normalisation", icon: Brain },
-  { id: "PROVIDER_FETCH", label: "Interrogation des sources", icon: Search },
-  { id: "DEDUPLICATION", label: "Deduplication des offres", icon: Layers },
-  { id: "SCORING", label: "Calcul du score de compatibilite", icon: BarChart3 },
-  { id: "RECOMMENDATIONS", label: "Recommandations metiers", icon: Lightbulb },
-];
-
-const MESSAGES = [
-  "On associe vos competences aux exigences des offres...",
-  "On elimine les doublons entre sources...",
-  "On calcule votre score de compatibilite...",
-  "On analyse les tendances du marche...",
-  "On prepare vos recommandations personnalisees...",
+const SOURCES = [
+  { id: "linkedin", name: "LinkedIn", color: "bg-zinc-100" },
+  { id: "indeed", name: "Indeed", color: "bg-zinc-400" },
+  { id: "hellowork", name: "HelloWork", color: "bg-zinc-600" },
+  { id: "wttj", name: "WTTJ", color: "bg-zinc-800" },
 ];
 
 export function SearchCompilationModal({
@@ -54,11 +36,16 @@ export function SearchCompilationModal({
 }: SearchCompilationModalProps) {
   const [status, setStatus] = useState<SearchJobStatus | null>(null);
   const [elapsed, setElapsed] = useState(0);
-  const [messageIndex, setMessageIndex] = useState(0);
 
   const pollStatus = useCallback(async () => {
     try {
       const res = await fetch(`/api/search-jobs/${jobId}`);
+      
+      if (!res.ok) {
+        console.error("Poll failed:", res.status);
+        return;
+      }
+      
       const data = await res.json();
       setStatus(data);
 
@@ -75,19 +62,13 @@ export function SearchCompilationModal({
   }, [jobId, onComplete, onCancel]);
 
   useEffect(() => {
-    const interval = setInterval(pollStatus, 1000);
+    pollStatus();
+    const interval = setInterval(pollStatus, 1500);
     return () => clearInterval(interval);
   }, [pollStatus]);
 
   useEffect(() => {
     const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMessageIndex((i) => (i + 1) % MESSAGES.length);
-    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
@@ -100,127 +81,124 @@ export function SearchCompilationModal({
     onCancel();
   };
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
-
-  const currentStepIndex = STEPS.findIndex((s) => s.id === status?.step);
+  const progress = status?.progress || 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <Card className="w-full max-w-lg mx-4">
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg">Compilation des offres en cours</CardTitle>
-          <p className="text-sm text-zinc-500">
-            Analyse du profil + collecte multi-sources + scoring
-          </p>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-zinc-400" />
-              <span className="font-mono text-lg">{formatTime(elapsed)}</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-500">
+      <Card className="w-full max-w-[440px] mx-4 bg-black border-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden rounded-3xl relative">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none">
+          <Database className="h-48 w-48 text-white" />
+        </div>
+
+        {/* Header Premium */}
+        <div className="p-8 border-b border-zinc-900 bg-zinc-950/50 relative z-10">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-black shadow-xl">
+              <Database className="h-5 w-5" />
             </div>
-            <span className="text-sm text-zinc-500">Duree estimee: 2-3 minutes</span>
+            <div>
+              <h2 className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Search Engine active</h2>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Multi-Source Sync</p>
+              </div>
+            </div>
+          </div>
+          <p className="text-[13px] font-medium text-zinc-600 ml-14">
+            Scraping des offres stratégiques sur {SOURCES.length} plateformes majeures.
+          </p>
+        </div>
+
+        {/* Progress Premium */}
+        <div className="p-8 space-y-10 relative z-10">
+          {/* Progress bar épurée */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-baseline px-1">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Global Progress</span>
+              <span className="text-2xl font-bold tracking-tighter text-white">{progress}%</span>
+            </div>
+            <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-white rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
 
-          <div className="space-y-3">
-            {STEPS.map((step, index) => {
-              const isActive = index === currentStepIndex;
-              const isCompleted = index < currentStepIndex;
-              const Icon = step.icon;
+          {/* Sources monochrome */}
+          <div className="grid grid-cols-1 gap-2.5">
+            {SOURCES.map((source) => {
+              const sourceStatus = status?.providerStatuses?.[source.id];
+              const isDone = sourceStatus?.status === "done";
+              const isRunning = sourceStatus?.status === "running";
+              const isFailed = sourceStatus?.status === "failed";
+              const count = sourceStatus?.count;
 
               return (
-                <div
-                  key={step.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-zinc-100"
-                      : isCompleted
-                      ? "bg-zinc-50"
-                      : "bg-transparent"
-                  }`}
+                <div 
+                  key={source.id}
+                  className={cn(
+                    "flex items-center justify-between p-4 rounded-2xl border transition-all duration-300",
+                    isDone ? "bg-zinc-950 border-zinc-800" : 
+                    isRunning ? "bg-zinc-950 border-zinc-900 animate-pulse" : 
+                    "bg-black border-zinc-900 opacity-40"
+                  )}
                 >
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                      isCompleted
-                        ? "bg-zinc-900 text-white"
-                        : isActive
-                        ? "bg-zinc-200"
-                        : "bg-zinc-100"
-                    }`}
-                  >
-                    {isCompleted ? (
-                      <Check className="h-4 w-4" />
-                    ) : isActive ? (
-                      <Loader size="sm" />
-                    ) : (
-                      <Icon className="h-4 w-4 text-zinc-400" />
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "h-2 w-2 rounded-full",
+                      isDone ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" : 
+                      isRunning ? "bg-zinc-400" : 
+                      "bg-zinc-800"
+                    )} />
+                    <span className={cn(
+                      "text-[13px] font-bold tracking-tight",
+                      isDone ? "text-zinc-100" : "text-zinc-500"
+                    )}>{source.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {isDone && (
+                      <>
+                        <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest">{count} jobs</span>
+                        <Check className="h-3.5 w-3.5 text-zinc-400" />
+                      </>
+                    )}
+                    {isRunning && (
+                      <div className="flex gap-1">
+                        <div className="w-1 h-1 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+                        <div className="w-1 h-1 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+                        <div className="w-1 h-1 bg-white rounded-full animate-bounce" />
+                      </div>
+                    )}
+                    {isFailed && <X className="h-3.5 w-3.5 text-zinc-600" />}
+                    {!sourceStatus && (
+                      <span className="text-[9px] font-bold text-zinc-800 uppercase tracking-[0.2em]">Queued</span>
                     )}
                   </div>
-                  <span
-                    className={`text-sm ${
-                      isActive || isCompleted ? "text-zinc-900" : "text-zinc-400"
-                    }`}
-                  >
-                    {step.label}
-                  </span>
                 </div>
               );
             })}
           </div>
 
-          {status?.providerStatuses && Object.keys(status.providerStatuses).length > 0 && (
-            <div className="space-y-2 pt-4 border-t">
-              <p className="text-xs font-medium text-zinc-500 uppercase">Sources</p>
-              <div className="space-y-1">
-                {Object.entries(status.providerStatuses).map(([provider, data]) => (
-                  <div key={provider} className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-600">{provider}</span>
-                    <span
-                      className={`flex items-center gap-1 ${
-                        data.status === "done"
-                          ? "text-green-600"
-                          : data.status === "running"
-                          ? "text-amber-600"
-                          : data.status === "failed"
-                          ? "text-red-600"
-                          : "text-zinc-400"
-                      }`}
-                    >
-                      {data.status === "done" && <Check className="h-3 w-3" />}
-                      {data.status === "running" && <Loader size="sm" />}
-                      {data.status === "failed" && <X className="h-3 w-3" />}
-                      {data.status}
-                      {data.count !== undefined && ` (${data.count})`}
-                    </span>
-                  </div>
-                ))}
-              </div>
+          {/* Footer Premium */}
+          <div className="pt-6 border-t border-zinc-900 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">Elapsed Time</span>
+              <span className="text-[13px] font-bold text-zinc-400 tracking-tight">
+                {Math.floor(elapsed / 60)}:{(elapsed % 60).toString().padStart(2, '0')}s
+              </span>
             </div>
-          )}
-
-          <div className="pt-4 border-t">
-            <p className="text-sm text-zinc-500 text-center italic">
-              {MESSAGES[messageIndex]}
-            </p>
+            <button 
+              onClick={handleCancel}
+              className="h-10 px-6 rounded-xl border border-zinc-900 bg-black text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white hover:border-zinc-700 transition-all"
+            >
+              Abort Mission
+            </button>
           </div>
-
-          <div className="pt-2 text-center">
-            <p className="text-xs text-zinc-400">
-              StageFinder compile les resultats sans vous rediriger vers des sites
-              externes, pour une experience professionnelle et centralisee.
-            </p>
-          </div>
-
-          <div className="flex justify-center pt-2">
-            <Button variant="outline" onClick={handleCancel}>
-              Annuler
-            </Button>
-          </div>
-        </CardContent>
+        </div>
+        <p className="text-[9px] font-bold text-zinc-800 uppercase tracking-[0.3em] text-center pb-6">
+          StageFinder Neural Core • Real-time Data Stream
+        </p>
       </Card>
     </div>
   );
