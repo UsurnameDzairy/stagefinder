@@ -22,6 +22,8 @@ import Link from "next/link";
 import { LogOut, Settings, User as UserIcon, Menu, X } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import LanguageSwitcher from "./language-switcher";
+import { useTranslation } from "@/lib/i18n";
 
 interface SubmenuItem {
   href: string;
@@ -110,6 +112,7 @@ const appNavigationLinks: NavLink[] = [
 ];
 
 export default function Navbar({ user }: NavbarProps) {
+  const { t } = useTranslation();
   const links = user ? appNavigationLinks : landingNavigationLinks;
   const router = useRouter();
 
@@ -192,8 +195,9 @@ export default function Navbar({ user }: NavbarProps) {
           </div>
         </div>
 
-        {/* Right side: Auth / Account */}
-        <div className="flex items-center gap-6 shrink-0 z-20">
+        {/* Right side: Language + Auth / Account */}
+        <div className="flex items-center gap-4 shrink-0 z-20">
+          <LanguageSwitcher variant="minimal" />
           {user ? (
             <Popover>
               <PopoverTrigger asChild>
@@ -217,7 +221,7 @@ export default function Navbar({ user }: NavbarProps) {
                 <div className="flex flex-col gap-1">
                   <Link href="/parametres" className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all">
                     <Settings className="size-3.5" />
-                    Paramètres
+                    {t("nav.settings")}
                   </Link>
                   <div className="h-px bg-white/[0.05] mx-2 my-1" />
                   <button 
@@ -225,7 +229,7 @@ export default function Navbar({ user }: NavbarProps) {
                     className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-red-400/80 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all cursor-pointer"
                   >
                     <LogOut className="size-3.5" />
-                    Déconnexion
+                    {t("nav.logout")}
                   </button>
                 </div>
               </PopoverContent>

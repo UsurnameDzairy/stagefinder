@@ -115,30 +115,59 @@ export default function LandingPage() {
           
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Student Plan */}
+            {/* Free Plan */}
             <div className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all">
-              <h3 className="text-xl font-semibold text-white mb-2">Student</h3>
-              <p className="text-sm text-zinc-500 mb-6">Pour les étudiants qui démarrent</p>
+              <h3 className="text-xl font-serif text-white mb-2">Free</h3>
+              <p className="text-sm text-zinc-500 mb-6">Pour découvrir la plateforme</p>
               <div className="mb-6">
-                <span className="text-5xl font-bold text-white">$10</span>
+                <span className="text-5xl font-bold text-white">0€</span>
                 <span className="text-zinc-500 text-sm ml-2">/ mois</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>10 requêtes IA par jour</span>
+                  <span>5 candidatures tous les 3 jours</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>70 requêtes IA par semaine</span>
+                  <span>Accès limité aux offres</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>Accès aux offres de stages</span>
+                  <span>Recherche basique</span>
+                </li>
+              </ul>
+              <Link href="/sign-up" className="block">
+                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-medium">
+                  Commencer gratuitement
+                </button>
+              </Link>
+            </div>
+
+            {/* Student Plan */}
+            <div className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all">
+              <h3 className="text-xl font-serif text-white mb-2">Student</h3>
+              <p className="text-sm text-zinc-500 mb-6">Pour les étudiants qui démarrent</p>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-white">8,99€</span>
+                <span className="text-zinc-500 text-sm ml-2">/ mois</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-sm text-zinc-400">
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>10 candidatures par jour</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>Analyse de CV basique</span>
+                  <span>700 requêtes IA totales</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Rédaction IA (lettres, relances)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Tracking des candidatures</span>
                 </li>
               </ul>
               <Link href="/pricing" className="block">
@@ -153,20 +182,20 @@ export default function LandingPage() {
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-1.5 rounded-full">
                 <span className="text-black text-sm font-semibold">Populaire</span>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Pro</h3>
+              <h3 className="text-xl font-serif text-white mb-2">Pro</h3>
               <p className="text-sm text-zinc-500 mb-6">Pour les chercheurs actifs</p>
               <div className="mb-6">
-                <span className="text-5xl font-bold text-white">$23</span>
+                <span className="text-5xl font-bold text-white">19,99€</span>
                 <span className="text-zinc-500 text-sm ml-2">/ mois</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>50 requêtes IA par jour</span>
+                  <span>10 candidatures par jour</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>350 requêtes IA par semaine</span>
+                  <span>1500 requêtes IA totales</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
@@ -174,53 +203,16 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>Analyse CV avancée par IA</span>
+                  <span>Génération lettres de motivation</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>Génération lettres de motivation</span>
+                  <span>Alertes en temps réel</span>
                 </li>
               </ul>
               <Link href="/pricing" className="block">
                 <button className="w-full py-3 rounded-full bg-white text-black hover:bg-zinc-200 transition-all font-medium">
                   Essayer gratuitement
-                </button>
-              </Link>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all">
-              <h3 className="text-xl font-semibold text-white mb-2">Enterprise</h3>
-              <p className="text-sm text-zinc-500 mb-6">Pour les professionnels exigeants</p>
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-white">$50</span>
-                <span className="text-zinc-500 text-sm ml-2">/ mois</span>
-              </div>
-              <ul className="space-y-3 mb-8 text-sm text-zinc-400">
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
-                  <span>Requêtes IA illimitées</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
-                  <span>Accès API complet</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
-                  <span>Analyse CV premium + coaching</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
-                  <span>Account manager dédié</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
-                  <span>Support 24/7</span>
-                </li>
-              </ul>
-              <Link href="/pricing" className="block">
-                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-medium">
-                  Contacter les ventes
                 </button>
               </Link>
             </div>

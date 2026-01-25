@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import TextType from "@/components/ui/text-type";
+import { useTranslation, useLanguage } from "@/lib/i18n";
 
 const Dithering = lazy(() => 
   import("@paper-design/shaders-react").then((mod) => ({ default: mod.Dithering }))
@@ -463,11 +465,36 @@ function renderMarkdown(text: string) {
 }
 
 export default function AssistantPage() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch user name for personalized greeting
+  useEffect(() => {
+    fetch("/api/user/profile")
+      .then(res => res.json())
+      .then(data => {
+        if (data.user?.name) {
+          setUserName(data.user.name.split(' ')[0]); // First name only
+        } else if (data.user?.email) {
+          setUserName(data.user.email.split('@')[0]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t("common.goodMorning");
+    if (hour < 18) return t("common.goodAfternoon");
+    return t("common.goodEvening");
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -612,7 +639,15 @@ export default function AssistantPage() {
               /* État initial - centré */
               <>
                 <h1 className="text-3xl font-serif font-light text-[#C2C0B6] mb-8 text-center">
-                  Quoi de neuf ?
+                  <TextType
+                    text={userName ? `${getGreeting()} ${userName}` : getGreeting()}
+                    typingSpeed={60}
+                    showCursor={true}
+                    cursorCharacter="_"
+                    cursorClassName="text-[#C2C0B6]"
+                    loop={false}
+                    className="inline"
+                  />
                 </h1>
                 
                 <ClaudeChatInput
@@ -622,7 +657,9 @@ export default function AssistantPage() {
                 />
                 
                 <p className="text-xs text-zinc-600 mt-4 text-center">
-                  Modèles GPT gratuits • Analyse de CV • Conseils carrière
+                  {language === 'fr' 
+                    ? 'Modèles GPT gratuits • Analyse de CV • Conseils carrière'
+                    : 'Free GPT models • CV Analysis • Career advice'}
                 </p>
               </>
             ) : (

@@ -232,6 +232,27 @@ export const translations = {
       languages: "Langues",
       upload: "Uploader",
       change: "Changer",
+      upgradeRequired: "Upgrade requis",
+      upgradeMessage: "Passez à Student ou Pro pour accéder à toutes les offres",
+      upgradePlan: "Améliorer mon plan",
+      applicationsLeft: "candidatures restantes",
+      upgrade: "Améliorer",
+      goodMorning: "Bonjour",
+      goodAfternoon: "Bon après-midi",
+      goodEvening: "Bonsoir",
+    },
+    
+    // Model Selector
+    modelSelector: {
+      title: "AGENTS IA",
+      free: "GRATUIT",
+      premium: "PREMIUM",
+      models: {
+        llama33: "Modèle puissant et rapide",
+        llama31: "Ultra rapide pour les réponses simples",
+        mixtral: "Excellent pour l'analyse de documents",
+        gemma: "Modèle Google compact et efficace",
+      },
     },
     
     // Vocabulaire Harvard pour les candidatures
@@ -497,6 +518,27 @@ export const translations = {
       languages: "Languages",
       upload: "Upload",
       change: "Change",
+      upgradeRequired: "Upgrade Required",
+      upgradeMessage: "Upgrade to Student or Pro to access all job offers",
+      upgradePlan: "Upgrade Plan",
+      applicationsLeft: "applications left",
+      upgrade: "Upgrade",
+      goodMorning: "Good morning",
+      goodAfternoon: "Good afternoon",
+      goodEvening: "Good evening",
+    },
+    
+    // Model Selector
+    modelSelector: {
+      title: "AI AGENTS",
+      free: "FREE",
+      premium: "PREMIUM",
+      models: {
+        llama33: "Powerful and fast model",
+        llama31: "Ultra fast for simple responses",
+        mixtral: "Excellent for document analysis",
+        gemma: "Compact and efficient Google model",
+      },
     },
     
     // Harvard vocabulary for applications

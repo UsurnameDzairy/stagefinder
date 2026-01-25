@@ -50,13 +50,17 @@ export default function DashboardPage() {
         const statsData = await statsRes.json();
         setStats(statsData.stats);
 
-        // Mock recent activity for now - can be connected to real API later
-        setRecentActivity([
-          { id: "1", type: "application", title: "Analyste M&A", subtitle: "Goldman Sachs", date: "Il y a 2h" },
-          { id: "2", type: "saved_offer", title: "Product Manager Stage", subtitle: "BlaBlaCar", date: "Il y a 5h" },
-          { id: "3", type: "saved_company", title: "L'Oréal", subtitle: "Cosmétiques", date: "Hier" },
-          { id: "4", type: "interview", title: "Entretien Planifié", subtitle: "BNP Paribas", date: "Demain à 10:00" },
-        ]);
+        // Fetch real recent activity from API
+        try {
+          const activityRes = await fetch("/api/dashboard/activity");
+          if (activityRes.ok) {
+            const activityData = await activityRes.json();
+            setRecentActivity(activityData.activity || []);
+          }
+        } catch (e) {
+          // If activity API fails, leave empty
+          setRecentActivity([]);
+        }
 
         setLoading(false);
       } catch (err) {
