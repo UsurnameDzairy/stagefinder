@@ -276,7 +276,7 @@ export default function OffresPage() {
     setSearchJobId(null);
   };
 
-  // Smart Scraper IA - Recherche intelligente basée sur le profil
+  // Smart Search IA - Recherche intelligente basée sur le profil
   const handleSmartSearch = async () => {
     setIsSmartSearching(true);
     setHasSearched(true);
@@ -922,7 +922,7 @@ export default function OffresPage() {
         </div>
       )}
 
-      {/* Scraper intégré dans la page (pas de modal) */}
+      {/* Recherche intégrée dans la page */}
       {isSearching && searchJobId && (
         <InlineScraperStatus
           jobId={searchJobId}
@@ -936,7 +936,7 @@ export default function OffresPage() {
   );
 }
 
-// Composant Scraper intégré directement dans la page
+// Composant de statut de recherche intégré dans la page
 function InlineScraperStatus({
   jobId,
   searchQuery,

@@ -62,7 +62,7 @@ const landingNavigationLinks: NavLink[] = [
       },
       {
         href: "#features",
-        label: "Auto-Scraper",
+        label: "Auto-Search",
         description: "Get the latest internships automatically.",
       },
       {

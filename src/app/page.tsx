@@ -6,6 +6,7 @@ import Link from "next/link";
 import VerticalBarsNoise from "@/components/ui/vertical-bars-noise";
 import Navbar from "@/components/ui/navbar";
 import { useSession } from "@/lib/auth-client";
+import TextType from "@/components/ui/text-type";
 
 const Dithering = lazy(() => 
   import("@paper-design/shaders-react").then((mod) => ({ default: mod.Dithering }))
@@ -65,7 +66,19 @@ export default function LandingPage() {
               {/* Headline - Polices Serif Premium */}
               <h1 className="font-serif text-6xl md:text-8xl lg:text-9xl font-normal tracking-tight text-white mb-10 leading-[0.95] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
                 Your career, <br />
-                <span className="text-zinc-600 italic">orchestrated perfectly.</span>
+                <span className="text-zinc-600 italic">
+                  <TextType
+                    text={["orchestrated perfectly.", "amplified strategically.", "elevated professionally.", "optimized intelligently.", "transformed brilliantly."]}
+                    typingSpeed={80}
+                    deletingSpeed={40}
+                    pauseDuration={2500}
+                    loop={true}
+                    showCursor={true}
+                    cursorCharacter="_"
+                    cursorClassName="text-zinc-600"
+                    className="inline"
+                  />
+                </span>
               </h1>
               
               {/* Description */}

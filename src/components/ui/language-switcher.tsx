@@ -5,8 +5,8 @@ import { Globe, Check } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
 
 const LANGUAGES = [
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'fr', name: 'Français' },
+  { code: 'en', name: 'English' },
 ] as const;
 
 interface LanguageSwitcherProps {
@@ -37,14 +37,13 @@ export default function LanguageSwitcher({ className = '', variant = 'default' }
       <div className={`relative ${className}`} ref={dropdownRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-all text-sm"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-all text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white"
         >
-          <span className="text-base">{currentLang.flag}</span>
-          <span className="text-zinc-400 text-xs uppercase">{currentLang.code}</span>
+          {currentLang.code}
         </button>
 
         {isOpen && (
-          <div className="absolute top-full mt-1 right-0 w-36 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl overflow-hidden z-50">
+          <div className="absolute top-full mt-1 right-0 w-32 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl overflow-hidden z-50">
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
@@ -52,16 +51,13 @@ export default function LanguageSwitcher({ className = '', variant = 'default' }
                   setLanguage(lang.code as 'fr' | 'en');
                   setIsOpen(false);
                 }}
-                className={`w-full px-3 py-2 flex items-center justify-between hover:bg-zinc-800 transition-colors ${
+                className={`w-full px-3 py-2.5 flex items-center justify-between hover:bg-zinc-800 transition-colors ${
                   language === lang.code ? 'bg-zinc-800/50' : ''
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span>{lang.flag}</span>
-                  <span className="text-sm text-zinc-200">{lang.name}</span>
-                </div>
+                <span className="text-sm text-zinc-200">{lang.name}</span>
                 {language === lang.code && (
-                  <Check className="h-4 w-4 text-emerald-400" />
+                  <Check className="h-3.5 w-3.5 text-white" />
                 )}
               </button>
             ))}
@@ -99,12 +95,9 @@ export default function LanguageSwitcher({ className = '', variant = 'default' }
                   language === lang.code ? 'bg-zinc-800/30' : ''
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">{lang.flag}</span>
-                  <span className="text-zinc-200">{lang.name}</span>
-                </div>
+                <span className="text-zinc-200">{lang.name}</span>
                 {language === lang.code && (
-                  <Check className="h-4 w-4 text-emerald-400" />
+                  <Check className="h-4 w-4 text-white" />
                 )}
               </button>
             ))}

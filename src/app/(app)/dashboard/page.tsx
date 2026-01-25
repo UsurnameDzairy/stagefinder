@@ -141,29 +141,35 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6 pt-0">
-            <div className="h-64 w-full flex items-end justify-between gap-2 mt-4">
-              {(stats?.searchActivity || [40, 70, 45, 90, 65, 80, 55, 95, 75, 60, 85, 100]).map((height, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                  <div className="w-full relative h-full flex items-end gap-0.5">
-                    <motion.div 
-                      initial={{ height: 0 }}
-                      animate={{ height: `${height}%` }}
-                      transition={{ delay: 0.5 + (i * 0.05) }}
-                      className="flex-1 bg-white/10 rounded-t-sm group-hover:bg-white/20 transition-colors" 
-                    />
-                    <motion.div 
-                      initial={{ height: 0 }}
-                      animate={{ height: `${height * 0.4}%` }}
-                      transition={{ delay: 0.7 + (i * 0.05) }}
-                      className="flex-1 bg-white rounded-t-sm group-hover:bg-zinc-200 transition-colors" 
-                    />
+            {stats?.searchActivity && stats.searchActivity.length > 0 ? (
+              <div className="h-64 w-full flex items-end justify-between gap-2 mt-4">
+                {stats.searchActivity.map((height, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                    <div className="w-full relative h-full flex items-end gap-0.5">
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: `${height}%` }}
+                        transition={{ delay: 0.5 + (i * 0.05) }}
+                        className="flex-1 bg-white/10 rounded-t-sm group-hover:bg-white/20 transition-colors" 
+                      />
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: `${height * 0.4}%` }}
+                        transition={{ delay: 0.7 + (i * 0.05) }}
+                        className="flex-1 bg-white rounded-t-sm group-hover:bg-zinc-200 transition-colors" 
+                      />
+                    </div>
+                    <span className="text-[9px] font-bold text-zinc-800 uppercase group-hover:text-zinc-500 transition-colors">
+                      {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'][i]}
+                    </span>
                   </div>
-                  <span className="text-[9px] font-bold text-zinc-800 uppercase group-hover:text-zinc-500 transition-colors">
-                    {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'][i]}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-64 w-full flex items-center justify-center">
+                <p className="text-zinc-600 text-sm">Aucune donnée disponible</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -176,37 +182,45 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-6">
-            <div className="relative h-40 flex items-center justify-center">
-              <svg className="w-32 h-32 -rotate-90">
-                <circle cx="64" cy="64" r="50" fill="transparent" stroke="#1a1a1a" strokeWidth="12" />
-                <motion.circle 
-                  cx="64" cy="64" r="50" fill="transparent" stroke="white" strokeWidth="12" 
-                  strokeDasharray="314"
-                  initial={{ strokeDashoffset: 314 }}
-                  animate={{ strokeDashoffset: 314 * (1 - (stats?.applicationStatus?.responseRate || 65) / 100) }}
-                  transition={{ duration: 1.5, delay: 0.5 }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold tracking-tighter">{stats?.applicationStatus?.responseRate || 65}%</span>
-                <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">Réponses</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {[
-                { label: "En attente", value: `${stats?.applicationStatus?.pending || 45}%`, color: "bg-zinc-800" },
-                { label: "Entretiens", value: `${stats?.applicationStatus?.interview || 25}%`, color: "bg-white" },
-                { label: "Refusé", value: `${stats?.applicationStatus?.rejected || 30}%`, color: "bg-zinc-900" },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
-                  <div className="flex items-center gap-2">
-                    <div className={cn("w-1.5 h-1.5 rounded-full", item.color)} />
-                    <span className="text-zinc-500">{item.label}</span>
+            {stats?.applicationStatus ? (
+              <>
+                <div className="relative h-40 flex items-center justify-center">
+                  <svg className="w-32 h-32 -rotate-90">
+                    <circle cx="64" cy="64" r="50" fill="transparent" stroke="#1a1a1a" strokeWidth="12" />
+                    <motion.circle 
+                      cx="64" cy="64" r="50" fill="transparent" stroke="white" strokeWidth="12" 
+                      strokeDasharray="314"
+                      initial={{ strokeDashoffset: 314 }}
+                      animate={{ strokeDashoffset: 314 * (1 - (stats.applicationStatus.responseRate || 0) / 100) }}
+                      transition={{ duration: 1.5, delay: 0.5 }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl font-bold tracking-tighter">{stats.applicationStatus.responseRate || 0}%</span>
+                    <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">Réponses</span>
                   </div>
-                  <span className="text-zinc-300">{item.value}</span>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-2">
+                  {[
+                    { label: "En attente", value: `${stats.applicationStatus.pending || 0}%`, color: "bg-zinc-800" },
+                    { label: "Entretiens", value: `${stats.applicationStatus.interview || 0}%`, color: "bg-white" },
+                    { label: "Refusé", value: `${stats.applicationStatus.rejected || 0}%`, color: "bg-zinc-900" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <div className={cn("w-1.5 h-1.5 rounded-full", item.color)} />
+                        <span className="text-zinc-500">{item.label}</span>
+                      </div>
+                      <span className="text-zinc-300">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="h-40 flex items-center justify-center">
+                <p className="text-zinc-600 text-sm">Aucune candidature</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -230,7 +244,7 @@ export default function DashboardPage() {
                   {[0, 1, 2, 3].map(i => <div key={i} className="w-full h-px bg-zinc-800" />)}
                 </div>
                 
-                {(stats?.matchTrend || [65, 68, 72, 70, 75, 78, 82, 85, 80, 88, 92, 95]).map((score, i) => (
+                {(stats?.matchTrend || []).map((score, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative z-10">
                     <div className="w-full relative h-full flex items-end">
                       <motion.div 
@@ -273,34 +287,32 @@ export default function DashboardPage() {
               <Sparkles className="h-3.5 w-3.5 text-zinc-700" />
             </CardHeader>
             <CardContent className="p-6 pt-4 space-y-6">
-              <div className="space-y-5">
-                {(stats?.skillsCoverage || [
-                  { label: "Finance & Analyse", value: 85, color: "bg-white" },
-                  { label: "Python & Data", value: 65, color: "bg-zinc-400" },
-                  { label: "Communication", value: 92, color: "bg-zinc-200" },
-                  { label: "Strategie", value: 45, color: "bg-zinc-700" },
-                ]).map((skill, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">{skill.label}</span>
-                      <span className="text-[11px] font-bold text-white">{skill.value}%</span>
-                    </div>
-                    <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${skill.value}%` }}
-                        transition={{ delay: 0.8 + (i * 0.1), duration: 1, ease: "easeOut" }}
-                        className={cn("h-full rounded-full", skill.color)}
-                      />
-                    </div>
+              {stats?.skillsCoverage && stats.skillsCoverage.length > 0 ? (
+                <>
+                  <div className="space-y-5">
+                    {stats.skillsCoverage.map((skill, i) => (
+                      <div key={i} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">{skill.label}</span>
+                          <span className="text-[11px] font-bold text-white">{skill.value}%</span>
+                        </div>
+                        <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${skill.value}%` }}
+                            transition={{ delay: 0.8 + (i * 0.1), duration: 1, ease: "easeOut" }}
+                            className={cn("h-full rounded-full", skill.color)}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div className="mt-4 p-4 bg-zinc-950 border border-zinc-900 rounded-2xl">
-                <p className="text-[11px] text-zinc-500 leading-relaxed italic">
-                  "Votre profil est particulièrement compétitif dans les secteurs de la **Finance** et du **Conseil**. Nous recommandons de renforcer vos acquis en **Stratégie**."
-                </p>
-              </div>
+                </>
+              ) : (
+                <div className="h-40 flex items-center justify-center">
+                  <p className="text-zinc-600 text-sm">Ajoutez des compétences à votre profil</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
