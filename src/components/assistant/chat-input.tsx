@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import TextType from "@/components/ui/text-type";
 
 export interface FileWithPreview {
   id: string;
@@ -54,6 +55,8 @@ interface ChatInputProps {
   models?: ModelOption[];
   defaultModel?: string;
   onModelChange?: (modelId: string) => void;
+  animatedPlaceholder?: boolean;
+  placeholderSuggestions?: string[];
 }
 
 const MAX_FILES = 10;
@@ -213,6 +216,12 @@ const ModelSelectorDropdown: React.FC<{ models: ModelOption[]; selectedModel: st
   );
 };
 
+const DEFAULT_PLACEHOLDER_SUGGESTIONS = [
+  "Analysez mon CV...",
+  "Aidez-moi à rédiger une lettre...",
+  "Simulons un entretien...",
+];
+
 export function AssistantChatInput({
   onSendMessage,
   disabled = false,
@@ -222,6 +231,8 @@ export function AssistantChatInput({
   models = DEFAULT_MODELS,
   defaultModel,
   onModelChange,
+  animatedPlaceholder = false,
+  placeholderSuggestions = DEFAULT_PLACEHOLDER_SUGGESTIONS,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<FileWithPreview[]>([]);

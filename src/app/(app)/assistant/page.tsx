@@ -12,7 +12,9 @@ import {
   Check,
   Loader2,
   Copy,
+  Settings,
 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import TextType from "@/components/ui/text-type";
@@ -747,6 +749,13 @@ export default function AssistantPage() {
               />
             </div>
           </Suspense>
+
+          {/* Settings button */}
+          <Link href="/models" className="absolute top-4 right-4 z-20">
+            <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </Link>
 
           <div className="relative z-10 px-6 w-full max-w-2xl mx-auto flex flex-col items-center justify-center h-full">
             {messages.length === 0 ? (

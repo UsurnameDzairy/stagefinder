@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     const interviews = await prisma.application.count({ where: { userId: session.id, status: "INTERVIEW" } });
 
     // Calculate real application status percentages
-    const pending = await prisma.application.count({ where: { userId: session.id, status: "PENDING" } });
+    const pending = await prisma.application.count({ where: { userId: session.id, status: { in: ["APPLIED", "IN_PROGRESS"] } } });
     const rejected = await prisma.application.count({ where: { userId: session.id, status: "REJECTED" } });
 
     const applicationStatus = applications > 0 ? {

@@ -14,9 +14,6 @@ export async function GET() {
       where: { userId: session.id },
       orderBy: { createdAt: "desc" },
       take: 5,
-      include: {
-        company: true,
-      },
     });
 
     // Fetch recent saved offers
@@ -26,11 +23,14 @@ export async function GET() {
       take: 5,
     });
 
-    // Fetch recent saved companies
-    const recentSavedCompanies = await prisma.company.findMany({
+    // Fetch recent saved companies (via SavedCompany junction table)
+    const recentSavedCompanies = await prisma.savedCompany.findMany({
       where: { userId: session.id },
       orderBy: { createdAt: "desc" },
       take: 5,
+      include: {
+        company: true,
+      },
     });
 
     // Combine and format activity
@@ -49,7 +49,7 @@ export async function GET() {
         id: `app-${app.id}`,
         type: isInterview ? "interview" : "application",
         title: app.jobTitle || "Candidature",
-        subtitle: app.company?.name || "Entreprise",
+        subtitle: app.companyName || "Entreprise",
         date: formatRelativeDate(app.createdAt),
       });
     });
@@ -66,13 +66,13 @@ export async function GET() {
     });
 
     // Format saved companies
-    recentSavedCompanies.forEach((company) => {
+    recentSavedCompanies.forEach((savedCompany) => {
       activity.push({
-        id: `company-${company.id}`,
+        id: `company-${savedCompany.id}`,
         type: "saved_company",
-        title: company.name,
-        subtitle: company.industry || "Entreprise",
-        date: formatRelativeDate(company.createdAt),
+        title: savedCompany.company.name,
+        subtitle: savedCompany.company.sector || "Entreprise",
+        date: formatRelativeDate(savedCompany.createdAt),
       });
     });
 

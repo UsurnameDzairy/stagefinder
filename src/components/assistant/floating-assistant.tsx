@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
-import { Bot, X, Send, Minimize2, Maximize2, RotateCcw } from "lucide-react";
+import { Bot, X, Send, Minimize2, Maximize2, RotateCcw, User } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Message {
   role: "user" | "assistant";
