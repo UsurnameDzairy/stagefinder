@@ -75,7 +75,7 @@ export default function LandingPage() {
               </p>
 
               {/* Button Action */}
-              <Link href={session?.user ? "/dashboard" : "/register"} className="group relative">
+              <Link href={session?.user ? "/dashboard" : "/pricing"} className="group relative">
                 <div className="absolute -inset-4 bg-white/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 <button className="relative inline-flex h-16 items-center justify-center gap-4 overflow-hidden rounded-full bg-black text-white px-14 text-sm font-serif italic tracking-tight transition-all duration-500 hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.1)] border border-zinc-800">
                   <span>{session?.user ? "Go to Dashboard" : "Get Started"}</span>
@@ -103,11 +103,128 @@ export default function LandingPage() {
         <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-zinc-800/10 rounded-full blur-[150px] pointer-events-none" />
       </section>
 
-      {/* Pricing Section (Placeholder) */}
+      {/* Pricing Section */}
       <section id="pricing" className="py-24 border-t border-zinc-900 bg-black">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 text-center">
-          <h2 className="font-serif text-4xl md:text-6xl mb-8">Pricing Plans</h2>
-          <p className="text-zinc-500 max-w-2xl mx-auto">Choose the strategy that fits your career goals.</p>
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="text-center mb-16">
+            <h2 className="font-serif text-4xl md:text-6xl mb-4 text-white">
+              Pricing <span className="text-zinc-500 italic">Plans</span>
+            </h2>
+            <p className="text-zinc-500 max-w-2xl mx-auto text-lg">Choose the strategy that fits your career goals.</p>
+          </div>
+          
+          {/* Pricing Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Student Plan */}
+            <div className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all">
+              <h3 className="text-xl font-semibold text-white mb-2">Student</h3>
+              <p className="text-sm text-zinc-500 mb-6">Pour les étudiants qui démarrent</p>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-white">$10</span>
+                <span className="text-zinc-500 text-sm ml-2">/ mois</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-sm text-zinc-400">
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>10 requêtes IA par jour</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>70 requêtes IA par semaine</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Accès aux offres de stages</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Analyse de CV basique</span>
+                </li>
+              </ul>
+              <Link href="/pricing" className="block">
+                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-medium">
+                  Commencer
+                </button>
+              </Link>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="rounded-2xl p-8 border-2 border-white bg-zinc-900/80 backdrop-blur-sm relative transform md:-translate-y-4">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-1.5 rounded-full">
+                <span className="text-black text-sm font-semibold">Populaire</span>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Pro</h3>
+              <p className="text-sm text-zinc-500 mb-6">Pour les chercheurs actifs</p>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-white">$23</span>
+                <span className="text-zinc-500 text-sm ml-2">/ mois</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-sm text-zinc-400">
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>50 requêtes IA par jour</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>350 requêtes IA par semaine</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Accès illimité aux offres</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Analyse CV avancée par IA</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Génération lettres de motivation</span>
+                </li>
+              </ul>
+              <Link href="/pricing" className="block">
+                <button className="w-full py-3 rounded-full bg-white text-black hover:bg-zinc-200 transition-all font-medium">
+                  Essayer gratuitement
+                </button>
+              </Link>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all">
+              <h3 className="text-xl font-semibold text-white mb-2">Enterprise</h3>
+              <p className="text-sm text-zinc-500 mb-6">Pour les professionnels exigeants</p>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-white">$50</span>
+                <span className="text-zinc-500 text-sm ml-2">/ mois</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-sm text-zinc-400">
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Requêtes IA illimitées</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Accès API complet</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Analyse CV premium + coaching</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Account manager dédié</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-white mt-0.5">✓</span>
+                  <span>Support 24/7</span>
+                </li>
+              </ul>
+              <Link href="/pricing" className="block">
+                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-medium">
+                  Contacter les ventes
+                </button>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 

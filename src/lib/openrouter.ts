@@ -36,7 +36,9 @@ interface OpenRouterResponse {
 }
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const API_KEY = process.env.OPENROUTER_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 /**
  * Available models on OpenRouter
@@ -52,8 +54,58 @@ export const MODELS = {
   MISTRAL_LARGE: 'mistralai/mistral-large',
 } as const;
 
+// Groq model mapping
+const GROQ_MODELS = [
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'mixtral-8x7b-32768',
+  'gemma2-9b-it',
+];
+
+/**
+ * Call Groq API (free fallback)
+ */
+async function callGroq(
+  messages: OpenRouterMessage[],
+  model: string = 'llama-3.3-70b-versatile',
+  options: {
+    temperature?: number;
+    max_tokens?: number;
+  } = {}
+): Promise<string> {
+  if (!GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY is not configured');
+  }
+
+  // Use the model if it's a Groq model, otherwise default
+  const groqModel = GROQ_MODELS.includes(model) ? model : 'llama-3.3-70b-versatile';
+
+  const response = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: groqModel,
+      messages,
+      temperature: options.temperature ?? 0.7,
+      max_tokens: options.max_tokens ?? 2000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`Groq API error: ${response.status} - ${JSON.stringify(errorData)}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
 /**
  * Call OpenRouter API with the specified model and messages
+ * Falls back to Groq if OpenRouter fails
  */
 export async function callOpenRouter(
   messages: OpenRouterMessage[],
@@ -64,8 +116,19 @@ export async function callOpenRouter(
     top_p?: number;
   } = {}
 ): Promise<string> {
+  // Try Groq first if available (free and fast)
+  if (GROQ_API_KEY) {
+    try {
+      console.log('Using Groq API with model:', model);
+      return await callGroq(messages, model, options);
+    } catch (groqError) {
+      console.error('Groq API failed, trying OpenRouter:', groqError);
+    }
+  }
+
+  // Fallback to OpenRouter
   if (!API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is not configured in environment variables');
+    throw new Error('No AI API key configured (GROQ_API_KEY or OPENROUTER_API_KEY)');
   }
 
   const requestBody: OpenRouterRequest = {
@@ -277,7 +340,8 @@ export async function chatWithAssistant(
     skills?: string[];
     targetRole?: string;
     experience?: string;
-  }
+  },
+  model?: string
 ): Promise<string> {
   const systemMessage: OpenRouterMessage = {
     role: 'system',
@@ -298,7 +362,7 @@ ${userContext ? `\n\nUser context:\n- Skills: ${userContext.skills?.join(', ') |
     { role: 'user', content: userMessage },
   ];
 
-  return await callOpenRouter(messages, MODELS.GPT4_TURBO, { temperature: 0.7, max_tokens: 1500 });
+  return await callOpenRouter(messages, model || MODELS.GPT4_TURBO, { temperature: 0.7, max_tokens: 1500 });
 }
 
 /**

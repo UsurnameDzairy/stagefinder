@@ -54,6 +54,29 @@ export default function EntreprisesPage() {
     }
   };
 
+  const createApplication = async (company: SavedCompany["company"]) => {
+    try {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companyName: company.name,
+          jobTitle: `Candidature - ${company.name}`,
+          status: "draft",
+          source: "Entreprises favorites",
+          companyId: company.id,
+        }),
+      });
+      
+      if (res.ok) {
+        // Rediriger vers la page candidatures
+        window.location.href = "/candidatures";
+      }
+    } catch (error) {
+      console.error("Error creating application:", error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -66,8 +89,7 @@ export default function EntreprisesPage() {
     <div className="space-y-10 pb-24">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-serif font-normal tracking-tight text-white flex items-center gap-3">
-            <Star className="h-6 w-6 text-zinc-400" />
+          <h1 className="text-4xl font-serif font-normal tracking-tight text-white">
             {t("companies.title")}
           </h1>
           <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em] mt-1">
@@ -144,7 +166,10 @@ export default function EntreprisesPage() {
                 )}
 
                 <div className="flex gap-2 pt-4 border-t border-zinc-900">
-                  <Button className="flex-1 bg-black hover:bg-zinc-900 text-white h-10 text-xs font-medium tracking-tight transition-all rounded-full border border-zinc-800 shadow-lg font-serif italic hover:scale-[1.02] active:scale-[0.98]">
+                  <Button 
+                    onClick={() => createApplication(saved.company)}
+                    className="flex-1 bg-black hover:bg-zinc-900 text-white h-10 text-xs font-medium tracking-tight transition-all rounded-full border border-zinc-800 shadow-lg font-serif italic hover:scale-[1.02] active:scale-[0.98]"
+                  >
                     <Send className="h-4 w-4 mr-2" />
                     Postuler
                   </Button>

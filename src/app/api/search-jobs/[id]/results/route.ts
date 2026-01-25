@@ -2,51 +2,51 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-// Filtre STRICT par localisation - UNIQUEMENT la ville demandée
+// Filtre par localisation - Plus flexible pour inclure les offres pertinentes
 function matchesRequestedLocation(offerLocation: string, requestedLocation: string): boolean {
   if (!requestedLocation || requestedLocation.trim() === '') return true;
   
   const offerLoc = (offerLocation || '').toLowerCase().trim();
   const reqLoc = requestedLocation.toLowerCase().trim();
   
-  // Mappings STRICTS de villes (UNIQUEMENT ce qui est vraiment équivalent)
-  const cityMappings: Record<string, string[]> = {
-    'monaco': ['monaco', 'monte-carlo', 'monte carlo', 'principauté'],
-    'paris': ['paris'],
-    'london': ['london', 'londres'],
-    'londres': ['london', 'londres'],
-    'suisse': ['suisse', 'switzerland', 'schweiz', 'zurich', 'zürich', 'geneva', 'genève', 'lausanne', 'bern', 'basel', 'vaud', 'gland'],
-    'switzerland': ['suisse', 'switzerland', 'schweiz', 'zurich', 'zürich', 'geneva', 'genève', 'lausanne', 'bern', 'basel', 'vaud', 'gland'],
-    'zurich': ['zurich', 'zürich'],
-    'geneva': ['geneva', 'genève', 'geneve'],
-    'genève': ['geneva', 'genève', 'geneve'],
+  // Correspondance directe
+  if (offerLoc.includes(reqLoc)) return true;
+  
+  // Mappings de localisations équivalentes
+  const locationMappings: Record<string, string[]> = {
+    'monaco': ['monaco', 'monte-carlo', 'monte carlo', 'principauté', 'mc', '98000'],
+    'paris': ['paris', 'île-de-france', 'ile-de-france', 'idf', '75', '92', '93', '94', '91', '78', '95', '77'],
+    'lyon': ['lyon', 'rhône', 'rhone', '69'],
+    'marseille': ['marseille', 'bouches-du-rhône', '13'],
+    'nice': ['nice', 'alpes-maritimes', '06', 'côte d\'azur'],
+    'toulouse': ['toulouse', 'haute-garonne', '31'],
+    'bordeaux': ['bordeaux', 'gironde', '33'],
+    'nantes': ['nantes', 'loire-atlantique', '44'],
+    'lille': ['lille', 'nord', '59'],
+    'strasbourg': ['strasbourg', 'bas-rhin', '67'],
+    'suisse': ['suisse', 'switzerland', 'schweiz', 'zürich', 'zurich', 'genève', 'geneva', 'lausanne', 'bern', 'basel'],
+    'switzerland': ['suisse', 'switzerland', 'schweiz', 'zürich', 'zurich', 'genève', 'geneva', 'lausanne', 'bern', 'basel'],
     'luxembourg': ['luxembourg', 'luxemburg'],
+    'london': ['london', 'londres', 'uk', 'united kingdom'],
+    'londres': ['london', 'londres', 'uk', 'united kingdom'],
     'milan': ['milan', 'milano'],
     'frankfurt': ['frankfurt', 'francfort'],
     'madrid': ['madrid'],
     'barcelona': ['barcelona', 'barcelone'],
     'barcelone': ['barcelona', 'barcelone'],
-    'nice': ['nice', 'alpes-maritimes', '06'],
-    'lyon': ['lyon', 'rhône'],
-    'marseille': ['marseille'],
   };
   
-  // Obtenir les termes acceptés pour la localisation demandée
-  const acceptedTerms = cityMappings[reqLoc] || [reqLoc];
-  
-  // Vérifier si l'offre correspond à un des termes acceptés
+  // Vérifier les mappings
+  const acceptedTerms = locationMappings[reqLoc] || [reqLoc];
   for (const term of acceptedTerms) {
-    if (offerLoc.includes(term)) {
-      return true;
-    }
+    if (offerLoc.includes(term)) return true;
   }
   
-  // Correspondance directe
-  if (offerLoc.includes(reqLoc)) {
+  // Si l'offre ne mentionne pas de localisation spécifique, l'inclure
+  if (!offerLoc || offerLoc === 'france' || offerLoc === 'remote' || offerLoc === 'télétravail') {
     return true;
   }
   
-  // REJETER tout le reste
   return false;
 }
 
@@ -70,20 +70,33 @@ export async function GET(
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
+    // Récupérer toutes les offres créées récemment (dernières 24 heures)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    // D'abord, compter toutes les offres récentes
+    const totalRecent = await prisma.jobOffer.count({
+      where: { createdAt: { gte: oneDayAgo } },
+    });
+    
+    console.log(`📊 Total offres récentes (24h): ${totalRecent}`);
+    
     const offers = await prisma.jobOffer.findMany({
       where: {
-        title: { contains: job.query },
+        createdAt: { gte: oneDayAgo },
       },
       orderBy: { createdAt: "desc" },
-      take: 100, // Prendre plus pour avoir assez après filtrage
+      take: 200,
     });
 
-    // FILTRE STRICT PAR LOCALISATION
-    const filteredOffers = offers.filter(offer => 
-      matchesRequestedLocation(offer.location || '', job.location || '')
-    );
+    // Filtrer par localisation si demandé
+    let filteredOffers = offers;
+    if (job.location && job.location.trim()) {
+      filteredOffers = offers.filter(offer => 
+        matchesRequestedLocation(offer.location || '', job.location || '')
+      );
+    }
 
-    console.log(`📍 Results filter: ${filteredOffers.length}/${offers.length} offres pour "${job.location}"`);
+    console.log(`📍 Results: ${filteredOffers.length}/${offers.length} offres pour "${job.query}" à "${job.location}"`);
 
     const formattedOffers = filteredOffers.map((offer) => ({
       id: offer.id,

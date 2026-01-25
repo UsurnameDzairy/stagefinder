@@ -253,53 +253,89 @@ export async function scrapeIndeedReal(query: string, location: string): Promise
     
     const searchQuery = encodeURIComponent(query);
     const searchLocation = encodeURIComponent(location);
-    const url = `https://fr.indeed.com/jobs?q=${searchQuery}&l=${searchLocation}&fromage=7`; // Derniers 7 jours
+    const url = `https://fr.indeed.com/jobs?q=${searchQuery}&l=${searchLocation}&fromage=7`;
     
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    console.log(`🌐 [Indeed] Navigating to: ${url}`);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
     
-    // Attendre les résultats
-    await page.waitForSelector('.job_seen_beacon, .jobsearch-SerpJobCard, .slider_item', { timeout: 10000 }).catch(() => null);
+    // Attendre un peu pour le chargement dynamique
+    await new Promise(r => setTimeout(r, 3000));
     
-    // Extraire les offres
-    const jobElements = await page.$$('.job_seen_beacon, .jobsearch-SerpJobCard, .slider_item');
-    
-    console.log(`📊 [Indeed] Found ${jobElements.length} job cards`);
-    
-    for (let i = 0; i < Math.min(jobElements.length, 20); i++) {
-      try {
-        const element = jobElements[i];
+    // Extraire les offres via evaluate pour plus de fiabilité
+    const extractedJobs = await page.evaluate(() => {
+      const results: any[] = [];
+      
+      // Sélecteurs multiples pour Indeed (ils changent souvent)
+      const cards = document.querySelectorAll('.job_seen_beacon, .resultContent, .jobsearch-ResultsList > li, [data-testid="job-card"]');
+      
+      cards.forEach((card, index) => {
+        if (index >= 25) return; // Limiter à 25
         
-        const title = await element.$eval('h2.jobTitle span, .jobTitle', el => el.textContent?.trim() || '').catch(() => '');
-        const company = await element.$eval('.companyName', el => el.textContent?.trim() || '').catch(() => '');
-        const location = await element.$eval('.companyLocation', el => el.textContent?.trim() || '').catch(() => '');
-        const snippet = await element.$eval('.job-snippet', el => el.textContent?.trim() || '').catch(() => '');
-        const jobLink = await element.$eval('h2.jobTitle a, a.jcs-JobTitle', el => el.getAttribute('href') || '').catch(() => '');
-        
-        if (title && company && jobLink) {
-          const fullUrl = jobLink.startsWith('http') ? jobLink : `https://fr.indeed.com${jobLink}`;
+        try {
+          // Titre - plusieurs sélecteurs possibles
+          const titleEl = card.querySelector('h2.jobTitle span[title], h2.jobTitle a, .jobTitle span, [data-testid="job-title"], a[data-jk]');
+          const title = titleEl?.textContent?.trim() || titleEl?.getAttribute('title') || '';
           
-          jobs.push({
-            title,
-            company,
-            location: location || 'France',
-            contractType: detectContractType(title + ' ' + snippet),
-            description: snippet || `${title} chez ${company}`,
-            url: fullUrl,
-            source: 'indeed',
-            postedDate: new Date(),
-            skills: extractSkills(title + ' ' + snippet),
-          });
+          // Entreprise
+          const companyEl = card.querySelector('[data-testid="company-name"], .companyName, .company_location .companyName, span[data-testid="company-name"]');
+          const company = companyEl?.textContent?.trim() || '';
+          
+          // Localisation
+          const locationEl = card.querySelector('[data-testid="text-location"], .companyLocation, .company_location .companyLocation');
+          const location = locationEl?.textContent?.trim() || '';
+          
+          // Lien
+          const linkEl = card.querySelector('a[data-jk], h2.jobTitle a, a.jcs-JobTitle') as HTMLAnchorElement;
+          const href = linkEl?.href || linkEl?.getAttribute('href') || '';
+          const jobId = linkEl?.getAttribute('data-jk') || '';
+          
+          // Description snippet
+          const snippetEl = card.querySelector('.job-snippet, [data-testid="job-snippet"], .underShelfFooter');
+          const snippet = snippetEl?.textContent?.trim() || '';
+          
+          if (title && (company || href)) {
+            results.push({
+              title,
+              company: company || 'Entreprise',
+              location: location || 'France',
+              snippet,
+              href: href || (jobId ? `https://fr.indeed.com/viewjob?jk=${jobId}` : ''),
+            });
+          }
+        } catch (e) {
+          console.error('Error extracting job:', e);
         }
-      } catch (err) {
-        console.error(`Error parsing Indeed job ${i}:`, err);
-      }
+      });
+      
+      return results;
+    });
+    
+    console.log(`📊 [Indeed] Extracted ${extractedJobs.length} jobs from page`);
+    
+    for (const job of extractedJobs) {
+      const fullUrl = job.href.startsWith('http') ? job.href : `https://fr.indeed.com${job.href}`;
+      
+      jobs.push({
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        contractType: detectContractType(job.title + ' ' + job.snippet),
+        description: job.snippet || `${job.title} chez ${job.company}`,
+        url: fullUrl,
+        source: 'indeed',
+        postedDate: new Date(),
+        skills: extractSkills(job.title + ' ' + job.snippet),
+      });
     }
     
     console.log(`✅ [Indeed] Scraped ${jobs.length} real jobs`);
   } catch (error) {
     console.error('❌ [Indeed] Scraping error:', error);
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      console.log(`🔒 [Indeed] Closing browser...`);
+      await browser.close();
+    }
   }
   
   return jobs;
@@ -319,61 +355,117 @@ export async function scrapeHelloWorkReal(query: string, location: string): Prom
     let page = await browser.newPage();
     page = await setupPage(page);
     
-    await page.setRequestInterception(true);
-    page.on('request', (req: any) => {
-      if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
-    
     const searchQuery = encodeURIComponent(query);
     const searchLocation = encodeURIComponent(location);
-    const url = `https://www.hellowork.com/fr-fr/emplois.html?k=${searchQuery}&l=${searchLocation}`;
+    // URL HelloWork avec paramètres corrects
+    const url = `https://www.hellowork.com/fr-fr/emploi/recherche.html?k=${searchQuery}&l=${searchLocation}`;
     
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    console.log(`🌐 [HelloWork] Navigating to: ${url}`);
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
     
-    await page.waitForSelector('.job-card, article[data-cy="job-card"], .tw-result-list-item', { timeout: 10000 }).catch(() => null);
+    // Attendre le chargement complet des offres (HelloWork charge dynamiquement)
+    await new Promise(r => setTimeout(r, 5000));
     
-    const jobElements = await page.$$('.job-card, article[data-cy="job-card"], .tw-result-list-item');
+    // Scroll pour charger plus d'offres
+    await page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight / 2);
+    });
+    await new Promise(r => setTimeout(r, 2000));
     
-    console.log(`📊 [HelloWork] Found ${jobElements.length} job cards`);
-    
-    for (let i = 0; i < Math.min(jobElements.length, 20); i++) {
-      try {
-        const element = jobElements[i];
+    // Extraire via page.evaluate - HelloWork utilise des classes Tailwind
+    const extractedJobs = await page.evaluate(() => {
+      const results: any[] = [];
+      
+      // HelloWork structure: les offres sont dans des <a> avec href contenant /fr-fr/emplois/
+      // Chercher tous les liens d'offres d'emploi
+      const allLinks = document.querySelectorAll('a[href*="/fr-fr/emplois/"]');
+      const processedUrls = new Set<string>();
+      
+      allLinks.forEach((link) => {
+        const href = (link as HTMLAnchorElement).href;
+        if (processedUrls.has(href) || results.length >= 30) return;
+        processedUrls.add(href);
         
-        const title = await element.$eval('h2, .job-title, [data-cy="job-title"]', el => el.textContent?.trim() || '').catch(() => '');
-        const company = await element.$eval('.company-name, [data-cy="company-name"]', el => el.textContent?.trim() || '').catch(() => '');
-        const location = await element.$eval('.job-location', el => el.textContent?.trim() || '').catch(() => '');
-        const jobLink = await element.$eval('a', el => el.getAttribute('href') || '').catch(() => '');
-        
-        if (title && jobLink) {
-          const fullUrl = jobLink.startsWith('http') ? jobLink : `https://www.hellowork.com${jobLink}`;
+        try {
+          // Remonter pour trouver le conteneur de l'offre
+          const card = link.closest('li, article, div[class*="tw-"]') || link.parentElement?.parentElement;
+          if (!card) return;
           
-          jobs.push({
-            title,
-            company: company || 'Entreprise',
-            location: location || 'France',
-            contractType: detectContractType(title),
-            description: `${title}${company ? ` chez ${company}` : ''}`,
-            url: fullUrl,
-            source: 'hellowork',
-            postedDate: new Date(),
-            skills: extractSkills(title),
-          });
+          // Titre - généralement dans un h2 ou h3 ou le texte du lien
+          let title = '';
+          const h2 = card.querySelector('h2, h3');
+          if (h2) {
+            title = h2.textContent?.trim() || '';
+          } else {
+            title = link.textContent?.trim() || '';
+          }
+          
+          // Nettoyer le titre
+          title = title.replace(/\s+/g, ' ').trim();
+          if (title.length < 5 || title.length > 200) return;
+          
+          // Entreprise - chercher dans les spans ou divs proches
+          let company = '';
+          const companyEl = card.querySelector('[class*="company"], [class*="entreprise"], span.tw-text-grey-700, p.tw-text-grey-700');
+          if (companyEl) {
+            company = companyEl.textContent?.trim() || '';
+          }
+          
+          // Localisation
+          let location = '';
+          const locationEl = card.querySelector('[class*="location"], [class*="lieu"], span[class*="grey-500"]');
+          if (locationEl) {
+            location = locationEl.textContent?.trim() || '';
+          }
+          
+          // Type de contrat
+          let contract = '';
+          const contractEl = card.querySelector('[class*="contrat"], [class*="contract"], span[class*="badge"]');
+          if (contractEl) {
+            contract = contractEl.textContent?.trim() || '';
+          }
+          
+          if (title && href.includes('/emplois/')) {
+            results.push({
+              title,
+              company: company || 'Entreprise sur HelloWork',
+              location: location || 'France',
+              contract,
+              href,
+            });
+          }
+        } catch (e) {
+          // Ignorer les erreurs individuelles
         }
-      } catch (err) {
-        console.error(`Error parsing HelloWork job ${i}:`, err);
-      }
+      });
+      
+      return results;
+    });
+    
+    console.log(`📊 [HelloWork] Extracted ${extractedJobs.length} jobs from page`);
+    
+    for (const job of extractedJobs) {
+      jobs.push({
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        contractType: job.contract || detectContractType(job.title),
+        description: `${job.title} chez ${job.company}`,
+        url: job.href,
+        source: 'hellowork',
+        postedDate: new Date(),
+        skills: extractSkills(job.title),
+      });
     }
     
     console.log(`✅ [HelloWork] Scraped ${jobs.length} real jobs`);
   } catch (error) {
     console.error('❌ [HelloWork] Scraping error:', error);
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      console.log(`🔒 [HelloWork] Closing browser...`);
+      await browser.close();
+    }
   }
   
   return jobs;
@@ -393,60 +485,133 @@ export async function scrapeWTTJReal(query: string, location: string): Promise<R
     let page = await browser.newPage();
     page = await setupPage(page);
     
-    await page.setRequestInterception(true);
-    page.on('request', (req: any) => {
-      if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
-        req.abort();
-      } else {
-        req.continue();
-      }
+    // URL WTTJ - utiliser la recherche simple
+    const searchQuery = encodeURIComponent(query);
+    const locationParam = location.charAt(0).toUpperCase() + location.slice(1).toLowerCase();
+    const url = `https://www.welcometothejungle.com/fr/jobs?query=${searchQuery}&aroundQuery=${encodeURIComponent(locationParam)}`;
+    
+    console.log(`🌐 [WTTJ] Navigating to: ${url}`);
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
+    
+    // Attendre le chargement dynamique (WTTJ est très dynamique)
+    await new Promise(r => setTimeout(r, 5000));
+    
+    // Scroll pour charger plus d'offres
+    await page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight / 2);
+    });
+    await new Promise(r => setTimeout(r, 2000));
+    
+    // Extraire via page.evaluate - WTTJ utilise des liens vers /fr/companies/xxx/jobs/yyy
+    const extractedJobs = await page.evaluate(() => {
+      const results: any[] = [];
+      const processedUrls = new Set<string>();
+      
+      // Chercher tous les liens d'offres d'emploi WTTJ
+      const allLinks = document.querySelectorAll('a[href*="/jobs/"]');
+      
+      allLinks.forEach((link) => {
+        const href = (link as HTMLAnchorElement).href;
+        // Filtrer pour ne garder que les vrais liens d'offres
+        if (!href.includes('/companies/') || !href.includes('/jobs/')) return;
+        if (processedUrls.has(href) || results.length >= 30) return;
+        processedUrls.add(href);
+        
+        try {
+          // Remonter pour trouver le conteneur
+          const card = link.closest('li, article, div[role="listitem"]') || link.parentElement?.parentElement?.parentElement;
+          if (!card) return;
+          
+          // Titre - chercher dans le lien ou les h4/h3
+          let title = '';
+          const titleEl = card.querySelector('h4, h3, [role="heading"]');
+          if (titleEl) {
+            title = titleEl.textContent?.trim() || '';
+          }
+          if (!title) {
+            // Prendre le texte du lien s'il contient un titre
+            const linkText = link.textContent?.trim() || '';
+            if (linkText.length > 5 && linkText.length < 150) {
+              title = linkText;
+            }
+          }
+          
+          // Nettoyer le titre
+          title = title.replace(/\s+/g, ' ').trim();
+          if (title.length < 3 || title.length > 200) return;
+          
+          // Entreprise - extraire du lien ou chercher dans le DOM
+          let company = '';
+          // L'URL contient le nom de l'entreprise: /companies/COMPANY_NAME/jobs/
+          const urlMatch = href.match(/\/companies\/([^\/]+)\/jobs/);
+          if (urlMatch) {
+            company = urlMatch[1].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          }
+          const companyEl = card.querySelector('[class*="company"], [class*="Company"], span[class*="text-"]');
+          if (companyEl && companyEl.textContent) {
+            const compText = companyEl.textContent.trim();
+            if (compText.length > 2 && compText.length < 100) {
+              company = compText;
+            }
+          }
+          
+          // Localisation
+          let location = '';
+          const locationEl = card.querySelector('[class*="location"], [class*="Location"]');
+          if (locationEl) {
+            location = locationEl.textContent?.trim() || '';
+          }
+          
+          // Type de contrat
+          let contract = '';
+          const contractEl = card.querySelector('[class*="contract"], [class*="Contract"], span[class*="tag"]');
+          if (contractEl) {
+            contract = contractEl.textContent?.trim() || '';
+          }
+          
+          if (title) {
+            results.push({
+              title,
+              company: company || 'Entreprise WTTJ',
+              location: location || 'France',
+              contract,
+              href,
+            });
+          }
+        } catch (e) {
+          // Ignorer les erreurs individuelles
+        }
+      });
+      
+      return results;
     });
     
-    const searchQuery = encodeURIComponent(query);
-    const url = `https://www.welcometothejungle.com/fr/jobs?query=${searchQuery}&refinementList[offices.city][]=${location}`;
+    console.log(`📊 [WTTJ] Extracted ${extractedJobs.length} jobs from page`);
     
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-    
-    await page.waitForSelector('li[data-testid="job-list-item"], .sc-job-card', { timeout: 10000 }).catch(() => null);
-    
-    const jobElements = await page.$$('li[data-testid="job-list-item"], .sc-job-card');
-    
-    console.log(`📊 [WTTJ] Found ${jobElements.length} job cards`);
-    
-    for (let i = 0; i < Math.min(jobElements.length, 20); i++) {
-      try {
-        const element = jobElements[i];
-        
-        const title = await element.$eval('h3, [data-testid="job-title"]', el => el.textContent?.trim() || '').catch(() => '');
-        const company = await element.$eval('[data-testid="job-company-name"]', el => el.textContent?.trim() || '').catch(() => '');
-        const location = await element.$eval('[data-testid="job-location"]', el => el.textContent?.trim() || '').catch(() => '');
-        const jobLink = await element.$eval('a', el => el.getAttribute('href') || '').catch(() => '');
-        
-        if (title && company && jobLink) {
-          const fullUrl = jobLink.startsWith('http') ? jobLink : `https://www.welcometothejungle.com${jobLink}`;
-          
-          jobs.push({
-            title,
-            company,
-            location: location || 'France',
-            contractType: detectContractType(title),
-            description: `${title} chez ${company}`,
-            url: fullUrl,
-            source: 'wttj',
-            postedDate: new Date(),
-            skills: extractSkills(title),
-          });
-        }
-      } catch (err) {
-        console.error(`Error parsing WTTJ job ${i}:`, err);
-      }
+    for (const job of extractedJobs) {
+      const fullUrl = job.href.startsWith('http') ? job.href : `https://www.welcometothejungle.com${job.href}`;
+      
+      jobs.push({
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        contractType: job.contract || detectContractType(job.title),
+        description: `${job.title} chez ${job.company}`,
+        url: fullUrl,
+        source: 'wttj',
+        postedDate: new Date(),
+        skills: extractSkills(job.title),
+      });
     }
     
     console.log(`✅ [WTTJ] Scraped ${jobs.length} real jobs`);
   } catch (error) {
     console.error('❌ [WTTJ] Scraping error:', error);
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      console.log(`🔒 [WTTJ] Closing browser...`);
+      await browser.close();
+    }
   }
   
   return jobs;

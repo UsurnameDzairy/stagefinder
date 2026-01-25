@@ -93,6 +93,7 @@ const landingNavigationLinks: NavLink[] = [
 ];
 
 const appNavigationLinks: NavLink[] = [
+  { href: "/assistant", label: "KAM" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/offres", label: "Offres" },
   { href: "/entreprises", label: "Entreprises" },
@@ -101,7 +102,6 @@ const appNavigationLinks: NavLink[] = [
     submenu: true,
     type: "simple",
     items: [
-      { href: "/assistant", label: "IA Assistant" },
       { href: "/cv-improver", label: "CV Improver" },
       { href: "/lettres", label: "Lettres de motivation" },
       { href: "/candidatures", label: "Mes Candidatures" },

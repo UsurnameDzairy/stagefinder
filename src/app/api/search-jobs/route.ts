@@ -125,25 +125,137 @@ async function runSearchJob(jobId: string) {
       clearInterval(progressInterval);
       console.log(`✅ Real Scraper: ${realResults.length} vraies offres trouvées`);
       
-      // FILTRE STRICT: UNIQUEMENT la ville demandée
+      // FILTRE PAR LOCALISATION - Plus flexible pour inclure les offres pertinentes
       const requestedLocation = (job.location || "").toLowerCase().trim();
+      
+      // Mappings de localisations équivalentes
+      const locationMappings: Record<string, string[]> = {
+        'monaco': ['monaco', 'monte-carlo', 'monte carlo', 'principauté', 'mc', '98000'],
+        'paris': ['paris', 'île-de-france', 'ile-de-france', 'idf', '75', '92', '93', '94', '91', '78', '95', '77'],
+        'lyon': ['lyon', 'rhône', 'rhone', '69'],
+        'marseille': ['marseille', 'bouches-du-rhône', '13'],
+        'nice': ['nice', 'alpes-maritimes', '06', 'côte d\'azur'],
+        'toulouse': ['toulouse', 'haute-garonne', '31'],
+        'bordeaux': ['bordeaux', 'gironde', '33'],
+        'nantes': ['nantes', 'loire-atlantique', '44'],
+        'lille': ['lille', 'nord', '59'],
+        'strasbourg': ['strasbourg', 'bas-rhin', '67'],
+        'suisse': ['suisse', 'switzerland', 'schweiz', 'zürich', 'zurich', 'genève', 'geneva', 'lausanne', 'bern', 'basel'],
+        'luxembourg': ['luxembourg', 'luxemburg'],
+        'london': ['london', 'londres', 'uk', 'united kingdom'],
+        'londres': ['london', 'londres', 'uk', 'united kingdom'],
+      };
+      
       const filteredResults = realResults.filter(jobOffer => {
         if (!requestedLocation) return true;
         
         const offerLocation = (jobOffer.location || "").toLowerCase();
         
-        const isMatch = offerLocation.includes(requestedLocation) || 
-                       (requestedLocation === "paris" && offerLocation.includes("île-de-france")) ||
-                       (requestedLocation === "lyon" && offerLocation.includes("rhône"));
+        // Correspondance directe
+        if (offerLocation.includes(requestedLocation)) return true;
         
-        return isMatch;
+        // Vérifier les mappings
+        const acceptedTerms = locationMappings[requestedLocation] || [requestedLocation];
+        for (const term of acceptedTerms) {
+          if (offerLocation.includes(term)) return true;
+        }
+        
+        // Si l'offre ne mentionne pas de localisation spécifique, l'inclure
+        if (!offerLocation || offerLocation === 'france' || offerLocation === 'remote' || offerLocation === 'télétravail') {
+          return true;
+        }
+        
+        return false;
       });
       
-      console.log(`📍 After location filter: ${filteredResults.length}/${realResults.length} offres`);
+      console.log(`📍 After location filter: ${filteredResults.length}/${realResults.length} offres pour "${requestedLocation}"`);
+      
+      // FILTRE PAR PERTINENCE DE LA REQUÊTE - Strict filtering
+      const queryLower = job.query.toLowerCase().trim();
+      
+      // Définir les domaines et leurs mots-clés INCLUS et EXCLUS
+      const domainConfig: Record<string, { include: string[]; exclude: string[] }> = {
+        'finance': {
+          include: ['finance', 'financier', 'financial', 'banque', 'bank', 'trading', 'investment', 'asset', 'portfolio', 'analyst', 'analyste financier', 'comptable', 'comptabilité', 'accounting', 'audit', 'auditeur', 'risk', 'credit', 'treasury', 'trésorerie', 'fund', 'fonds', 'wealth', 'private equity', 'venture', 'capital', 'm&a', 'fusion', 'acquisition', 'contrôleur', 'controller', 'gestion', 'trésorier', 'compliance', 'conformité', 'paie', 'payroll', 'salaire', 'rémunération'],
+          exclude: ['marketing', 'commercial', 'vendeur', 'vente', 'infirmier', 'médecin', 'cuisinier', 'serveur', 'développeur', 'developer']
+        },
+        'tech': {
+          include: ['développeur', 'developer', 'software', 'engineer', 'ingénieur', 'data', 'cloud', 'devops', 'frontend', 'backend', 'fullstack', 'react', 'python', 'java', 'javascript', 'programmeur', 'code', 'it', 'informatique'],
+          exclude: ['juriste', 'comptable', 'marketing', 'commercial', 'rh']
+        },
+        'marketing': {
+          include: ['marketing', 'communication', 'digital', 'social media', 'brand', 'marque', 'content', 'seo', 'sem', 'growth', 'community manager', 'chef de produit', 'product'],
+          exclude: ['juriste', 'comptable', 'développeur', 'finance']
+        },
+        'juridique': {
+          include: ['juridique', 'legal', 'droit', 'avocat', 'lawyer', 'juriste', 'compliance', 'contract', 'contentieux'],
+          exclude: ['comptable', 'marketing', 'développeur', 'finance']
+        },
+      };
+      
+      // Détecter le domaine de recherche
+      let searchDomain: string | null = null;
+      for (const [domain, config] of Object.entries(domainConfig)) {
+        if (queryLower.includes(domain) || config.include.some(kw => queryLower.includes(kw))) {
+          searchDomain = domain;
+          break;
+        }
+      }
+      
+      console.log(`🔍 Domaine détecté: ${searchDomain || 'général'} pour la requête "${job.query}"`);
+      
+      const queryRelevantResults = filteredResults.filter(jobOffer => {
+        const title = (jobOffer.title || "").toLowerCase();
+        const description = (jobOffer.description || "").toLowerCase();
+        const searchText = `${title} ${description}`;
+        
+        // Si un domaine est détecté, appliquer le filtre strict
+        if (searchDomain && domainConfig[searchDomain]) {
+          const config = domainConfig[searchDomain];
+          
+          // Vérifier les exclusions d'abord (prioritaire)
+          const hasExcludedTerm = config.exclude.some(term => title.includes(term));
+          if (hasExcludedTerm) {
+            console.log(`❌ EXCLU: "${jobOffer.title}" contient un terme exclu pour ${searchDomain}`);
+            return false;
+          }
+          
+          // Vérifier les inclusions
+          const hasIncludedTerm = config.include.some(term => searchText.includes(term));
+          if (!hasIncludedTerm) {
+            console.log(`❌ NON PERTINENT: "${jobOffer.title}" ne contient pas de terme ${searchDomain}`);
+            return false;
+          }
+          
+          return true;
+        }
+        
+        // Recherche générale - vérifier si le titre contient la requête
+        return title.includes(queryLower) || searchText.includes(queryLower);
+      });
+      
+      console.log(`🎯 After relevance filter: ${queryRelevantResults.length}/${filteredResults.length} offres pertinentes pour "${job.query}"`);
+      
+      // DÉDUPLICATION - Supprimer les doublons basés sur le titre et l'entreprise
+      const seenOffers = new Set<string>();
+      const deduplicatedResults = queryRelevantResults.filter(jobOffer => {
+        const key = `${jobOffer.title.toLowerCase().trim()}-${jobOffer.company.toLowerCase().trim()}`;
+        if (seenOffers.has(key)) {
+          console.log(`🔄 DOUBLON supprimé: "${jobOffer.title}" - ${jobOffer.company}`);
+          return false;
+        }
+        seenOffers.add(key);
+        return true;
+      });
+      
+      console.log(`📋 After deduplication: ${deduplicatedResults.length}/${queryRelevantResults.length} offres uniques`);
+      
+      // Utiliser les résultats filtrés et dédupliqués
+      const finalResults = deduplicatedResults;
       
       // Compter les offres par source
       const countBySource: Record<string, number> = {};
-      filteredResults.forEach(offer => {
+      finalResults.forEach(offer => {
         const source = offer.source.toLowerCase();
         countBySource[source] = (countBySource[source] || 0) + 1;
       });
@@ -165,7 +277,7 @@ async function runSearchJob(jobId: string) {
         },
       });
       
-      scrapedOffers = filteredResults.map(jobOffer => ({
+      scrapedOffers = finalResults.map(jobOffer => ({
         sourceProvider: jobOffer.source,
         externalId: `${jobOffer.source}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: jobOffer.title,
@@ -201,7 +313,7 @@ async function runSearchJob(jobId: string) {
 
     await prisma.searchJob.update({
       where: { id: jobId },
-      data: { progress: 98, step: "AI_MATCHING" },
+      data: { progress: 98, step: "SCORING" },
     });
 
     await new Promise(r => setTimeout(r, 800));

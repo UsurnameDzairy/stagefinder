@@ -8,63 +8,64 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  passwordHash  String?
-  firstName     String?
-  lastName      String?
-  image         String?
-  emailVerified Boolean   @default(false)
-  role          String    @default("user")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  profile       Profile?
-  resumes       Resume[]
-  skills        UserSkill[]
-  savedOffers   SavedOffer[]
-  savedCompanies SavedCompany[]
-  applications  Application[]
-  coverLetters  CoverLetter[]
-  subscription  Subscription?
-  searchJobs    SearchJob[]
-  accounts      Account[]
-  sessions      Session[]
-  jobAlerts     JobAlert[]
-  notifications Notification[]
+  id               String            @id @default(cuid())
+  email            String            @unique
+  passwordHash     String?
+  firstName        String?
+  lastName         String?
+  image            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  name             String?
+  role             String            @default("user")
+  emailVerified    Boolean           @default(false)
+  accounts         Account[]
+  applications     Application[]
+  coverLetters     CoverLetter[]
+  jobAlerts        JobAlert[]
+  notifications    Notification[]
+  profile          Profile?
+  resumes          Resume[]
+  savedCompanies   SavedCompany[]
+  savedOffers      SavedOffer[]
+  searchJobs       SearchJob[]
+  sessions         Session[]
+  subscription     Subscription?
+  skills           UserSkill[]
+  careerObjectives CareerObjective[]
+  aiConversations  AIConversation[]
+  aiInsights       AIInsight[]
 }
 
 model Account {
-  id                String   @id @default(cuid())
-  accountId         String
-  providerId        String
-  userId            String
-  accessToken       String?
-  refreshToken      String?
-  idToken           String?
-  accessTokenExpiresAt DateTime?
+  id                    String    @id @default(cuid())
+  userId                String
+  scope                 String?
+  accessToken           String?
+  accessTokenExpiresAt  DateTime?
+  accountId             String
+  createdAt             DateTime  @default(now())
+  idToken               String?
+  password              String?
+  providerId            String
+  refreshToken          String?
   refreshTokenExpiresAt DateTime?
-  scope             String?
-  password          String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  expiresAt    DateTime
-  token        String   @unique
-  ipAddress    String?
-  userAgent    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  ipAddress String?
+  token     String   @unique
+  updatedAt DateTime @updatedAt
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -91,8 +92,7 @@ model Profile {
   portfolioUrl    String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Resume {
@@ -109,8 +109,7 @@ model Resume {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserSkill {
@@ -121,56 +120,53 @@ model UserSkill {
   level     String?
   source    String?
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, name])
 }
 
 model JobOffer {
-  id              String   @id @default(cuid())
-  sourceProvider  String
-  sourceUrl       String?
-  externalId      String?
-  title           String
-  companyName     String
-  companyLogo     String?
-  location        String?
-  remoteType      String?
-  contractType    String?
-  duration        String?
-  salaryMin       Int?
-  salaryMax       Int?
-  salaryRaw       String?
-  description     String?
-  requirements    String?
-  skills          String?
-  publishedAt     DateTime?
-  expiresAt       DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  savedOffers  SavedOffer[]
-  applications Application[]
+  id             String        @id @default(cuid())
+  sourceProvider String
+  sourceUrl      String?
+  externalId     String?
+  title          String
+  companyName    String
+  companyLogo    String?
+  location       String?
+  remoteType     String?
+  contractType   String?
+  duration       String?
+  salaryMin      Int?
+  salaryMax      Int?
+  salaryRaw      String?
+  description    String?
+  requirements   String?
+  skills         String?
+  publishedAt    DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  applications   Application[]
+  savedOffers    SavedOffer[]
 
   @@unique([sourceProvider, externalId])
 }
 
 model Company {
-  id          String   @id @default(cuid())
-  name        String
-  domain      String?
-  website     String?
-  logo        String?
-  sector      String?
-  size        String?
-  description String?
-  location    String?
-  linkedinUrl String?
-  glassdoorUrl String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id             String         @id @default(cuid())
+  name           String
+  domain         String?
+  website        String?
+  logo           String?
+  sector         String?
+  size           String?
+  description    String?
+  location       String?
+  linkedinUrl    String?
+  glassdoorUrl   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
   savedCompanies SavedCompany[]
 }
 
@@ -182,9 +178,8 @@ model SavedOffer {
   matchScore Int?
   matchData  String?
   createdAt  DateTime @default(now())
-
-  user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  offer JobOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  offer      JobOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, offerId])
 }
@@ -196,72 +191,54 @@ model SavedCompany {
   notes     String?
   priority  Int      @default(0)
   createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, companyId])
 }
 
-enum ApplicationStatus {
-  NOT_APPLIED
-  APPLIED
-  IN_PROGRESS
-  INTERVIEW
-  OFFER
-  REJECTED
-  WITHDRAWN
-}
-
 model Application {
-  id            String            @id @default(cuid())
-  userId        String
-  offerId       String?
-  companyName   String
-  jobTitle      String
-  status        ApplicationStatus @default(NOT_APPLIED)
-  appliedAt     DateTime?
-  lastContactAt DateTime?
-  interviewAt   DateTime?
-  notes         String?
-  coverLetterId String?
-  matchScore    Int?
-  nextAction    String?
-  nextActionAt  DateTime?
-  
-  // Tracking des étapes
-  emailSent         Boolean   @default(false)
-  emailSentAt       DateTime?
-  emailContent      String?
-  responseReceived  Boolean   @default(false)
+  id                 String             @id @default(cuid())
+  userId             String
+  offerId            String?
+  companyName        String
+  jobTitle           String
+  status             ApplicationStatus  @default(NOT_APPLIED)
+  appliedAt          DateTime?
+  lastContactAt      DateTime?
+  interviewAt        DateTime?
+  notes              String?
+  coverLetterId      String?
+  matchScore         Int?
+  nextAction         String?
+  nextActionAt       DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  companyUrl         String?
+  contactEmail       String?
+  contactName        String?
+  emailContent       String?
+  emailSent          Boolean            @default(false)
+  emailSentAt        DateTime?
+  responseContent    String?
+  responseReceived   Boolean            @default(false)
   responseReceivedAt DateTime?
-  responseType      String?   // positive, negative, interview, pending
-  responseContent   String?
-  responseScreenshot String?  // URL du screenshot uploadé
-  
-  // Contact entreprise
-  contactEmail      String?
-  contactName       String?
-  companyUrl        String?
-  
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  offer     JobOffer?          @relation(fields: [offerId], references: [id], onDelete: SetNull)
-  timeline  ApplicationEvent[]
+  responseScreenshot String?
+  responseType       String?
+  offer              JobOffer?          @relation(fields: [offerId], references: [id])
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeline           ApplicationEvent[]
 }
 
 model ApplicationEvent {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   applicationId String
-  type          String   // applied, email_sent, response_received, interview_scheduled, etc.
+  type          String
   title         String
   description   String?
-  metadata      String?  // JSON data
-  createdAt     DateTime @default(now())
-
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  metadata      String?
+  createdAt     DateTime    @default(now())
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }
 
 model CoverLetter {
@@ -274,23 +251,7 @@ model CoverLetter {
   tone        String   @default("professional")
   offerUrl    String?
   createdAt   DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELED
-  PAST_DUE
-  TRIALING
-  INCOMPLETE
-}
-
-enum PlanType {
-  FREE
-  STARTER
-  PRO
-  ELITE
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {
@@ -308,8 +269,82 @@ model Subscription {
   lettersUsed          Int                @default(0)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model SearchJob {
+  id               String          @id @default(cuid())
+  userId           String
+  query            String
+  location         String?
+  providers        String
+  status           SearchJobStatus @default(QUEUED)
+  progress         Int             @default(0)
+  step             SearchStep      @default(RESUME_ANALYSIS)
+  providerStatuses String?
+  resultsCount     Int?
+  error            String?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  createdAt        DateTime        @default(now())
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JobAlert {
+  id            String         @id @default(cuid())
+  userId        String
+  name          String
+  domains       String
+  keywords      String?
+  locations     String?
+  contractTypes String?
+  minMatchScore Int            @default(50)
+  isActive      Boolean        @default(true)
+  frequency     String         @default("daily")
+  lastCheckedAt DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifications Notification[]
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  alertId   String?
+  type      String
+  title     String
+  message   String
+  data      String?
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  alert     JobAlert? @relation(fields: [alertId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ApplicationStatus {
+  NOT_APPLIED
+  APPLIED
+  IN_PROGRESS
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+}
+
+enum PlanType {
+  FREE
+  STARTER
+  PRO
+  ELITE
 }
 
 enum SearchJobStatus {
@@ -328,57 +363,60 @@ enum SearchStep {
   RECOMMENDATIONS
 }
 
-model SearchJob {
-  id               String          @id @default(cuid())
-  userId           String
-  query            String
-  location         String?
-  providers        String
-  status           SearchJobStatus @default(QUEUED)
-  progress         Int             @default(0)
-  step             SearchStep      @default(RESUME_ANALYSIS)
-  providerStatuses String?
-  resultsCount     Int?
-  error            String?
-  startedAt        DateTime?
-  finishedAt       DateTime?
-  createdAt        DateTime        @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+// Objectifs de carrière de l'utilisateur
+model CareerObjective {
+  id              String   @id @default(cuid())
+  userId          String
+  objective       String   // L'objectif de carrière décrit par l'utilisateur
+  targetRoles     String?  // Postes ciblés (JSON array)
+  targetSectors   String?  // Secteurs ciblés (JSON array)
+  targetCompanies String?  // Entreprises ciblées (JSON array)
+  salaryRange     String?  // Fourchette salariale souhaitée
+  timeline        String?  // Horizon temporel (ex: "6 mois", "1 an")
+  priorities      String?  // Priorités (remote, salaire, mission, etc.)
+  constraints     String?  // Contraintes (géographiques, etc.)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Job Alerts - Alertes pour les nouvelles offres
-model JobAlert {
-  id            String   @id @default(cuid())
-  userId        String
-  name          String   // Ex: "Stage Finance Paris"
-  domains       String   // Domaines séparés par des virgules
-  keywords      String?  // Mots-clés additionnels
-  locations     String?  // Localisations préférées
-  contractTypes String?  // Types de contrat (stage, alternance, cdi)
-  minMatchScore Int      @default(50) // Score minimum pour alerter
-  isActive      Boolean  @default(true)
-  frequency     String   @default("daily") // instant, daily, weekly
-  lastCheckedAt DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notifications Notification[]
+// Conversations avec l'assistant IA
+model AIConversation {
+  id           String      @id @default(cuid())
+  userId       String
+  title        String?     // Titre auto-généré de la conversation
+  summary      String?     // Résumé de la conversation
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages     AIMessage[]
+  insights     AIInsight[]
 }
 
-// Notifications utilisateur
-model Notification {
-  id          String   @id @default(cuid())
-  userId      String
-  alertId     String?
-  type        String   // job_match, application_update, system
-  title       String
-  message     String
-  data        String?  // JSON data (offerId, etc.)
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
+// Messages individuels dans une conversation
+model AIMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  role           String         // "user" | "assistant"
+  content        String
+  model          String?        // Modèle utilisé (gpt-4o-mini, etc.)
+  attachments    String?        // Fichiers joints (JSON)
+  createdAt      DateTime       @default(now())
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  alert       JobAlert? @relation(fields: [alertId], references: [id], onDelete: SetNull)
+// Insights et conseils extraits des conversations
+model AIInsight {
+  id             String          @id @default(cuid())
+  conversationId String?
+  userId         String
+  type           String          // "skill_suggestion" | "company_recommendation" | "strategy" | "cv_improvement" | "interview_tip"
+  content        String          // Le conseil ou insight
+  metadata       String?         // Données additionnelles (JSON)
+  isApplied      Boolean         @default(false) // Si l'utilisateur a appliqué le conseil
+  relevanceScore Int             @default(100)   // Score de pertinence (0-100)
+  createdAt      DateTime        @default(now())
+  conversation   AIConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
