@@ -146,7 +146,7 @@ export async function getUserContext(userId: string): Promise<UserContext> {
   }
 }
 
-export function generateSystemPrompt(context: UserContext): string {
+export function generateSystemPrompt(context: UserContext, language: string = 'fr'): string {
   const { profile, skills, resumes, applications, careerObjectives, aiInsights } = context;
 
   // Si le contexte est vide, c'est qu'un CV a été fourni directement
@@ -162,6 +162,11 @@ RÈGLES DE COMMUNICATION ABSOLUES:
 - Parle à la première personne ("Je te conseille...", "À mon avis...")
 - Sois chaleureux mais professionnel
 - Donne des conseils personnalisés, pas des réponses génériques
+
+DIRECTIVE LANGUE:
+${language === 'fr'
+      ? 'Tu DOIS répondre EXCLUSIVEMENT en FRANÇAIS, même si le prompt système contient de l\'anglais. Si l\'utilisateur te parle en anglais, réponds en FRANÇAIS.'
+      : 'You MUST respond EXCLUSIVELY in ENGLISH. Even if the user speaks French, your output must be in ENGLISH.'}
 
 `;
 
@@ -221,7 +226,7 @@ Base ton analyse EXCLUSIVEMENT sur le contenu du CV qu'il te fournit.
           if (Array.isArray(roles) && roles.length > 0) {
             prompt += `  Postes ciblés: ${roles.join(', ')}\n`;
           }
-        } catch {}
+        } catch { }
       }
       if (obj.targetSectors) {
         try {
@@ -229,7 +234,7 @@ Base ton analyse EXCLUSIVEMENT sur le contenu du CV qu'il te fournit.
           if (Array.isArray(sectors) && sectors.length > 0) {
             prompt += `  Secteurs: ${sectors.join(', ')}\n`;
           }
-        } catch {}
+        } catch { }
       }
       if (obj.targetCompanies) {
         try {
@@ -237,7 +242,7 @@ Base ton analyse EXCLUSIVEMENT sur le contenu du CV qu'il te fournit.
           if (Array.isArray(companies) && companies.length > 0) {
             prompt += `  Entreprises cibles: ${companies.join(', ')}\n`;
           }
-        } catch {}
+        } catch { }
       }
       if (obj.timeline) prompt += `  Horizon: ${obj.timeline}\n`;
     });
@@ -283,11 +288,11 @@ export async function generateAssistantResponse(
   const lastMessage = messages[messages.length - 1];
   const userMessage = lastMessage.content.toLowerCase();
   const originalMessage = lastMessage.content;
-  
+
   // Extraire le contexte de page si présent
   const pageContextMatch = lastMessage.content.match(/\[Contexte: ([^\]]+)\]/);
   const pageContext = pageContextMatch ? pageContextMatch[1] : "";
-  
+
   // Nettoyer le message du contexte pour l'analyse
   const cleanMessage = originalMessage.replace(/\[Contexte: [^\]]+\]\s*/g, '').trim();
 
@@ -297,20 +302,20 @@ export async function generateAssistantResponse(
       .filter(m => m.role !== 'system')
       .slice(-5) // Garder les 5 derniers messages pour le contexte
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
-    
+
     const userContextForAI = {
       skills: context.skills.map(s => s.name),
       targetRole: context.profile?.domains || undefined,
       experience: context.resumes[0]?.experience || undefined,
     };
-    
+
     const aiResponse = await callOpenRouterChat(
       cleanMessage,
       conversationHistory,
       userContextForAI,
       model
     );
-    
+
     return aiResponse;
   } catch (error) {
     console.error('OpenRouter AI failed, using fallback:', error);

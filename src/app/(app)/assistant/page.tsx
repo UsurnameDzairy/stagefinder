@@ -17,8 +17,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import TextType from "@/components/ui/text-type";
 import { useTranslation, useLanguage } from "@/lib/i18n";
+import AIThinkingBlock from "@/components/ui/ai-thinking-block";
+import TextTypeAI from "@/components/ui/text-type-ai";
 
-const Dithering = lazy(() => 
+const Dithering = lazy(() =>
   import("@paper-design/shaders-react").then((mod) => ({ default: mod.Dithering }))
 );
 
@@ -52,30 +54,30 @@ const PASTE_THRESHOLD = 200;
 
 // Modèles IA disponibles
 const DEFAULT_MODELS: ModelOption[] = [
-  { 
-    id: "llama-3.3-70b", 
-    name: "Llama 3.3", 
-    description: "Modèle puissant et rapide", 
+  {
+    id: "llama-3.3-70b",
+    name: "Llama 3.3",
+    description: "Modèle puissant et rapide",
     badge: "Gratuit",
     apiModel: "llama-3.3-70b-versatile"
   },
-  { 
-    id: "llama-3.1-8b", 
-    name: "Llama 3.1 Fast", 
+  {
+    id: "llama-3.1-8b",
+    name: "Llama 3.1 Fast",
     description: "Ultra rapide pour les réponses simples",
     badge: "Gratuit",
     apiModel: "llama-3.1-8b-instant"
   },
-  { 
-    id: "mixtral-8x7b", 
-    name: "Mixtral 8x7B", 
+  {
+    id: "mixtral-8x7b",
+    name: "Mixtral 8x7B",
     description: "Excellent pour l'analyse de documents",
     badge: "Gratuit",
     apiModel: "mixtral-8x7b-32768"
   },
-  { 
-    id: "gemma2-9b", 
-    name: "Gemma 2", 
+  {
+    id: "gemma2-9b",
+    name: "Gemma 2",
     description: "Modèle Google compact et efficace",
     badge: "Gratuit",
     apiModel: "gemma2-9b-it"
@@ -90,30 +92,30 @@ const isTextualFile = (file: File): boolean => {
   return isTextualMimeType || textualExtensions.includes(extension);
 };
 
-const readFileAsText = async (file: File): Promise<string> => {
+const readFileAsText = async (file: File, t: (key: string) => string): Promise<string> => {
   const fileName = file.name.toLowerCase();
-  
+
   // Pour les PDFs et fichiers Word, utiliser l'API serveur
   if (fileName.endsWith(".pdf") || fileName.endsWith(".doc") || fileName.endsWith(".docx")) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      
+
       const response = await fetch("/api/extract-text", {
         method: "POST",
         body: formData,
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        return data.text || `[${file.name}] - Impossible d'extraire le texte. Veuillez copier-coller le contenu.`;
+        return data.text || `[${file.name}] - ${t("assistantPage.cvUpload.extractError")} ${t("assistantPage.cvUpload.pasteInstruction")}`;
       }
     } catch (e) {
       console.error("Server extraction failed:", e);
     }
-    return `[${file.name}] - Pour analyser votre CV, veuillez copier-coller son contenu directement dans le chat.`;
+    return `[${file.name}] - ${t("assistantPage.cvUpload.pasteInstruction")}`;
   }
-  
+
   // Pour les fichiers texte simples
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -136,6 +138,7 @@ const getFileTypeLabel = (type: string): string => {
 };
 
 const TextualFilePreviewCard: React.FC<{ file: FileWithPreview; onRemove: (id: string) => void }> = ({ file, onRemove }) => {
+  const { t } = useTranslation();
   const previewText = file.textContent?.slice(0, 150) || "";
   const needsTruncation = (file.textContent?.length || 0) > 150;
   const fileExtension = getFileExtension(file.file.name);
@@ -180,6 +183,7 @@ const FilePreviewCard: React.FC<{ file: FileWithPreview; onRemove: (id: string) 
 };
 
 const PastedContentCard: React.FC<{ content: PastedContent; onRemove: (id: string) => void }> = ({ content, onRemove }) => {
+  const { t } = useTranslation();
   const previewText = content.content.slice(0, 150);
   const needsTruncation = content.content.length > 150;
 
@@ -189,7 +193,7 @@ const PastedContentCard: React.FC<{ content: PastedContent; onRemove: (id: strin
         {needsTruncation ? previewText + "..." : content.content}
       </div>
       <div className="group absolute flex justify-start items-end p-2 inset-0 bg-gradient-to-b to-[#30302E] from-transparent overflow-hidden">
-        <p className="capitalize text-white text-xs bg-zinc-800 border border-zinc-700 px-2 py-1 rounded-md">PASTED</p>
+        <p className="capitalize text-white text-xs bg-zinc-800 border border-zinc-700 px-2 py-1 rounded-md">{t("assistantPage.pasted") || "COLLÉ"}</p>
         <div className="group-hover:opacity-100 opacity-0 transition-opacity duration-300 flex items-center gap-0.5 absolute top-2 right-2">
           <Button size="icon" variant="outline" className="size-6" onClick={() => navigator.clipboard.writeText(content.content)}><Copy className="h-3 w-3" /></Button>
           <Button size="icon" variant="outline" className="size-6" onClick={() => onRemove(content.id)}><X className="h-3 w-3" /></Button>
@@ -201,6 +205,7 @@ const PastedContentCard: React.FC<{ content: PastedContent; onRemove: (id: strin
 
 const ModelSelectorDropdown: React.FC<{ models: ModelOption[]; selectedModel: string; onModelChange: (modelId: string) => void }> = ({ models, selectedModel, onModelChange }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
   const selectedModelData = models.find((m) => m.id === selectedModel) || models[0];
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -218,7 +223,7 @@ const ModelSelectorDropdown: React.FC<{ models: ModelOption[]; selectedModel: st
       </Button>
       {isOpen && (
         <div className="absolute bottom-full right-0 mb-2 w-72 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl z-20 p-2 backdrop-blur-sm">
-          <p className="px-2.5 py-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Agents IA</p>
+          <p className="px-2.5 py-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{t("modelSelector.title")}</p>
           {models.map((model) => (
             <button key={model.id} className={cn("w-full text-left p-3 rounded-lg hover:bg-zinc-800 transition-colors flex items-center justify-between", model.id === selectedModel && "bg-zinc-800")} onClick={() => { onModelChange(model.id); setIsOpen(false); }}>
               <div>
@@ -242,7 +247,8 @@ const ClaudeChatInput: React.FC<{
   disabled?: boolean;
   placeholder?: string;
   isLoading?: boolean;
-}> = ({ onSendMessage, disabled = false, placeholder = "Décrivez votre objectif de carrière...", isLoading = false }) => {
+}> = ({ onSendMessage, disabled = false, placeholder, isLoading = false }) => {
+  const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [pastedContent, setPastedContent] = useState<PastedContent[]>([]);
@@ -268,7 +274,7 @@ const ClaudeChatInput: React.FC<{
 
     newFiles.forEach((f) => {
       if (isTextualFile(f.file)) {
-        readFileAsText(f.file).then((text) => {
+        readFileAsText(f.file, t).then((text) => {
           setFiles((prev) => prev.map((p) => p.id === f.id ? { ...p, textContent: text } : p));
         });
       }
@@ -322,16 +328,17 @@ const ClaudeChatInput: React.FC<{
 
   const hasContent = message.trim() || files.length > 0 || pastedContent.length > 0;
   const canSend = hasContent && !disabled && !isLoading;
+  const inputPlaceholder = placeholder || t("assistantPage.inputPlaceholder");
 
   return (
     <div className="relative w-full max-w-2xl mx-auto" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
       {isDragging && (
         <div className="absolute inset-0 z-50 bg-[#1C3F62] border-2 border-dashed border-blue-500 rounded-xl flex items-center justify-center pointer-events-none">
-          <p className="text-sm text-blue-500 flex items-center gap-2"><ImageIcon className="size-4" />Déposez vos fichiers ici</p>
+          <p className="text-sm text-blue-500 flex items-center gap-2"><ImageIcon className="size-4" />{t("assistantPage.dropFiles")}</p>
         </div>
       )}
       <div className="bg-[#30302E] border border-zinc-700 rounded-xl shadow-lg flex flex-col">
-        <textarea ref={textareaRef} value={message} onChange={(e) => setMessage(e.target.value)} onPaste={handlePaste} onKeyDown={handleKeyDown} placeholder={placeholder} disabled={disabled || isLoading} className="h-[80px] w-full p-4 focus:outline-none border-none resize-none bg-transparent text-zinc-100 placeholder:text-zinc-500 text-sm scrollbar-hide" rows={3} />
+        <textarea ref={textareaRef} value={message} onChange={(e) => setMessage(e.target.value)} onPaste={handlePaste} onKeyDown={handleKeyDown} placeholder={inputPlaceholder} disabled={disabled || isLoading} className="h-[80px] w-full p-4 focus:outline-none border-none resize-none bg-transparent text-zinc-100 placeholder:text-zinc-500 text-sm scrollbar-hide" rows={3} />
         <div className="flex items-center gap-2 justify-between w-full px-3 pb-2">
           <div className="flex items-center gap-2">
             <Button size="icon" variant="ghost" className="h-9 w-9 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700" onClick={() => fileInputRef.current?.click()} disabled={disabled || isLoading}><Plus className="h-5 w-5" /></Button>
@@ -379,7 +386,7 @@ function renderMarkdown(text: string) {
     // Italic
     line = line.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
     // Code
-    line = line.replace(/`([^`]+)`/g, '<code class="bg-zinc-800 px-1.5 py-0.5 rounded text-xs font-mono text-orange-400">$1</code>');
+    line = line.replace(/`([^`]+)`/g, '<code class="bg-zinc-800 px-1.5 py-0.5 rounded text-xs font-mono text-zinc-400">$1</code>');
     return line;
   };
 
@@ -389,7 +396,7 @@ function renderMarkdown(text: string) {
         <ul key={`list-${elements.length}`} className="space-y-1.5 my-2">
           {listItems.map((item, i) => (
             <li key={i} className="flex gap-2 text-sm">
-              <span className="text-orange-500 mt-0.5">•</span>
+              <span className="text-zinc-500 mt-0.5">•</span>
               <span dangerouslySetInnerHTML={{ __html: processInlineMarkdown(item) }} />
             </li>
           ))}
@@ -402,7 +409,7 @@ function renderMarkdown(text: string) {
 
   lines.forEach((line, index) => {
     const trimmedLine = line.trim();
-    
+
     // Numbered list
     if (/^\d+\.\s/.test(trimmedLine)) {
       if (!inList) flushList();
@@ -410,7 +417,7 @@ function renderMarkdown(text: string) {
       listItems.push(trimmedLine.replace(/^\d+\.\s*/, ''));
       return;
     }
-    
+
     // Bullet list
     if (/^[-•]\s/.test(trimmedLine)) {
       if (!inList) flushList();
@@ -485,7 +492,7 @@ export default function AssistantPage() {
           setUserName(data.user.email.split('@')[0]);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Get time-based greeting
@@ -506,7 +513,7 @@ export default function AssistantPage() {
 
   const handleSendMessage = async (message: string, files: FileWithPreview[], pastedContent: PastedContent[], model: string) => {
     setIsLoading(true);
-    
+
     // Ajouter le message utilisateur immédiatement
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -515,17 +522,17 @@ export default function AssistantPage() {
       timestamp: new Date(),
     };
     setMessages(prev => [...prev, userMessage]);
-    
+
     try {
       // Construire le contenu avec les fichiers et texte collé
       let fullContent = message;
-      
+
       // Ajouter le contenu collé (souvent un CV copié-collé)
       if (pastedContent.length > 0) {
         const pastedTexts = pastedContent.map(p => p.content).join("\n\n");
         fullContent += "\n\n=== CONTENU DE MON CV (copié-collé) ===\n" + pastedTexts + "\n=== FIN DU CV ===";
       }
-      
+
       // Ajouter le contenu des fichiers uploadés
       let hasCVContent = pastedContent.length > 0;
       if (files.length > 0) {
@@ -556,15 +563,16 @@ export default function AssistantPage() {
         body: JSON.stringify({
           messages: [{ role: "user", content: fullContent }],
           model: model,
+          language: language,
           ignoreStoredProfile: hasCVContent, // Flag pour ignorer le profil stocké
         }),
       });
 
       if (!res.ok) throw new Error("Erreur API");
-      
+
       const data = await res.json();
       const assistantResponse = data.message?.content || "Pas de réponse";
-      
+
       // Ajouter la réponse de l'assistant
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -583,11 +591,12 @@ export default function AssistantPage() {
             conversationId: conversationId,
             userMessage: fullContent,
             assistantMessage: assistantResponse,
+            language: language,
             model: model,
             attachments: files.length > 0 ? files.map(f => ({ name: f.file.name, type: f.type })) : null,
           }),
         });
-        
+
         if (saveRes.ok) {
           const saveData = await saveRes.json();
           if (saveData.conversationId) {
@@ -603,7 +612,7 @@ export default function AssistantPage() {
       const errorMessage: ChatMessage = {
         id: `error-${Date.now()}`,
         role: "assistant",
-        content: "Désolé, une erreur est survenue. Vérifiez votre connexion et réessayez.",
+        content: t("assistantPage.error"),
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -614,7 +623,7 @@ export default function AssistantPage() {
 
   return (
     <div className="h-[calc(100vh-80px)] w-full flex justify-center items-center px-4 overflow-hidden">
-      <div 
+      <div
         className="w-full max-w-4xl relative"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -649,17 +658,15 @@ export default function AssistantPage() {
                     className="inline"
                   />
                 </h1>
-                
+
                 <ClaudeChatInput
                   onSendMessage={handleSendMessage}
-                  placeholder="Analysez mon CV, posez une question..."
+                  placeholder={t("assistantPage.inputPlaceholder")}
                   isLoading={isLoading}
                 />
-                
+
                 <p className="text-xs text-zinc-600 mt-4 text-center">
-                  {language === 'fr' 
-                    ? 'Modèles GPT gratuits • Analyse de CV • Conseils carrière'
-                    : 'Free GPT models • CV Analysis • Career advice'}
+                  {t("assistantPage.models")}
                 </p>
               </>
             ) : (
@@ -668,7 +675,7 @@ export default function AssistantPage() {
                 <h1 className="text-xl font-serif font-light text-[#C2C0B6] text-center mb-4 shrink-0">
                   KAM
                 </h1>
-                
+
                 {/* Messages Area */}
                 <div className="flex-1 overflow-y-auto space-y-4 scrollbar-hide min-h-0 mb-4">
                   {messages.map((msg) => (
@@ -689,7 +696,14 @@ export default function AssistantPage() {
                       >
                         {msg.role === "assistant" ? (
                           <div className="prose prose-sm prose-invert max-w-none">
-                            {renderMarkdown(msg.content)}
+                            <TextTypeAI
+                              text={msg.content}
+                              typingSpeed={30}
+                              showCursor={false}
+                              loop={false}
+                              variableSpeed={{ min: 20, max: 50 }}
+                              className="text-sm leading-relaxed"
+                            />
                           </div>
                         ) : (
                           <p className="text-sm">{msg.content}</p>
@@ -703,31 +717,22 @@ export default function AssistantPage() {
                       </div>
                     </div>
                   ))}
-                  
+
                   {/* Loading indicator */}
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="bg-zinc-800/90 rounded-2xl rounded-bl-md px-4 py-3 border border-zinc-700">
-                        <div className="flex items-center gap-2">
-                          <div className="flex gap-1">
-                            <span className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                          </div>
-                          <span className="text-xs text-zinc-500">Réflexion en cours...</span>
-                        </div>
-                      </div>
+                      <AIThinkingBlock />
                     </div>
                   )}
-                  
+
                   <div ref={messagesEndRef} />
                 </div>
-                
+
                 {/* Input Area */}
                 <div className="shrink-0">
                   <ClaudeChatInput
                     onSendMessage={handleSendMessage}
-                    placeholder="Continuez la conversation..."
+                    placeholder={t("assistantPage.inputPlaceholderContinue")}
                     isLoading={isLoading}
                   />
                 </div>

@@ -5,15 +5,16 @@ import { getUserContext, generateSystemPrompt, generateAssistantResponse, Assist
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { messages, model, ignoreStoredProfile } = body as { 
-      messages: AssistantMessage[]; 
+    const { messages, model, language, ignoreStoredProfile } = body as {
+      messages: AssistantMessage[];
       model?: string;
+      language?: string;
       ignoreStoredProfile?: boolean;
     };
 
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Générer le prompt système
-    const systemPrompt = generateSystemPrompt(context);
+    const systemPrompt = generateSystemPrompt(context, language);
 
     // Ajouter le prompt système au début si pas déjà présent
     const messagesWithSystem: AssistantMessage[] = [
@@ -104,7 +105,7 @@ Réessayez dans quelques instants ! 🙏`;
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
