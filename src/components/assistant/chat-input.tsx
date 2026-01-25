@@ -333,8 +333,21 @@ export function AssistantChatInput({
           <p className="text-sm text-blue-500 flex items-center gap-2"><ImageIcon className="size-4 opacity-50" />Déposez vos fichiers ici</p>
         </div>
       )}
-      <div className="bg-[#30302E] border border-zinc-700 rounded-xl shadow-lg items-end gap-2 min-h-[150px] flex flex-col">
-        <textarea ref={textareaRef} value={message} onChange={(e) => setMessage(e.target.value)} onPaste={handlePaste} onKeyDown={handleKeyDown} placeholder={placeholder} disabled={disabled} className="flex-1 min-h-[100px] w-full p-4 focus:outline-none border-none max-h-[120px] resize-none bg-transparent text-zinc-100 placeholder:text-zinc-500 text-sm sm:text-base scrollbar-hide" rows={1} />
+      <div className="bg-[#30302E] border border-zinc-700 rounded-xl shadow-lg items-end gap-2 min-h-[150px] flex flex-col relative">
+        {animatedPlaceholder && !message && (
+          <div className="absolute top-4 left-4 pointer-events-none z-10">
+            <TextType
+              text={placeholderSuggestions}
+              typingSpeed={50}
+              deletingSpeed={30}
+              pauseDuration={2000}
+              loop={true}
+              showCursor={false}
+              className="text-zinc-500 text-sm sm:text-base"
+            />
+          </div>
+        )}
+        <textarea ref={textareaRef} value={message} onChange={(e) => setMessage(e.target.value)} onPaste={handlePaste} onKeyDown={handleKeyDown} placeholder={!animatedPlaceholder ? placeholder : ""} disabled={disabled} className="flex-1 min-h-[100px] w-full p-4 focus:outline-none border-none max-h-[120px] resize-none bg-transparent text-zinc-100 placeholder:text-zinc-500 text-sm sm:text-base scrollbar-hide relative z-20" rows={1} />
         <div className="flex items-center gap-2 justify-between w-full px-3 pb-1.5">
           <div className="flex items-center gap-2">
             <Button size="icon" variant="ghost" className="h-9 w-9 p-0 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 flex-shrink-0" onClick={() => fileInputRef.current?.click()} disabled={disabled || files.length >= maxFiles}><Plus className="h-5 w-5" /></Button>
