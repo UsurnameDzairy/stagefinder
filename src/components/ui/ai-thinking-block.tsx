@@ -3,25 +3,15 @@
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-
-const thinkingMessages = [
-    "KAM analyse votre demande en profondeur...",
-    "Réflexion en cours, je prépare une réponse détaillée...",
-    "Je consulte mes connaissances pour vous aider au mieux...",
-    "Traitement des informations en cours...",
-    "KAM étudie tous les aspects de votre question...",
-    "Compilation des meilleures recommandations...",
-    "Analyse de votre profil et de vos besoins...",
-    "Préparation d'une réponse personnalisée...",
-    "Je réfléchis à la meilleure approche pour vous conseiller...",
-    "Traitement des données en cours, encore un instant...",
-];
+import { useTranslation } from "@/lib/i18n";
 
 export default function AIThinkingBlock() {
+    const { t } = useTranslation();
     const [scrollPosition, setScrollPosition] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
     const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Messages de pensée pour l'animation
     const ThinkingContent = `Je commence par analyser votre demande en détail. Il est important de bien comprendre le contexte et vos besoins spécifiques avant de formuler une réponse appropriée.
 
 Je consulte maintenant mes connaissances sur le sujet. Je cherche les informations les plus pertinentes et actualisées pour vous fournir une réponse de qualité.
@@ -84,17 +74,8 @@ C'est parfait, je suis prêt à vous partager mon analyse et mes recommandations
         }
     }, [scrollPosition]);
 
-    // Random thinking message that changes every 3 seconds
-    const [currentMessage, setCurrentMessage] = useState(0);
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentMessage(prev => (prev + 1) % thinkingMessages.length);
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
-
     return (
-        <div className="flex flex-col max-w-xl w-full">
+        <div className="flex flex-col p-0 max-w-xl w-full">
             <div className="flex items-center justify-start gap-2 mb-4">
                 <Loader2 className="size-4 animate-spin text-zinc-500" />
                 <p
@@ -103,7 +84,7 @@ C'est parfait, je suis prêt à vous partager mon analyse et mes recommandations
                         animation: "shimmer 3s linear infinite",
                     }}
                 >
-                    {thinkingMessages[currentMessage]}
+                    {t("assistantPage.thinking") || "KAM réfléchit..."}
                 </p>
                 <span className="text-xs text-zinc-600">
                     {timer}s

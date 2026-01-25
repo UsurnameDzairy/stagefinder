@@ -5,7 +5,7 @@ import { gsap } from 'gsap';
 
 interface TextTypeProps {
   text: string | string[];
-  as?: keyof JSX.IntrinsicElements;
+  as?: any;
   typingSpeed?: number;
   initialDelay?: number;
   pauseDuration?: number;
@@ -22,6 +22,7 @@ interface TextTypeProps {
   onSentenceComplete?: (sentence: string, index: number) => void;
   startOnVisible?: boolean;
   reverseMode?: boolean;
+  [key: string]: any;
 }
 
 const TextType = ({
@@ -119,7 +120,7 @@ const TextType = ({
 
           setCurrentTextIndex(prev => (prev + 1) % textArray.length);
           setCurrentCharIndex(0);
-          timeout = setTimeout(() => {}, pauseDuration);
+          timeout = setTimeout(() => { }, pauseDuration);
         } else {
           timeout = setTimeout(() => {
             setDisplayedText(prev => prev.slice(0, -1));
@@ -150,6 +151,7 @@ const TextType = ({
     }
 
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentCharIndex,
     displayedText,
@@ -164,8 +166,7 @@ const TextType = ({
     isVisible,
     reverseMode,
     variableSpeed,
-    onSentenceComplete,
-    getRandomSpeed
+    onSentenceComplete
   ]);
 
   const shouldHideCursor =

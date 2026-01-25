@@ -672,9 +672,16 @@ export default function AssistantPage() {
             ) : (
               /* État conversation - layout chat */
               <div className="flex flex-col h-full w-full py-4">
-                <h1 className="text-xl font-serif font-light text-[#C2C0B6] text-center mb-4 shrink-0">
-                  KAM
-                </h1>
+                <div className="text-xl font-serif font-light text-[#C2C0B6] text-center mb-4 shrink-0">
+                  <TextType
+                    text={["KAM", "Votre Assistant", "Expert Carrière"]}
+                    className="inline"
+                    typingSpeed={100}
+                    deletingSpeed={50}
+                    pauseDuration={2000}
+                    cursorClassName="text-[#C2C0B6]"
+                  />
+                </div>
 
                 {/* Messages Area */}
                 <div className="flex-1 overflow-y-auto space-y-4 scrollbar-hide min-h-0 mb-4">
