@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import pdf from "pdf-parse";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,11 +19,13 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     if (fileName.endsWith(".pdf")) {
-      // Parser le PDF
+      // Parser le PDF with require to avoid ESM issues
       try {
-        const pdfData = await pdf(buffer);
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const pdfParse = require("pdf-parse");
+        const pdfData = await pdfParse(buffer);
         text = pdfData.text;
-        
+
         // Nettoyer le texte extrait
         text = cleanExtractedText(text);
       } catch (pdfError) {

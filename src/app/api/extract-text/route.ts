@@ -1,13 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import mammoth from "mammoth";
 
-// Dynamic import for pdf-parse to avoid ESM issues
+// Use pdf-parse which bundles its own compatible pdfjs version
 async function parsePDF(buffer: Buffer): Promise<string> {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfParse = require("pdf-parse");
-  const data = await pdfParse(buffer);
-  return data.text || "";
+  try {
+    console.log('[PDF Extract] Starting extraction with pdf-parse...');
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfParse = require("pdf-parse");
+
+    const data = await pdfParse(buffer, {
+      // Custom render to get better text extraction
+      pagerender: function (pageData: any) {
+        return pageData.getTextContent().then(function (textContent: any) {
+          let text = '';
+          for (const item of textContent.items) {
+            text += item.str + ' ';
+          }
+          return text;
+        });
+      }
+    });
+
+    console.log(`[PDF Extract] Success! Extracted ${data.text?.length || 0} characters`);
+    return data.text || "";
+
+  } catch (error) {
+    console.error('[PDF Extract] pdf-parse failed:', error);
+    throw new Error(`PDF extraction failed: ${(error as Error).message}`);
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -29,29 +50,36 @@ export async function POST(req: NextRequest) {
     let extractedText = "";
 
     if (fileName.endsWith(".pdf")) {
-      // Extraction PDF avec pdf-parse
       try {
         const buffer = Buffer.from(arrayBuffer);
+        console.log(`[PDF Extract] Processing ${file.name}, size: ${buffer.length} bytes`);
+
         extractedText = await parsePDF(buffer);
-        extractedText = cleanExtractedText(extractedText);
-        
-        console.log(`[PDF Extract] ${file.name}: ${extractedText.length} caractères extraits`);
-        
+
+        if (!extractedText || !extractedText.trim()) {
+          console.warn(`[PDF Extract] Warning: extraction returned empty text for ${file.name}`);
+          extractedText = "";
+        } else {
+          extractedText = cleanExtractedText(extractedText);
+          console.log(`[PDF Extract] Success: ${extractedText.length} chars extracted`);
+        }
+
         if (!extractedText || extractedText.length < 50) {
-          extractedText = `[PDF: ${file.name}] - Le texte n'a pas pu être extrait. Ce PDF peut contenir uniquement des images.`;
+          extractedText = `[PDF: ${file.name}] - L'extraction a retourné trop peu de texte. Ce PDF est peut-être scanné. Veuillez copier-coller le contenu manuellement.`;
         }
       } catch (pdfError) {
-        console.error("PDF parse error:", pdfError);
-        extractedText = `[PDF: ${file.name}] - Erreur lors de l'extraction. Veuillez copier-coller le contenu.`;
+        const errorMessage = (pdfError as Error).message || 'Unknown error';
+        console.error("[PDF Extract] Error:", errorMessage);
+        extractedText = `[PDF: ${file.name}] - Erreur d'extraction: ${errorMessage}. Veuillez copier-coller le contenu.`;
       }
     } else if (fileName.endsWith(".docx")) {
-      // Extraction Word DOCX avec mammoth
       try {
+        const mammoth = await import("mammoth");
         const buffer = Buffer.from(arrayBuffer);
         const result = await mammoth.extractRawText({ buffer });
         extractedText = result.value || "";
         extractedText = cleanExtractedText(extractedText);
-        
+
         if (!extractedText || extractedText.length < 50) {
           extractedText = `[DOCX: ${file.name}] - Le texte n'a pas pu être extrait.`;
         }
@@ -67,7 +95,7 @@ export async function POST(req: NextRequest) {
       extractedText = await file.text();
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       text: extractedText,
       fileName: file.name,
       fileType: file.type,
@@ -80,19 +108,13 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Nettoyer le texte extrait
 function cleanExtractedText(text: string): string {
   return text
-    // Supprimer les caractères de contrôle
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-    // Normaliser les espaces multiples
     .replace(/[ \t]+/g, " ")
-    // Normaliser les sauts de ligne multiples
     .replace(/\n{3,}/g, "\n\n")
-    // Supprimer les espaces en début/fin de ligne
     .split("\n")
     .map(line => line.trim())
     .join("\n")
-    // Supprimer les lignes vides au début et à la fin
     .trim();
 }

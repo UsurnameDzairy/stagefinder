@@ -15,7 +15,7 @@ export const translations = {
       logout: "Déconnexion",
       viewProfile: "Voir le profil",
     },
-    
+
     // Dashboard
     dashboard: {
       title: "Tableau de bord",
@@ -29,7 +29,7 @@ export const translations = {
       recentActivity: "Activité récente",
       quickActions: "Actions rapides",
     },
-    
+
     // Offres
     offers: {
       title: "Offres pour vous",
@@ -59,7 +59,7 @@ export const translations = {
       cancel: "Annuler",
       waiting: "En attente",
     },
-    
+
     // Candidatures
     applications: {
       title: "Suivi Candidatures",
@@ -104,7 +104,7 @@ export const translations = {
       markAsSent: "Marquer comme envoyé",
       addNote: "Ajouter une note",
     },
-    
+
     // CV Improver
     cvImprover: {
       title: "CV Improver",
@@ -128,7 +128,7 @@ export const translations = {
       suggestions: "Suggestions",
       pasteToAnalyze: "Collez votre CV pour obtenir une analyse",
     },
-    
+
     // Lettres
     letters: {
       title: "Lettres de motivation",
@@ -147,8 +147,8 @@ export const translations = {
       download: "Télécharger",
     },
 
-    // Assistant
-    assistant: {
+    // Assistant Page
+    assistantPage: {
       title: "Assistant Carrière IA",
       subtitle: "Conseils personnalisés basés sur votre profil",
       welcome: "Bonjour ! 👋 Je suis votre assistant carrière personnalisé.\n\nJe peux vous aider à :\n📊 Analyser votre profil et identifier vos forces\n🏢 Recommander les meilleures entreprises pour vous\n💼 Suggérer des postes adaptés à votre profil\n🎯 Développer vos compétences stratégiques\n📈 Optimiser votre stratégie de recherche\n\nQue souhaitez-vous savoir ?",
@@ -158,9 +158,29 @@ export const translations = {
         roles: "Quels postes correspondent à mon profil ?",
         skills: "Comment améliorer mes compétences ?",
         strategy: "Quelle stratégie de recherche adopter ?",
-      }
+      },
+      inputPlaceholder: "Posez votre question...",
+      inputPlaceholderContinue: "Continuez la conversation...",
+      suggestions: [
+        "Analysez mon CV...",
+        "Aidez-moi à rédiger une lettre...",
+        "Simulons un entretien...",
+        "Quelles sont mes compétences clés ?",
+        "Optimisez mon profil LinkedIn..."
+      ],
+      starters: {
+        cvAnalysis: "Analyse mon CV",
+        interviewPrep: "Prépare mon entretien"
+      },
+      thinking: [
+        "KAM analyse votre demande",
+        "KAM réfléchit",
+        "KAM élabore une réponse",
+        "KAM traite l'information",
+        "KAM prépare sa réponse"
+      ]
     },
-    
+
     // Emails
     emails: {
       types: {
@@ -173,7 +193,7 @@ export const translations = {
       copy: "Copier",
       markAsSent: "Marquer comme envoyé",
     },
-    
+
     // Entreprises
     companies: {
       title: "Entreprises",
@@ -185,7 +205,7 @@ export const translations = {
       openPositions: "Postes ouverts",
       viewOffers: "Voir les offres",
     },
-    
+
     // Paramètres
     settings: {
       title: "Paramètres",
@@ -197,7 +217,7 @@ export const translations = {
       save: "Enregistrer",
       saved: "Enregistré",
     },
-    
+
     // Common
     common: {
       loading: "Chargement...",
@@ -241,7 +261,7 @@ export const translations = {
       goodAfternoon: "Bon après-midi",
       goodEvening: "Bonsoir",
     },
-    
+
     // Model Selector
     modelSelector: {
       title: "AGENTS IA",
@@ -254,7 +274,7 @@ export const translations = {
         gemma: "Modèle Google compact et efficace",
       },
     },
-    
+
     // Vocabulaire Harvard pour les candidatures
     harvard: {
       verbs: {
@@ -287,7 +307,7 @@ export const translations = {
       },
     },
   },
-  
+
   en: {
     // Navigation
     nav: {
@@ -301,7 +321,7 @@ export const translations = {
       logout: "Logout",
       viewProfile: "View profile",
     },
-    
+
     // Dashboard
     dashboard: {
       title: "Dashboard",
@@ -315,7 +335,7 @@ export const translations = {
       recentActivity: "Recent activity",
       quickActions: "Quick actions",
     },
-    
+
     // Offers
     offers: {
       title: "Jobs for you",
@@ -345,7 +365,7 @@ export const translations = {
       cancel: "Cancel",
       waiting: "Waiting",
     },
-    
+
     // Applications
     applications: {
       title: "Application Tracker",
@@ -390,7 +410,7 @@ export const translations = {
       markAsSent: "Mark as sent",
       addNote: "Add note",
     },
-    
+
     // CV Improver
     cvImprover: {
       title: "CV Improver",
@@ -414,7 +434,7 @@ export const translations = {
       suggestions: "Suggestions",
       pasteToAnalyze: "Paste your CV to get an analysis",
     },
-    
+
     // Letters
     letters: {
       title: "Cover Letters",
@@ -433,8 +453,8 @@ export const translations = {
       download: "Download",
     },
 
-    // Assistant
-    assistant: {
+    // Assistant Page
+    assistantPage: {
       title: "AI Career Assistant",
       subtitle: "Personalized advice based on your profile",
       welcome: "Hello! 👋 I am your personalized career assistant.\n\nI can help you:\n📊 Analyze your profile and identify your strengths\n🏢 Recommend the best companies for you\n💼 Suggest roles suited to your profile\n🎯 Develop your strategic skills\n📈 Optimize your search strategy\n\nWhat would you like to know?",
@@ -444,9 +464,29 @@ export const translations = {
         roles: "What roles match my profile?",
         skills: "How can I improve my skills?",
         strategy: "What search strategy should I adopt?",
-      }
+      },
+      inputPlaceholder: "Ask your question...",
+      inputPlaceholderContinue: "Continue the conversation...",
+      suggestions: [
+        "Analyze my CV...",
+        "Help me write a cover letter...",
+        "Let's simulate an interview...",
+        "What are my key skills?",
+        "Optimize my LinkedIn profile..."
+      ],
+      starters: {
+        cvAnalysis: "Analyze my CV",
+        interviewPrep: "Prepare my interview"
+      },
+      thinking: [
+        "KAM is analyzing your request",
+        "KAM is thinking",
+        "KAM is crafting a response",
+        "KAM is processing",
+        "KAM is preparing an answer"
+      ]
     },
-    
+
     // Emails
     emails: {
       types: {
@@ -459,7 +499,7 @@ export const translations = {
       copy: "Copy",
       markAsSent: "Mark as sent",
     },
-    
+
     // Companies
     companies: {
       title: "Companies",
@@ -471,7 +511,7 @@ export const translations = {
       openPositions: "Open positions",
       viewOffers: "View offers",
     },
-    
+
     // Settings
     settings: {
       title: "Settings",
@@ -483,7 +523,7 @@ export const translations = {
       save: "Save",
       saved: "Saved",
     },
-    
+
     // Common
     common: {
       loading: "Loading...",
@@ -527,7 +567,7 @@ export const translations = {
       goodAfternoon: "Good afternoon",
       goodEvening: "Good evening",
     },
-    
+
     // Model Selector
     modelSelector: {
       title: "AI AGENTS",
@@ -540,7 +580,7 @@ export const translations = {
         gemma: "Compact and efficient Google model",
       },
     },
-    
+
     // Harvard vocabulary for applications
     harvard: {
       verbs: {

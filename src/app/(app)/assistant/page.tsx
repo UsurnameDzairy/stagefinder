@@ -254,6 +254,7 @@ const ClaudeChatInput: React.FC<{
   const [pastedContent, setPastedContent] = useState<PastedContent[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedModel, setSelectedModel] = useState("llama-3.3-70b");
+  const [cvAnalysisMode, setCvAnalysisMode] = useState(false); // Track if upload is from CV analysis button
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -276,10 +277,27 @@ const ClaudeChatInput: React.FC<{
       if (isTextualFile(f.file)) {
         readFileAsText(f.file, t).then((text) => {
           setFiles((prev) => prev.map((p) => p.id === f.id ? { ...p, textContent: text } : p));
+
+          // If in CV analysis mode, auto-send message once text is extracted
+          if (cvAnalysisMode && text && text.length > 50) {
+            setTimeout(() => {
+              const cvMessage = "Analyse mon CV en détail et donne-moi des recommandations pour l'améliorer.";
+              setMessage(cvMessage);
+              setCvAnalysisMode(false);
+              // Trigger send after a short delay to ensure file is ready
+              setTimeout(() => {
+                if (onSendMessage) {
+                  onSendMessage(cvMessage, [{ ...f, textContent: text }], [], selectedModel);
+                  setFiles([]);
+                  setMessage("");
+                }
+              }, 100);
+            }, 500);
+          }
         });
       }
     });
-  }, [files.length]);
+  }, [files.length, cvAnalysisMode, onSendMessage, selectedModel, t]);
 
   const removeFile = useCallback((id: string) => {
     setFiles((prev) => {
@@ -308,6 +326,45 @@ const ClaudeChatInput: React.FC<{
     }
   }, [handleFileSelect, pastedContent.length, message]);
 
+  const handleStarterClick = async (action: 'cvAnalysis' | 'interviewPrep') => {
+    if (action === 'cvAnalysis') {
+      // Set CV analysis mode and open file dialog
+      setCvAnalysisMode(true);
+      fileInputRef.current?.click();
+    } else if (action === 'interviewPrep') {
+      // Fetch user's applications/interviews from database
+      try {
+        const response = await fetch('/api/applications');
+        if (response.ok) {
+          const data = await response.json();
+          const interviews = data.applications?.filter((app: any) => app.status === 'interview') || [];
+
+          let prompt = "Je voudrais préparer un entretien. ";
+          if (interviews.length > 0) {
+            prompt += `\n\nVoici mes entretiens programmés :\n${interviews.map((app: any, idx: number) =>
+              `${idx + 1}. ${app.position} chez ${app.company}`
+            ).join('\n')}\n\nAide-moi à me préparer pour ces entretiens.`;
+          } else {
+            prompt += "Je n'ai pas encore d'entretien programmé, mais j'aimerais m'entraîner pour des entretiens en général.";
+          }
+
+          if (onSendMessage) {
+            onSendMessage(prompt, [], [], DEFAULT_MODELS[0].apiModel);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch interviews:', error);
+        // Fallback if API fails
+        const prompt = "Je voudrais préparer un entretien. Aide-moi à m'entraîner.";
+        if (onSendMessage) {
+          onSendMessage(prompt, [], [], DEFAULT_MODELS[0].apiModel);
+        }
+      }
+    }
+  };
+
+  const suggestions = (t("assistantPage.suggestions") as unknown as string[]) || ["Analysez mon CV...", "Aidez-moi à rédiger une lettre..."];
+
   const handleDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); }, []);
   const handleDragLeave = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); }, []);
   const handleDrop = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); handleFileSelect(e.dataTransfer.files); }, [handleFileSelect]);
@@ -330,6 +387,8 @@ const ClaudeChatInput: React.FC<{
   const canSend = hasContent && !disabled && !isLoading;
   const inputPlaceholder = placeholder || t("assistantPage.inputPlaceholder");
 
+  const showDynamicPlaceholder = !hasContent && !isLoading && !disabled;
+
   return (
     <div className="relative w-full max-w-2xl mx-auto" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
       {isDragging && (
@@ -338,15 +397,42 @@ const ClaudeChatInput: React.FC<{
         </div>
       )}
       <div className="bg-[#30302E] border border-zinc-700 rounded-xl shadow-lg flex flex-col">
-        <textarea ref={textareaRef} value={message} onChange={(e) => setMessage(e.target.value)} onPaste={handlePaste} onKeyDown={handleKeyDown} placeholder={inputPlaceholder} disabled={disabled || isLoading} className="h-[80px] w-full p-4 focus:outline-none border-none resize-none bg-transparent text-zinc-100 placeholder:text-zinc-500 text-sm scrollbar-hide" rows={3} />
+        <div className="relative">
+          <textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onPaste={handlePaste}
+            onKeyDown={handleKeyDown}
+            disabled={disabled || isLoading}
+            className="h-[80px] w-full p-4 focus:outline-none border-none resize-none bg-transparent text-zinc-100 text-sm scrollbar-hide z-10 relative"
+            rows={3}
+          />
+          {showDynamicPlaceholder && (
+            <div className="absolute top-4 left-4 pointer-events-none text-zinc-500 text-sm z-0 opacity-50">
+              <TextType
+                text={suggestions}
+                typingSpeed={50}
+                deletingSpeed={30}
+                pauseDuration={2000}
+                loop={true}
+                showCursor={true}
+                cursorClassName="text-zinc-500"
+              />
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center gap-2 justify-between w-full px-3 pb-2">
           <div className="flex items-center gap-2">
             <Button size="icon" variant="ghost" className="h-9 w-9 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700" onClick={() => fileInputRef.current?.click()} disabled={disabled || isLoading}><Plus className="h-5 w-5" /></Button>
             <Button size="icon" variant="ghost" className="h-9 w-9 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700" disabled={disabled || isLoading}><SlidersHorizontal className="h-5 w-5" /></Button>
           </div>
+
           <div className="flex items-center gap-2">
-            <ModelSelectorDropdown models={DEFAULT_MODELS} selectedModel={selectedModel} onModelChange={setSelectedModel} />
-            <Button size="icon" className={cn("h-9 w-9 rounded-md", canSend ? "bg-[#C2C0B6] hover:bg-[#B0AEA4] text-black" : "bg-zinc-700 text-zinc-500")} onClick={handleSend} disabled={!canSend}>
+
+            <ModelSelectorDropdown models={availableModels} selectedModel={selectedModel} onModelChange={setSelectedModel} />
+            <Button size="icon" className={cn("h-9 w-9 rounded-md wait-animation", canSend ? "bg-[#C2C0B6] hover:bg-[#B0AEA4] text-black" : "bg-zinc-700 text-zinc-500")} onClick={handleSend} disabled={!canSend}>
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}
             </Button>
           </div>
@@ -361,7 +447,7 @@ const ClaudeChatInput: React.FC<{
         )}
       </div>
       <input ref={fileInputRef} type="file" multiple className="hidden" accept=".pdf,.doc,.docx,.txt,.md,.json" onChange={(e) => { handleFileSelect(e.target.files); if (e.target) e.target.value = ""; }} />
-    </div>
+    </div >
   );
 };
 
@@ -649,12 +735,18 @@ export default function AssistantPage() {
               <>
                 <h1 className="text-3xl font-serif font-light text-[#C2C0B6] mb-8 text-center">
                   <TextType
-                    text={userName ? `${getGreeting()} ${userName}` : getGreeting()}
+                    text={[
+                      userName ? `${getGreeting()} ${userName} !` : `${getGreeting()} !`,
+                      "Comment puis-je vous aider ?",
+                      "Prêt à travailler ?"
+                    ]}
                     typingSpeed={60}
+                    deletingSpeed={30}
+                    pauseDuration={2000}
                     showCursor={true}
                     cursorCharacter="_"
                     cursorClassName="text-[#C2C0B6]"
-                    loop={false}
+                    loop={true}
                     className="inline"
                   />
                 </h1>
@@ -665,9 +757,22 @@ export default function AssistantPage() {
                   isLoading={isLoading}
                 />
 
-                <p className="text-xs text-zinc-600 mt-4 text-center">
-                  {t("assistantPage.models")}
-                </p>
+                <div className="w-full flex justify-center gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all"
+                    onClick={() => handleSendMessage("Analyse mon CV en détail et donne-moi des recommandations pour l'améliorer.", [], [], DEFAULT_MODELS[0].apiModel)}
+                  >
+                    {t("assistantPage.starters.cvAnalysis")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all"
+                    onClick={() => handleSendMessage("Prépare mon entretien - Aide-moi à m'entraîner pour un entretien.", [], [], DEFAULT_MODELS[0].apiModel)}
+                  >
+                    {t("assistantPage.starters.interviewPrep")}
+                  </Button>
+                </div>
               </>
             ) : (
               /* État conversation - layout chat */
@@ -698,17 +803,17 @@ export default function AssistantPage() {
                           "max-w-[85%] rounded-2xl px-4 py-3",
                           msg.role === "user"
                             ? "bg-white text-black rounded-br-md"
-                            : "bg-zinc-800/90 text-zinc-300 rounded-bl-md border border-zinc-700"
+                            : "bg-zinc-800/90 text-white rounded-bl-md border border-zinc-700"
                         )}
                       >
                         {msg.role === "assistant" ? (
                           <div className="prose prose-sm prose-invert max-w-none">
                             <TextTypeAI
                               text={msg.content}
-                              typingSpeed={30}
+                              typingSpeed={5}
                               showCursor={false}
                               loop={false}
-                              variableSpeed={{ min: 20, max: 50 }}
+                              variableSpeed={{ min: 3, max: 10 }}
                               className="text-sm leading-relaxed"
                             />
                           </div>

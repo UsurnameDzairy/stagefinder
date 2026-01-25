@@ -8,8 +8,16 @@ import { useTranslation } from "@/lib/i18n";
 export default function AIThinkingBlock() {
     const { t } = useTranslation();
     const [scrollPosition, setScrollPosition] = useState(0);
+    const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
     const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Get thinking phrases from translations
+    const thinkingPhrases = (t("assistantPage.thinking") as unknown as string[]) || [
+        "KAM analyse votre demande",
+        "KAM réfléchit",
+        "KAM élabore une réponse"
+    ];
 
     // Messages de pensée pour l'animation
     const ThinkingContent = `Je commence par analyser votre demande en détail. Il est important de bien comprendre le contexte et vos besoins spécifiques avant de formuler une réponse appropriée.
@@ -34,6 +42,7 @@ C'est parfait, je suis prêt à vous partager mon analyse et mes recommandations
 
     const [timer, setTimer] = useState(0);
 
+    // Timer for elapsed time
     useEffect(() => {
         const timerInterval = setInterval(() => {
             setTimer((prev) => prev + 1);
@@ -43,6 +52,17 @@ C'est parfait, je suis prêt à vous partager mon analyse et mes recommandations
             clearInterval(timerInterval);
         };
     }, []);
+
+    // Rotate through thinking phrases
+    useEffect(() => {
+        const phraseInterval = setInterval(() => {
+            setCurrentPhraseIndex((prev) => (prev + 1) % thinkingPhrases.length);
+        }, 2500);
+
+        return () => {
+            clearInterval(phraseInterval);
+        };
+    }, [thinkingPhrases.length]);
 
     useEffect(() => {
         if (contentRef.current) {
@@ -79,12 +99,12 @@ C'est parfait, je suis prêt à vous partager mon analyse et mes recommandations
             <div className="flex items-center justify-start gap-2 mb-4">
                 <Loader2 className="size-4 animate-spin text-zinc-500" />
                 <p
-                    className="bg-[linear-gradient(110deg,#52525b,35%,#e4e4e7,50%,#52525b,75%,#52525b)] bg-[length:200%_100%] bg-clip-text text-sm text-transparent"
+                    className="bg-[linear-gradient(110deg,#52525b,35%,#e4e4e7,50%,#52525b,75%,#52525b)] bg-[length:200%_100%] bg-clip-text text-sm text-transparent transition-all duration-300"
                     style={{
                         animation: "shimmer 3s linear infinite",
                     }}
                 >
-                    {t("assistantPage.thinking") || "KAM réfléchit..."}
+                    {thinkingPhrases[currentPhraseIndex]}
                 </p>
                 <span className="text-xs text-zinc-600">
                     {timer}s
