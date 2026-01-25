@@ -830,19 +830,19 @@ export default function AssistantPage() {
                         className={cn(
                           "max-w-[85%] rounded-2xl px-4 py-3",
                           msg.role === "user"
-                            ? "bg-white text-black rounded-br-md"
+                            ? "bg-zinc-700 text-white rounded-br-md border border-zinc-600"
                             : "bg-zinc-800/90 text-white rounded-bl-md border border-zinc-700"
                         )}
                       >
                         {msg.role === "assistant" ? (
-                          <div className="prose prose-sm prose-invert max-w-none">
+                          <div className="prose prose-sm prose-invert max-w-none text-white">
                             <TextTypeAI
                               text={msg.content}
                               typingSpeed={5}
                               showCursor={false}
                               loop={false}
                               variableSpeed={{ min: 3, max: 10 }}
-                              className="text-sm leading-relaxed"
+                              className="text-sm leading-relaxed text-white"
                             />
                           </div>
                         ) : (

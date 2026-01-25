@@ -286,10 +286,10 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
       )}
     >
       {plan.isPopular && (
-        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
-          <div className="bg-white py-1.5 px-4 rounded-full flex items-center gap-1.5">
-            <LucideStar className="text-black h-4 w-4 fill-current" />
-            <span className="text-black text-sm font-semibold">
+        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 z-10">
+          <div className="!bg-white py-1.5 px-4 rounded-full flex items-center gap-1.5 shadow-lg">
+            <LucideStar className="!text-black h-4 w-4 fill-current" />
+            <span className="!text-black text-sm font-semibold">
               Populaire
             </span>
           </div>
@@ -297,7 +297,7 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
       )}
       <div className="flex-1 flex flex-col text-center">
         <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
-        <p className="mt-2 text-sm text-zinc-500">
+        <p className="mt-2 text-sm text-zinc-300">
           {plan.description}
         </p>
         <div className="mt-6 flex items-baseline justify-center gap-x-1">
@@ -314,17 +314,17 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
               className="font-variant-numeric: tabular-nums"
             />
           </span>
-          <span className="text-sm font-semibold leading-6 tracking-wide text-zinc-500">
+          <span className="text-sm font-semibold leading-6 tracking-wide text-zinc-300">
             / {plan.period}
           </span>
         </div>
-        <p className="text-xs text-zinc-600 mt-2">
+        <p className="text-xs text-zinc-400 mt-2">
           {isMonthly ? "Facturation mensuelle" : "Facturation annuelle"}
         </p>
 
         <ul
           role="list"
-          className="mt-8 space-y-3 text-sm leading-6 text-left text-zinc-400"
+          className="mt-8 space-y-3 text-sm leading-6 text-left text-white"
         >
           {plan.features.map((feature) => (
             <li key={feature} className="flex gap-x-3">
@@ -346,9 +346,9 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
               size="lg"
               className={cn(
                 "w-full",
-                plan.isPopular 
-                  ? "bg-white text-black hover:bg-zinc-200" 
-                  : "border-zinc-700 text-white hover:bg-zinc-800"
+                plan.isPopular
+                  ? "!bg-white !text-black hover:!bg-zinc-200"
+                  : "!border-zinc-700 !text-white hover:!bg-zinc-800"
               )}
             >
               {isLoading ? "Chargement..." : plan.buttonText}
@@ -360,9 +360,9 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
                 size="lg"
                 className={cn(
                   "w-full",
-                  plan.isPopular 
-                    ? "bg-white text-black hover:bg-zinc-200" 
-                    : "border-zinc-700 text-white hover:bg-zinc-800"
+                  plan.isPopular
+                    ? "!bg-white !text-black hover:!bg-zinc-200"
+                    : "!border-zinc-700 !text-white hover:!bg-zinc-800"
                 )}
               >
                 {plan.buttonText}

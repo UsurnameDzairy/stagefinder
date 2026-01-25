@@ -10,7 +10,7 @@ const buttonVariants = cva(
       variant: {
         default: "bg-white text-black hover:bg-zinc-200 border-none",
         destructive: "bg-zinc-950 text-zinc-500 border border-zinc-900 hover:bg-zinc-900 hover:text-white hover:border-zinc-800",
-        outline: "border border-zinc-900 bg-black text-zinc-400 hover:border-zinc-700 hover:text-white",
+        outline: "border border-zinc-700 bg-transparent text-white hover:border-zinc-500 hover:bg-zinc-800",
         secondary: "bg-zinc-900 text-zinc-100 hover:bg-zinc-800 border border-zinc-800",
         ghost: "text-zinc-500 hover:text-white hover:bg-zinc-900",
         link: "text-zinc-400 underline-offset-4 hover:text-white hover:underline",
