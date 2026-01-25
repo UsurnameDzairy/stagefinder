@@ -19,6 +19,7 @@ model User {
   name             String?
   role             String            @default("user")
   emailVerified    Boolean           @default(false)
+  aiModels         Json?             // Custom AI models from OpenRouter
   accounts         Account[]
   applications     Application[]
   coverLetters     CoverLetter[]

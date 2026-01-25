@@ -254,10 +254,29 @@ const ClaudeChatInput: React.FC<{
   const [pastedContent, setPastedContent] = useState<PastedContent[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedModel, setSelectedModel] = useState("llama-3.3-70b");
+  const [availableModels, setAvailableModels] = useState<ModelOption[]>(DEFAULT_MODELS);
   const [cvAnalysisMode, setCvAnalysisMode] = useState(false); // Track if upload is from CV analysis button
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load models from API
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const res = await fetch("/api/models");
+        const data = await res.json();
+        if (data.models && data.models.length > 0) {
+          setAvailableModels(data.models);
+          setSelectedModel(data.models[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to load models:", error);
+        // Keep DEFAULT_MODELS as fallback
+      }
+    };
+    fetchModels();
+  }, []);
 
   const handleFileSelect = useCallback((selectedFiles: FileList | null) => {
     if (!selectedFiles || files.length >= MAX_FILES) return;
