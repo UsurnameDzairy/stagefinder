@@ -128,7 +128,7 @@ export default function DashboardPage() {
           <CardHeader className="p-6">
             <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <PieChart className="h-4 w-4" />
-              Statut des Candidatures
+              {t("dashboard.applicationStatus")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-6">
@@ -147,14 +147,14 @@ export default function DashboardPage() {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-2xl font-bold tracking-tighter">{stats.applicationStatus.responseRate || 0}%</span>
-                    <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">Réponses</span>
+                    <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{t("dashboard.responses")}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   {[
-                    { label: "En attente", value: `${stats.applicationStatus.pending || 0}%`, color: "bg-zinc-800" },
-                    { label: "Entretiens", value: `${stats.applicationStatus.interview || 0}%`, color: "bg-white" },
-                    { label: "Refusé", value: `${stats.applicationStatus.rejected || 0}%`, color: "bg-zinc-900" },
+                    { label: t("dashboard.statuses.pending"), value: `${stats.applicationStatus.pending || 0}%`, color: "bg-zinc-800" },
+                    { label: t("dashboard.statuses.interview"), value: `${stats.applicationStatus.interview || 0}%`, color: "bg-white" },
+                    { label: t("dashboard.statuses.rejected"), value: `${stats.applicationStatus.rejected || 0}%`, color: "bg-zinc-900" },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
                       <div className="flex items-center gap-2">
@@ -168,7 +168,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <div className="h-40 flex items-center justify-center">
-                <p className="text-zinc-600 text-sm">Aucune candidature</p>
+                <p className="text-zinc-600 text-sm">{t("dashboard.noApplications")}</p>
               </div>
             )}
           </CardContent>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
           <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
               <Target className="h-3.5 w-3.5" />
-              Couverture des Compétences
+              {t("dashboard.skillsCoverage")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-4 space-y-6">
@@ -206,7 +206,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <div className="h-40 flex items-center justify-center">
-                <p className="text-zinc-600 text-sm">Ajoutez des compétences à votre profil</p>
+                <p className="text-zinc-600 text-sm">{t("dashboard.addSkills")}</p>
               </div>
             )}
           </CardContent>
@@ -220,10 +220,10 @@ export default function DashboardPage() {
             </CardHeader>
             <div className="grid gap-6 md:grid-cols-2">
               {[
-                { label: "Postuler", icon: Send, action: "/offres", primary: true },
-                { label: "Ma Carrière", icon: TrendingUp, action: "/candidatures" },
-                { label: "Lettres IA", icon: FileText, action: "/lettres" },
-                { label: "Mon Profil", icon: Target, action: "/parametres" },
+                { label: t("dashboard.actions.apply"), icon: Send, action: "/offres", primary: true },
+                { label: t("dashboard.actions.career"), icon: TrendingUp, action: "/candidatures" },
+                { label: t("dashboard.actions.lettersAI"), icon: FileText, action: "/lettres" },
+                { label: t("dashboard.actions.myProfile"), icon: Target, action: "/parametres" },
               ].map((action, i) => (
                 <Link href={action.action} key={i}>
                   <Button
@@ -249,15 +249,15 @@ export default function DashboardPage() {
             <CardHeader className="p-6 pb-2">
               <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-zinc-400" />
-                Conseil Pro
+                {t("dashboard.proTip")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 pt-2">
               <p className="text-[13px] text-zinc-400 leading-relaxed font-medium">
-                Utilisez le <span className="text-white">CV Improver</span> pour augmenter vos chances de réponse de 40%. Harvard recommande d'utiliser des verbes d'action puissants.
+                {t("dashboard.proTipText")}
               </p>
               <Link href="/cv-improver" className="inline-flex items-center gap-2 mt-4 text-[11px] font-bold text-white uppercase tracking-widest hover:gap-3 transition-all">
-                Améliorer mon CV <ExternalLink className="h-3 w-3" />
+                {t("dashboard.improveCV")} <ExternalLink className="h-3 w-3" />
               </Link>
             </CardContent>
           </Card>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
         <CardHeader className="p-6 pb-4 border-b border-zinc-900/50">
           <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
             <ActivityIcon className="h-4 w-4" />
-            Activité Récente
+            {t("dashboard.recentActivity")}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">

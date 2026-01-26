@@ -128,17 +128,33 @@ interface PricingPlan {
   stripeYearlyPriceId?: string;
 }
 
+interface PricingTranslations {
+  monthly: string;
+  annual: string;
+  billingMonthly: string;
+  billingAnnual: string;
+  loading: string;
+}
+
 const PricingContext = createContext<{
   isMonthly: boolean;
   setIsMonthly: (value: boolean) => void;
+  t: PricingTranslations;
 }>({
   isMonthly: true,
   setIsMonthly: () => {},
+  t: {
+    monthly: "Mensuel",
+    annual: "Annuel",
+    billingMonthly: "Facturation mensuelle",
+    billingAnnual: "Facturation annuelle",
+    loading: "Chargement...",
+  },
 });
 
 // Pricing Toggle Component
 function PricingToggle() {
-  const { isMonthly, setIsMonthly } = useContext(PricingContext);
+  const { isMonthly, setIsMonthly, t } = useContext(PricingContext);
   const confettiRef = useRef<HTMLDivElement>(null);
   const monthlyBtnRef = useRef<HTMLButtonElement>(null);
   const annualBtnRef = useRef<HTMLButtonElement>(null);
@@ -197,7 +213,7 @@ function PricingToggle() {
               : "text-zinc-500 hover:text-white",
           )}
         >
-          Mensuel
+          {t.monthly}
         </button>
         <button
           ref={annualBtnRef}
@@ -209,7 +225,7 @@ function PricingToggle() {
               : "text-zinc-500 hover:text-white",
           )}
         >
-          Annuel
+          {t.annual}
           <span
             className={cn(
               "hidden sm:inline ml-1",
@@ -226,7 +242,7 @@ function PricingToggle() {
 
 // Pricing Card Component
 function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
-  const { isMonthly } = useContext(PricingContext);
+  const { isMonthly, t } = useContext(PricingContext);
   const [isDesktop, setIsDesktop] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -287,9 +303,9 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
     >
       {plan.isPopular && (
         <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 z-10">
-          <div className="!bg-white py-1.5 px-4 rounded-full flex items-center gap-1.5 shadow-lg">
-            <LucideStar className="!text-black h-4 w-4 fill-current" />
-            <span className="!text-black text-sm font-semibold">
+          <div className="bg-white py-1.5 px-4 rounded-full flex items-center gap-1.5 shadow-lg">
+            <LucideStar className="text-black h-4 w-4 fill-black" />
+            <span className="text-black text-sm font-semibold">
               Populaire
             </span>
           </div>
@@ -319,7 +335,7 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
           </span>
         </div>
         <p className="font-serif text-xs text-zinc-500 mt-2 italic">
-          {isMonthly ? "Facturation mensuelle" : "Facturation annuelle"}
+          {isMonthly ? t.billingMonthly : t.billingAnnual}
         </p>
 
         <ul
@@ -345,13 +361,13 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
               variant={plan.isPopular ? "default" : "outline"}
               size="lg"
               className={cn(
-                "w-full",
+                "w-full font-serif",
                 plan.isPopular
-                  ? "!bg-white !text-black hover:!bg-zinc-200"
-                  : "!border-zinc-700 !text-white hover:!bg-zinc-800"
+                  ? "bg-white text-black hover:bg-zinc-200"
+                  : "border-zinc-700 text-white hover:bg-zinc-800"
               )}
             >
-              {isLoading ? "Chargement..." : plan.buttonText}
+              {isLoading ? t.loading : plan.buttonText}
             </Button>
           ) : (
             <Link href={plan.href} className="block">
@@ -359,10 +375,10 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
                 variant={plan.isPopular ? "default" : "outline"}
                 size="lg"
                 className={cn(
-                  "w-full",
+                  "w-full font-serif",
                   plan.isPopular
-                    ? "!bg-white !text-black hover:!bg-zinc-200"
-                    : "!border-zinc-700 !text-white hover:!bg-zinc-800"
+                    ? "bg-white text-black hover:bg-zinc-200"
+                    : "border-zinc-700 text-white hover:bg-zinc-800"
                 )}
               >
                 {plan.buttonText}
@@ -375,21 +391,34 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
   );
 }
 
-// Plans data with Stripe price IDs
+// Plans data with Stripe price IDs - Matching landing page prices
 const plans: PricingPlan[] = [
   {
+    name: "Free",
+    price: "0",
+    yearlyPrice: "0",
+    period: "mois",
+    description: "Pour découvrir la plateforme",
+    features: [
+      "5 candidatures tous les 3 jours",
+      "Accès limité aux offres",
+      "Recherche basique",
+    ],
+    buttonText: "Commencer gratuitement",
+    href: "/sign-up",
+    isPopular: false,
+  },
+  {
     name: "Student",
-    price: "10",
-    yearlyPrice: "8",
+    price: "8.99",
+    yearlyPrice: "7.19",
     period: "mois",
     description: "Pour les étudiants qui démarrent",
     features: [
-      "10 requêtes IA par jour",
-      "70 requêtes IA par semaine",
-      "Accès aux offres de stages",
-      "Analyse de CV basique",
-      "Alertes email quotidiennes",
-      "Support communautaire",
+      "10 candidatures par jour",
+      "700 requêtes IA totales",
+      "Rédaction IA (lettres, relances)",
+      "Tracking des candidatures",
     ],
     buttonText: "Commencer",
     href: "#",
@@ -399,46 +428,22 @@ const plans: PricingPlan[] = [
   },
   {
     name: "Pro",
-    price: "23",
-    yearlyPrice: "18",
+    price: "19.99",
+    yearlyPrice: "15.99",
     period: "mois",
     description: "Pour les chercheurs actifs",
     features: [
-      "50 requêtes IA par jour",
-      "350 requêtes IA par semaine",
+      "10 candidatures par jour",
+      "1500 requêtes IA totales",
       "Accès illimité aux offres",
-      "Analyse CV avancée par IA",
       "Génération lettres de motivation",
       "Alertes en temps réel",
-      "Support prioritaire",
     ],
     buttonText: "Essayer gratuitement",
     href: "#",
     isPopular: true,
     stripePriceId: "price_1StIZYQD4Pt8cZCM0Xlrww0i",
     stripeYearlyPriceId: "price_1StIZYQD4Pt8cZCMVuwSXF3U",
-  },
-  {
-    name: "Enterprise",
-    price: "50",
-    yearlyPrice: "40",
-    period: "mois",
-    description: "Pour les professionnels exigeants",
-    features: [
-      "Requêtes IA illimitées",
-      "Accès API complet",
-      "Analyse CV premium + coaching",
-      "Génération automatique de candidatures",
-      "Suivi avancé des candidatures",
-      "Account manager dédié",
-      "Intégrations personnalisées",
-      "Support 24/7",
-    ],
-    buttonText: "Contacter les ventes",
-    href: "#",
-    isPopular: false,
-    stripePriceId: "price_1StIZZQD4Pt8cZCMLAGoOQOw",
-    stripeYearlyPriceId: "price_1StIZZQD4Pt8cZCMUutRRiAc",
   },
 ];
 
@@ -462,18 +467,28 @@ export default function PricingPage() {
       title: "Tarifs",
       subtitle: "simples",
       description: "Choisissez le plan adapté à vos besoins.\nTous les plans incluent nos fonctionnalités essentielles.",
+      monthly: "Mensuel",
+      annual: "Annuel",
+      billingMonthly: "Facturation mensuelle",
+      billingAnnual: "Facturation annuelle",
+      loading: "Chargement...",
     },
     en: {
       title: "Pricing",
       subtitle: "Plans",
       description: "Choose the plan that fits your needs.\nAll plans include our essential features.",
+      monthly: "Monthly",
+      annual: "Annual",
+      billingMonthly: "Billed monthly",
+      billingAnnual: "Billed annually",
+      loading: "Loading...",
     },
   };
 
   const t = translations[language];
 
   return (
-    <PricingContext.Provider value={{ isMonthly, setIsMonthly }}>
+    <PricingContext.Provider value={{ isMonthly, setIsMonthly, t }}>
       <div
         ref={containerRef}
         onMouseMove={handleMouseMove}

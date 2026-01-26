@@ -502,6 +502,7 @@ const ConversationSidebar: React.FC<{
   isOpen: boolean;
   onToggle: () => void;
 }> = ({ conversations, currentConversationId, onSelectConversation, onNewConversation, onDeleteConversation, isOpen, onToggle }) => {
+  const { t } = useTranslation();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
@@ -530,7 +531,7 @@ const ConversationSidebar: React.FC<{
   }
 
   return (
-    <div className="w-80 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
+    <div className="w-96 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
       {/* Header */}
       <div className="p-4">
         <button
@@ -538,13 +539,13 @@ const ConversationSidebar: React.FC<{
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 font-serif text-[13px] text-zinc-400 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300 border border-white/[0.08]"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span className="italic">Nouvelle session</span>
+          <span className="italic">{t("assistantPage.newSession")}</span>
         </button>
       </div>
 
       {/* Sessions label */}
       <div className="px-4 py-2 flex items-center justify-between">
-        <span className="font-serif text-[11px] text-zinc-500 italic tracking-wide">Sessions</span>
+        <span className="font-serif text-[11px] text-zinc-500 italic tracking-wide">{t("assistantPage.sessions")}</span>
         <button
           onClick={onToggle}
           className="p-1.5 text-zinc-600 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300"
@@ -558,7 +559,7 @@ const ConversationSidebar: React.FC<{
         {conversations.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <MessageSquare className="h-5 w-5 text-zinc-700 mx-auto mb-2" />
-            <p className="font-serif text-[12px] text-zinc-600 italic">Aucune conversation</p>
+            <p className="font-serif text-[12px] text-zinc-600 italic">{t("assistantPage.noConversations")}</p>
           </div>
         ) : (
           <div className="space-y-0.5">
@@ -1016,28 +1017,28 @@ export default function AssistantPage() {
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
                     onClick={() => handleSendMessage("Quelles entreprises correspondent à mon profil ?", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
-                    Entreprises pour moi
+                    {t("assistantPage.starters.companiesForMe")}
                   </Button>
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
                     onClick={() => handleSendMessage("Rédige-moi une lettre de motivation personnalisée.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
-                    Lettre de motivation
+                    {t("assistantPage.starters.coverLetter")}
                   </Button>
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
                     onClick={() => handleSendMessage("Quelles compétences devrais-je développer pour mon domaine ?", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
-                    Compétences à développer
+                    {t("assistantPage.starters.skillsToImprove")}
                   </Button>
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
                     onClick={() => handleSendMessage("Aide-moi à définir ma stratégie de recherche de stage.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
-                    Stratégie de recherche
+                    {t("assistantPage.starters.searchStrategy")}
                   </Button>
                 </div>
               </div>

@@ -34,6 +34,25 @@ export const translations = {
       },
       recentActivity: "Activité récente",
       quickActions: "Actions rapides",
+      applicationStatus: "Statut des Candidatures",
+      responses: "Réponses",
+      skillsCoverage: "Couverture des Compétences",
+      addSkills: "Ajoutez des compétences à votre profil",
+      noApplications: "Aucune candidature",
+      proTip: "Conseil Pro",
+      proTipText: "Utilisez le CV Improver pour augmenter vos chances de réponse de 40%. Harvard recommande d'utiliser des verbes d'action puissants.",
+      improveCV: "Améliorer mon CV",
+      actions: {
+        apply: "Postuler",
+        career: "Ma Carrière",
+        lettersAI: "Lettres IA",
+        myProfile: "Mon Profil",
+      },
+      statuses: {
+        pending: "En attente",
+        interview: "Entretiens",
+        rejected: "Refusé",
+      },
     },
 
     // Offres
@@ -157,7 +176,7 @@ export const translations = {
     assistantPage: {
       title: "Assistant Carrière IA",
       subtitle: "Conseils personnalisés basés sur votre profil",
-      welcome: "Bonjour ! 👋 Je suis votre assistant carrière personnalisé.\n\nJe peux vous aider à :\n📊 Analyser votre profil et identifier vos forces\n🏢 Recommander les meilleures entreprises pour vous\n💼 Suggérer des postes adaptés à votre profil\n🎯 Développer vos compétences stratégiques\n📈 Optimiser votre stratégie de recherche\n\nQue souhaitez-vous savoir ?",
+      welcome: "Bonjour ! Je suis votre assistant carrière personnalisé.\n\nJe peux vous aider à :\n- Analyser votre profil et identifier vos forces\n- Recommander les meilleures entreprises pour vous\n- Suggérer des postes adaptés à votre profil\n- Développer vos compétences stratégiques\n- Optimiser votre stratégie de recherche\n\nQue souhaitez-vous savoir ?",
       quick: {
         analyze: "Analyse mon profil",
         companies: "Quelles entreprises me recommandes-tu ?",
@@ -176,7 +195,11 @@ export const translations = {
       ],
       starters: {
         cvAnalysis: "Analyse mon CV",
-        interviewPrep: "Prépare mon entretien"
+        interviewPrep: "Prépare mon entretien",
+        companiesForMe: "Entreprises pour moi",
+        coverLetter: "Lettre de motivation",
+        skillsToImprove: "Compétences à développer",
+        searchStrategy: "Stratégie de recherche",
       },
       thinking: [
         "KAM analyse votre demande",
@@ -184,7 +207,17 @@ export const translations = {
         "KAM élabore une réponse",
         "KAM traite l'information",
         "KAM prépare sa réponse"
-      ]
+      ],
+      newSession: "Nouvelle session",
+      noConversations: "Aucune conversation",
+      sessions: "Sessions",
+      pasted: "COLLÉ",
+      dropFiles: "Déposez vos fichiers ici",
+      error: "Désolé, une erreur s'est produite. Réessayez.",
+      cvUpload: {
+        extractError: "Impossible d'extraire le contenu.",
+        pasteInstruction: "Copiez-collez le contenu directement.",
+      },
     },
 
     // Emails
@@ -346,6 +379,25 @@ export const translations = {
       },
       recentActivity: "Recent activity",
       quickActions: "Quick actions",
+      applicationStatus: "Application Status",
+      responses: "Responses",
+      skillsCoverage: "Skills Coverage",
+      addSkills: "Add skills to your profile",
+      noApplications: "No applications",
+      proTip: "Pro Tip",
+      proTipText: "Use the CV Improver to increase your response rate by 40%. Harvard recommends using powerful action verbs.",
+      improveCV: "Improve my CV",
+      actions: {
+        apply: "Apply",
+        career: "My Career",
+        lettersAI: "AI Letters",
+        myProfile: "My Profile",
+      },
+      statuses: {
+        pending: "Pending",
+        interview: "Interviews",
+        rejected: "Rejected",
+      },
     },
 
     // Offers
@@ -469,7 +521,7 @@ export const translations = {
     assistantPage: {
       title: "AI Career Assistant",
       subtitle: "Personalized advice based on your profile",
-      welcome: "Hello! 👋 I am your personalized career assistant.\n\nI can help you:\n📊 Analyze your profile and identify your strengths\n🏢 Recommend the best companies for you\n💼 Suggest roles suited to your profile\n🎯 Develop your strategic skills\n📈 Optimize your search strategy\n\nWhat would you like to know?",
+      welcome: "Hello! I am your personalized career assistant.\n\nI can help you:\n- Analyze your profile and identify your strengths\n- Recommend the best companies for you\n- Suggest roles suited to your profile\n- Develop your strategic skills\n- Optimize your search strategy\n\nWhat would you like to know?",
       quick: {
         analyze: "Analyze my profile",
         companies: "What companies do you recommend?",
@@ -488,7 +540,11 @@ export const translations = {
       ],
       starters: {
         cvAnalysis: "Analyze my CV",
-        interviewPrep: "Prepare my interview"
+        interviewPrep: "Prepare my interview",
+        companiesForMe: "Companies for me",
+        coverLetter: "Cover letter",
+        skillsToImprove: "Skills to develop",
+        searchStrategy: "Search strategy",
       },
       thinking: [
         "KAM is analyzing your request",
@@ -496,7 +552,17 @@ export const translations = {
         "KAM is crafting a response",
         "KAM is processing",
         "KAM is preparing an answer"
-      ]
+      ],
+      newSession: "New session",
+      noConversations: "No conversations",
+      sessions: "Sessions",
+      pasted: "PASTED",
+      dropFiles: "Drop your files here",
+      error: "Sorry, an error occurred. Please try again.",
+      cvUpload: {
+        extractError: "Unable to extract content.",
+        pasteInstruction: "Copy and paste the content directly.",
+      },
     },
 
     // Emails
