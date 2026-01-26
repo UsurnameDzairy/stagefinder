@@ -441,7 +441,7 @@ export default function OffresPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader size="lg" className="mx-auto mb-4" />
-          <p className="text-zinc-400">Loading your profile...</p>
+          <p className="text-zinc-400">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -664,7 +664,7 @@ export default function OffresPage() {
               <div className="p-1 bg-zinc-900 rounded-md border border-zinc-800">
                 <Target className="h-3 w-3 text-zinc-500" />
               </div>
-              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">Your skills:</span>
+              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest whitespace-nowrap">{t("common.yourSkills")}:</span>
             </div>
             
             <div className="flex flex-wrap gap-1.5 flex-1">
@@ -685,10 +685,10 @@ export default function OffresPage() {
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-950 border border-zinc-900 text-[10px] font-bold text-zinc-500 hover:text-white hover:border-zinc-700 transition-all group"
                 >
                   {showAllSkills ? (
-                    <>Show less</>
+                    <>{t("common.showLess")}</>
                   ) : (
                     <>
-                      Show more
+                      {t("common.showMore")}
                       <span className="text-zinc-700 group-hover:text-zinc-500">({userSkills.length - 8})</span>
                     </>
                   )}
@@ -705,17 +705,17 @@ export default function OffresPage() {
           <CardContent className="p-8 text-center">
             <Sparkles className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-zinc-300 mb-2">
-              Personalized Search
+              {t("common.personalizedSearch")}
             </h3>
             <p className="text-sm text-zinc-500 mb-4">
               {userSkills.length > 0
-                ? "Click on your skills or start a search to find offers tailored to your profile"
-                : "Add skills to your profile for personalized recommendations"
+                ? t("offers.sortedBy")
+                : t("dashboard.addSkills")
               }
             </p>
             {userSkills.length === 0 && (
               <a href="/parametres#cv">
-                <Button variant="outline">Import my CV</Button>
+                <Button variant="outline">{t("common.importMyCv")}</Button>
               </a>
             )}
           </CardContent>
@@ -725,7 +725,7 @@ export default function OffresPage() {
       {/* No results */}
       {hasSearched && !isSearching && results.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-zinc-500">No offers found. Try different criteria.</p>
+          <p className="text-zinc-500">{t("offers.noResults")}</p>
         </div>
       )}
 
@@ -734,10 +734,10 @@ export default function OffresPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-zinc-400">
-              <span className="font-medium text-zinc-200">{results.length}</span> offers found
+              <span className="font-medium text-zinc-200">{results.length}</span> {t("offers.results")}
             </p>
             <p className="text-xs text-zinc-500">
-              Sorted by compatibility with your profile
+              {t("offers.sortedBy")}
             </p>
           </div>
 
@@ -755,7 +755,7 @@ export default function OffresPage() {
               >
                 {offer.matchScore >= 80 && (
                   <div className="absolute top-0 right-0 px-2 py-0.5 bg-zinc-800 text-white text-[9px] font-bold uppercase tracking-wider border-l border-b border-zinc-700">
-                    High Match
+                    {t("common.highMatch")}
                   </div>
                 )}
                 <CardContent className="p-5">
@@ -1107,17 +1107,17 @@ function InlineScraperStatus({
         <div className="bg-[#050505] border border-zinc-900 rounded-xl p-5 font-mono">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-900">
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
-              <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
-              <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
             </div>
-            <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.2em]">system.log</span>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">system.log</span>
           </div>
           <div className="space-y-1.5 max-h-40 overflow-y-auto scrollbar-hide">
             {logs.map((log, i) => (
               <div key={i} className="text-[11px] leading-relaxed">
-                <span className="text-zinc-700 mr-3">[{log.split(']')[0].split('[')[1]}]</span>
-                <span className="text-zinc-300">{log.split(']')[1]}</span>
+                <span className="text-emerald-500/80 mr-3">[{log.split(']')[0].split('[')[1]}]</span>
+                <span className="text-zinc-200">{log.split(']')[1]}</span>
               </div>
             ))}
             <div className="text-white animate-pulse text-[11px]">{'>'} _</div>
@@ -1126,7 +1126,7 @@ function InlineScraperStatus({
 
         {/* Infos et bouton annuler épuré */}
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-zinc-900">
-          <div className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider flex gap-4">
+          <div className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider flex gap-4">
             <span className="flex items-center gap-1.5"><Search className="h-3 w-3" /> {searchQuery}</span>
             <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {location || "France"}</span>
           </div>

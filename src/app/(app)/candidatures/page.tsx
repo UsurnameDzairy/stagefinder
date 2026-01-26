@@ -379,12 +379,12 @@ export default function CandidaturesPage() {
               </div>
               <div>
                 <p className="text-[13px] font-semibold text-zinc-200">
-                  {cvFileName ? cvFileName : t("cv.noUpload")}
+                  {cvFileName ? cvFileName : t("applications.cvUpload.title")}
                 </p>
                 <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
-                  {cvFileName 
-                    ? t("cv.uploadSuccess")
-                    : t("cv.uploadPrompt")}
+                  {cvFileName
+                    ? t("applications.cvUpload.descriptionWithFile")
+                    : t("applications.cvUpload.description")}
                 </p>
               </div>
             </div>

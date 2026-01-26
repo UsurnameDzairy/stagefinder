@@ -548,7 +548,7 @@ const ConversationSidebar: React.FC<{
         <span className="font-serif text-[11px] text-zinc-500 italic tracking-wide">{t("assistantPage.sessions")}</span>
         <button
           onClick={onToggle}
-          className="p-1.5 text-zinc-600 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300"
+          className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300"
         >
           <PanelLeftClose className="h-3.5 w-3.5" />
         </button>
@@ -559,7 +559,7 @@ const ConversationSidebar: React.FC<{
         {conversations.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <MessageSquare className="h-5 w-5 text-zinc-700 mx-auto mb-2" />
-            <p className="font-serif text-[12px] text-zinc-600 italic">{t("assistantPage.noConversations")}</p>
+            <p className="font-serif text-[12px] text-zinc-400 italic">{t("assistantPage.noConversations")}</p>
           </div>
         ) : (
           <div className="space-y-0.5">
@@ -575,12 +575,12 @@ const ConversationSidebar: React.FC<{
                 )}
               >
                 <p className="font-serif text-[13px] text-zinc-300 truncate pr-6">{conv.title}</p>
-                <p className="font-serif text-[10px] text-zinc-600 mt-0.5 italic">{formatDate(conv.updatedAt)}</p>
+                <p className="font-serif text-[10px] text-zinc-400 mt-0.5 italic">{formatDate(conv.updatedAt)}</p>
 
                 {/* Delete button */}
                 <button
                   onClick={(e) => handleDelete(e, conv.id)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] text-zinc-600 hover:text-red-400/80 transition-all duration-300"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] text-zinc-400 hover:text-red-400/80 transition-all duration-300"
                   disabled={deletingId === conv.id}
                 >
                   {deletingId === conv.id ? (
