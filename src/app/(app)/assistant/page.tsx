@@ -530,7 +530,7 @@ const ConversationSidebar: React.FC<{
   }
 
   return (
-    <div className="w-64 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
+    <div className="w-80 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
       {/* Header */}
       <div className="p-4">
         <button
@@ -996,20 +996,48 @@ export default function AssistantPage() {
                   isLoading={isLoading}
                 />
 
-                <div className="w-full flex justify-center gap-2 mt-4">
+                <div className="w-full flex flex-wrap justify-center gap-2 mt-4 max-w-xl">
                   <Button
                     variant="outline"
-                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-sm"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
                     onClick={() => handleSendMessage("Analyse mon CV en détail et donne-moi des recommandations pour l'améliorer.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
                     {t("assistantPage.starters.cvAnalysis")}
                   </Button>
                   <Button
                     variant="outline"
-                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-sm"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
                     onClick={() => handleSendMessage("Prépare mon entretien - Aide-moi à m'entraîner pour un entretien.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
                     {t("assistantPage.starters.interviewPrep")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
+                    onClick={() => handleSendMessage("Quelles entreprises correspondent à mon profil ?", [], [], DEFAULT_MODELS[0].apiModel)}
+                  >
+                    Entreprises pour moi
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
+                    onClick={() => handleSendMessage("Rédige-moi une lettre de motivation personnalisée.", [], [], DEFAULT_MODELS[0].apiModel)}
+                  >
+                    Lettre de motivation
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
+                    onClick={() => handleSendMessage("Quelles compétences devrais-je développer pour mon domaine ?", [], [], DEFAULT_MODELS[0].apiModel)}
+                  >
+                    Compétences à développer
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
+                    onClick={() => handleSendMessage("Aide-moi à définir ma stratégie de recherche de stage.", [], [], DEFAULT_MODELS[0].apiModel)}
+                  >
+                    Stratégie de recherche
                   </Button>
                 </div>
               </div>

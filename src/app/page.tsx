@@ -1,12 +1,13 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { useState, Suspense, lazy } from "react";
+import { useState, Suspense, lazy, useEffect, useRef } from "react";
 import Link from "next/link";
 import VerticalBarsNoise from "@/components/ui/vertical-bars-noise";
 import Navbar from "@/components/ui/navbar";
 import { useSession } from "@/lib/auth-client";
 import TextType from "@/components/ui/text-type";
+import { motion, useInView } from "framer-motion";
 
 const Dithering = lazy(() => 
   import("@paper-design/shaders-react").then((mod) => ({ default: mod.Dithering }))
@@ -119,130 +120,166 @@ export default function LandingPage() {
       {/* Pricing Section */}
       <section id="pricing" className="py-24 border-t border-zinc-900 bg-black">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <div className="text-center mb-16">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+          >
             <h2 className="font-serif text-4xl md:text-6xl mb-4 text-white">
               Pricing <span className="text-zinc-500 italic">Plans</span>
             </h2>
             <p className="text-zinc-500 max-w-2xl mx-auto text-lg">Choose the strategy that fits your career goals.</p>
-          </div>
-          
+          </motion.div>
+
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Free Plan */}
-            <div className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all">
-              <h3 className="text-xl font-serif text-white mb-2">Free</h3>
-              <p className="text-sm text-zinc-500 mb-6">Pour découvrir la plateforme</p>
+            <motion.div
+              className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: 0 }}
+            >
+              <h3 className="font-serif text-xl text-white mb-2">Free</h3>
+              <p className="text-sm text-zinc-500 italic mb-6">Pour découvrir la plateforme</p>
               <div className="mb-6">
-                <span className="text-5xl font-bold text-white">0€</span>
-                <span className="text-zinc-500 text-sm ml-2">/ mois</span>
+                <span className="font-serif text-5xl font-light text-white">0€</span>
+                <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ mois</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>5 candidatures tous les 3 jours</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>Accès limité aux offres</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>Recherche basique</span>
                 </li>
               </ul>
               <Link href="/sign-up" className="block">
-                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-medium">
+                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-serif">
                   Commencer gratuitement
                 </button>
               </Link>
-            </div>
+            </motion.div>
 
             {/* Student Plan */}
-            <div className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all">
-              <h3 className="text-xl font-serif text-white mb-2">Student</h3>
-              <p className="text-sm text-zinc-500 mb-6">Pour les étudiants qui démarrent</p>
+            <motion.div
+              className="rounded-2xl p-8 border border-zinc-800 bg-black/50 backdrop-blur-sm hover:border-zinc-700 transition-all"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+            >
+              <h3 className="font-serif text-xl text-white mb-2">Student</h3>
+              <p className="text-sm text-zinc-500 italic mb-6">Pour les étudiants qui démarrent</p>
               <div className="mb-6">
-                <span className="text-5xl font-bold text-white">8,99€</span>
-                <span className="text-zinc-500 text-sm ml-2">/ mois</span>
+                <span className="font-serif text-5xl font-light text-white">8,99€</span>
+                <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ mois</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>10 candidatures par jour</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>700 requêtes IA totales</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>Rédaction IA (lettres, relances)</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>Tracking des candidatures</span>
                 </li>
               </ul>
               <Link href="/pricing" className="block">
-                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-medium">
+                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-serif">
                   Commencer
                 </button>
               </Link>
-            </div>
+            </motion.div>
 
             {/* Pro Plan */}
-            <div className="rounded-2xl p-8 border-2 border-white bg-zinc-900/80 backdrop-blur-sm relative transform md:-translate-y-4">
+            <motion.div
+              className="rounded-2xl p-8 border-2 border-white bg-zinc-900/80 backdrop-blur-sm relative md:-translate-y-4"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-1.5 rounded-full">
                 <span className="text-black text-sm font-semibold">Populaire</span>
               </div>
-              <h3 className="text-xl font-serif text-white mb-2">Pro</h3>
-              <p className="text-sm text-zinc-500 mb-6">Pour les chercheurs actifs</p>
+              <h3 className="font-serif text-xl text-white mb-2">Pro</h3>
+              <p className="text-sm text-zinc-500 italic mb-6">Pour les chercheurs actifs</p>
               <div className="mb-6">
-                <span className="text-5xl font-bold text-white">19,99€</span>
-                <span className="text-zinc-500 text-sm ml-2">/ mois</span>
+                <span className="font-serif text-5xl font-light text-white">19,99€</span>
+                <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ mois</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>10 candidatures par jour</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>1500 requêtes IA totales</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>Accès illimité aux offres</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>Génération lettres de motivation</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-white mt-0.5">✓</span>
+                <li className="flex items-start gap-2 font-serif">
+                  <span className="text-zinc-500 mt-0.5">✓</span>
                   <span>Alertes en temps réel</span>
                 </li>
               </ul>
               <Link href="/pricing" className="block">
-                <button className="w-full py-3 rounded-full bg-white text-black hover:bg-zinc-200 transition-all font-medium">
+                <button className="w-full py-3 rounded-full bg-white text-black hover:bg-zinc-200 transition-all font-serif">
                   Essayer gratuitement
                 </button>
               </Link>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* About Section (Placeholder) */}
       <section id="about" className="py-24 border-t border-zinc-900 bg-zinc-950/30">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 text-center">
-          <h2 className="font-serif text-4xl md:text-6xl mb-8">Our Mission</h2>
-          <p className="text-zinc-500 max-w-2xl mx-auto">Empowering the next generation through intelligent orchestration.</p>
-        </div>
+        <motion.div
+          className="max-w-7xl mx-auto px-4 md:px-6 text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="font-serif text-4xl md:text-6xl mb-8">Our <span className="text-zinc-500 italic">Mission</span></h2>
+          <p className="text-zinc-500 max-w-2xl mx-auto font-serif text-lg">Empowering the next generation through intelligent orchestration.</p>
+        </motion.div>
       </section>
 
       {/* Footer Section */}
-      <footer className="py-24 border-t border-zinc-900 flex flex-col items-center">
+      <motion.footer
+        className="py-24 border-t border-zinc-900 flex flex-col items-center"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="text-[11px] font-bold uppercase tracking-[0.4em] text-zinc-700 mb-8">
           Built for the next generation of founders
         </div>
@@ -251,7 +288,7 @@ export default function LandingPage() {
           <a href="#" className="hover:text-white transition-colors">Terms</a>
           <a href="#" className="hover:text-white transition-colors">Github</a>
         </div>
-      </footer>
+      </motion.footer>
     </main>
   );
 }
