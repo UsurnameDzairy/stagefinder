@@ -492,7 +492,7 @@ interface Conversation {
   _count: { messages: number };
 }
 
-// Sidebar Component
+// Sidebar Component - Clean & Elegant Design
 const ConversationSidebar: React.FC<{
   conversations: Conversation[];
   currentConversationId: string | null;
@@ -502,7 +502,6 @@ const ConversationSidebar: React.FC<{
   isOpen: boolean;
   onToggle: () => void;
 }> = ({ conversations, currentConversationId, onSelectConversation, onNewConversation, onDeleteConversation, isOpen, onToggle }) => {
-  const { t } = useTranslation();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
@@ -527,68 +526,60 @@ const ConversationSidebar: React.FC<{
   };
 
   if (!isOpen) {
-    return (
-      <button
-        onClick={onToggle}
-        className="absolute left-4 top-4 z-20 p-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all"
-      >
-        <PanelLeft className="h-4 w-4" />
-      </button>
-    );
+    return null;
   }
 
   return (
-    <div className="w-64 h-full bg-zinc-900/95 border-r border-zinc-800 flex flex-col shrink-0">
+    <div className="w-72 h-full bg-black/40 backdrop-blur-xl border-r border-white/[0.05] flex flex-col shrink-0">
       {/* Header */}
-      <div className="p-3 border-b border-zinc-800 flex items-center justify-between">
+      <div className="p-4 flex items-center justify-between">
         <button
           onClick={onNewConversation}
-          className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all flex-1"
+          className="flex items-center gap-2.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all duration-300 flex-1 border border-white/[0.05]"
         >
-          <Plus className="h-4 w-4" />
-          {t("assistantPage.newSession") || "Nouvelle session"}
+          <Plus className="h-3.5 w-3.5" />
+          Nouvelle session
         </button>
         <button
           onClick={onToggle}
-          className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+          className="ml-2 p-2.5 text-zinc-500 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all duration-300"
         >
           <PanelLeftClose className="h-4 w-4" />
         </button>
       </div>
 
       {/* Sessions label */}
-      <div className="px-4 py-2 flex items-center justify-between">
-        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Sessions</span>
-        <SlidersHorizontal className="h-3 w-3 text-zinc-600" />
+      <div className="px-5 py-3">
+        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Sessions</span>
       </div>
 
       {/* Conversations list */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide">
+      <div className="flex-1 overflow-y-auto scrollbar-hide px-3">
         {conversations.length === 0 ? (
-          <div className="px-4 py-8 text-center">
-            <MessageSquare className="h-8 w-8 text-zinc-700 mx-auto mb-2" />
-            <p className="text-xs text-zinc-600">{t("assistantPage.noConversations") || "Aucune conversation"}</p>
+          <div className="px-4 py-12 text-center">
+            <MessageSquare className="h-6 w-6 text-zinc-700 mx-auto mb-3" />
+            <p className="text-[11px] text-zinc-600 font-medium">Aucune conversation</p>
           </div>
         ) : (
-          <div className="space-y-1 p-2">
+          <div className="space-y-1">
             {conversations.map((conv) => (
               <div
                 key={conv.id}
                 onClick={() => onSelectConversation(conv.id)}
                 className={cn(
-                  "group relative px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                  "group relative px-4 py-3 rounded-xl cursor-pointer transition-all duration-300",
                   currentConversationId === conv.id
-                    ? "bg-zinc-800 border border-zinc-700"
-                    : "hover:bg-zinc-800/50"
+                    ? "bg-white/[0.05] border border-white/[0.08]"
+                    : "hover:bg-white/[0.03]"
                 )}
               >
-                <p className="text-sm text-zinc-200 truncate pr-6">{conv.title}</p>
-                <p className="text-[10px] text-zinc-500 mt-0.5">{formatDate(conv.updatedAt)}</p>
+                <p className="text-[12px] text-zinc-300 truncate pr-8 font-medium">{conv.title}</p>
+                <p className="text-[10px] text-zinc-600 mt-1 font-medium">{formatDate(conv.updatedAt)}</p>
 
                 {/* Delete button */}
                 <button
                   onClick={(e) => handleDelete(e, conv.id)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded opacity-0 group-hover:opacity-100 hover:bg-zinc-700 text-zinc-500 hover:text-red-400 transition-all"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/[0.05] text-zinc-600 hover:text-red-400/80 transition-all duration-300"
                   disabled={deletingId === conv.id}
                 >
                   {deletingId === conv.id ? (
@@ -601,19 +592,6 @@ const ConversationSidebar: React.FC<{
             ))}
           </div>
         )}
-      </div>
-
-      {/* Footer with user info */}
-      <div className="p-3 border-t border-zinc-800">
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="size-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-bold text-black">
-            M
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-zinc-300 truncate">MoneyPrinter</p>
-            <p className="text-[10px] text-zinc-500">Plan Max</p>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -984,7 +962,7 @@ export default function AssistantPage() {
             {!sidebarOpen && (
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="absolute left-4 top-4 z-20 p-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all"
+                className="absolute left-4 top-4 z-20 p-2.5 rounded-xl bg-black/40 backdrop-blur-xl border border-white/[0.05] text-zinc-500 hover:text-white hover:bg-white/[0.03] transition-all duration-300"
               >
                 <PanelLeft className="h-4 w-4" />
               </button>
