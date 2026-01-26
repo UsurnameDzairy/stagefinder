@@ -221,30 +221,30 @@ export default function LandingPage() {
                 <span className="text-black text-sm font-semibold">Populaire</span>
               </div>
               <h3 className="font-serif text-xl text-white mb-2">Pro</h3>
-              <p className="text-sm text-zinc-500 italic mb-6">Pour les chercheurs actifs</p>
+              <p className="text-sm text-zinc-400 italic mb-6">Pour les chercheurs actifs</p>
               <div className="mb-6">
                 <span className="font-serif text-5xl font-light text-white">19,99€</span>
-                <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ mois</span>
+                <span className="font-serif text-zinc-400 text-sm ml-2 italic">/ mois</span>
               </div>
-              <ul className="space-y-3 mb-8 text-sm text-zinc-400">
+              <ul className="space-y-3 mb-8 text-sm text-zinc-300">
                 <li className="flex items-start gap-2 font-serif">
-                  <span className="text-zinc-500 mt-0.5">✓</span>
+                  <span className="text-white mt-0.5">✓</span>
                   <span>10 candidatures par jour</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
-                  <span className="text-zinc-500 mt-0.5">✓</span>
+                  <span className="text-white mt-0.5">✓</span>
                   <span>1500 requêtes IA totales</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
-                  <span className="text-zinc-500 mt-0.5">✓</span>
+                  <span className="text-white mt-0.5">✓</span>
                   <span>Accès illimité aux offres</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
-                  <span className="text-zinc-500 mt-0.5">✓</span>
+                  <span className="text-white mt-0.5">✓</span>
                   <span>Génération lettres de motivation</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
-                  <span className="text-zinc-500 mt-0.5">✓</span>
+                  <span className="text-white mt-0.5">✓</span>
                   <span>Alertes en temps réel</span>
                 </li>
               </ul>
