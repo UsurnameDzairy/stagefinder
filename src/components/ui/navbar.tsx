@@ -94,18 +94,19 @@ const landingNavigationLinks: NavLink[] = [
   },
 ];
 
-const appNavigationLinks: NavLink[] = [
+// Navigation links are now generated dynamically using translations
+const getAppNavigationLinks = (t: (key: string) => string): NavLink[] => [
   { href: "/assistant", label: "KAM" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/offres", label: "Jobs" },
-  { href: "/candidatures", label: "Applications" },
+  { href: "/dashboard", label: t("nav.dashboard") },
+  { href: "/offres", label: t("nav.jobs") },
+  { href: "/candidatures", label: t("nav.applications") },
   {
-    label: "Tools",
+    label: t("nav.tools"),
     submenu: true,
     type: "simple",
     items: [
-      { href: "/cv-improver", label: "CV Improver" },
-      { href: "/lettres", label: "Cover Letters" },
+      { href: "/cv-improver", label: t("nav.cvImprover") },
+      { href: "/lettres", label: t("nav.coverLetters") },
     ],
   },
 ];
@@ -113,7 +114,7 @@ const appNavigationLinks: NavLink[] = [
 export default function Navbar({ user }: NavbarProps) {
   const { t } = useTranslation();
   const { language, setLanguage } = useLanguage();
-  const links = user ? appNavigationLinks : landingNavigationLinks;
+  const links = user ? getAppNavigationLinks(t) : landingNavigationLinks;
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -347,13 +348,13 @@ export default function Navbar({ user }: NavbarProps) {
                   ) : (
                     <div className="flex flex-col gap-1">
                       <Link href="/parametres" className="px-5 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-3 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all">
-                        <Settings className="size-3.5" /> Settings
+                        <Settings className="size-3.5" /> {t("nav.settings")}
                       </Link>
                       <button
                         onClick={handleSignOut}
                         className="w-full px-5 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-red-400/80 flex items-center gap-3 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all cursor-pointer"
                       >
-                        <LogOut className="size-3.5" /> Log out
+                        <LogOut className="size-3.5" /> {t("nav.logout")}
                       </button>
                     </div>
                   )}

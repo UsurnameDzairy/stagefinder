@@ -5,11 +5,14 @@ export const translations = {
   fr: {
     // Navigation
     nav: {
-      dashboard: "Dashboard",
+      dashboard: "Tableau de bord",
+      jobs: "Offres",
       offers: "Offres",
       companies: "Entreprises",
       applications: "Candidatures",
+      tools: "Outils",
       letters: "Lettres",
+      coverLetters: "Lettres de motivation",
       cvImprover: "CV Improver",
       settings: "Paramètres",
       logout: "Se déconnecter",
@@ -373,10 +376,13 @@ export const translations = {
     // Navigation
     nav: {
       dashboard: "Dashboard",
+      jobs: "Jobs",
       offers: "Jobs",
       companies: "Companies",
       applications: "Applications",
+      tools: "Tools",
       letters: "Cover Letters",
+      coverLetters: "Cover Letters",
       cvImprover: "CV Improver",
       settings: "Settings",
       logout: "Log out",
