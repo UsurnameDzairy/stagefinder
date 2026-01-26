@@ -917,7 +917,7 @@ export default function AssistantPage() {
   }, [fetchConversations]);
 
   return (
-    <div className="h-[calc(100vh-80px)] w-full flex overflow-hidden">
+    <div className="h-[calc(100vh-80px)] w-full flex overflow-hidden fixed inset-x-0 top-[80px]">
       {/* Sidebar */}
       <ConversationSidebar
         conversations={conversations}
@@ -932,11 +932,11 @@ export default function AssistantPage() {
       {/* Main content */}
       <div className="flex-1 flex justify-center items-center px-6 overflow-hidden">
         <div
-          className="w-full max-w-3xl relative"
+          className="w-full max-w-3xl relative h-full flex items-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="relative overflow-hidden rounded-[48px] border border-border bg-card shadow-sm h-[calc(100vh-120px)] max-h-[700px] flex flex-col">
+          <div className="relative overflow-hidden rounded-[48px] border border-border bg-card shadow-sm h-[90%] max-h-[680px] w-full flex flex-col">
             <Suspense fallback={<div className="absolute inset-0 bg-muted/20" />}>
               <div className="absolute inset-0 z-0 pointer-events-none opacity-20 mix-blend-screen grayscale contrast-125">
                 <Dithering
