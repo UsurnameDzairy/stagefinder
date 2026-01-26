@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { ProgressTracker, MiniProgressTracker } from "@/components/applications/progress-tracker";
 import { Loader } from "@/components/ui/loader";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface Application {
@@ -65,6 +65,7 @@ const getStatusConfig = (t: (key: string) => string): Record<string, { label: st
 
 export default function CandidaturesPage() {
   const { t } = useTranslation();
+  const { language: currentLanguage } = useLanguage();
   const STATUS_CONFIG = getStatusConfig(t);
   const [applications, setApplications] = useState<Application[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -306,7 +307,8 @@ export default function CandidaturesPage() {
 
   const formatDate = (date: string | null) => {
     if (!date) return "-";
-    return new Date(date).toLocaleDateString("en-US", {
+    const locale = currentLanguage === "fr" ? "fr-FR" : "en-US";
+    return new Date(date).toLocaleDateString(locale, {
       day: "numeric",
       month: "short",
       year: "numeric",

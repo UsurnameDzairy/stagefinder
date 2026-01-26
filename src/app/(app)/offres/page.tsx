@@ -974,14 +974,14 @@ function InlineScraperStatus({
         // Ajouter des logs
         if (data.step === "PROVIDER_FETCH") {
           setLogs(prev => {
-            const newLog = `[${new Date().toLocaleTimeString()}] Searching...`;
+            const newLog = `[${new Date().toLocaleTimeString()}] ${t("offers.searchInProgress")}`;
             if (!prev.includes(newLog)) return [...prev.slice(-4), newLog];
             return prev;
           });
         }
 
         if (data.status === "DONE") {
-          setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] Search complete!`]);
+          setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${t("offers.searchComplete")}`]);
           const resultsRes = await fetch(`/api/search-jobs/${jobId}/results`);
           const results = await resultsRes.json();
           setTimeout(() => onComplete(results.offers || []), 500);
@@ -1004,16 +1004,13 @@ function InlineScraperStatus({
   }, []);
 
   useEffect(() => {
-    // Logs initiaux
-    const startMsg = language === "fr" ? "Démarrage de la recherche..." : "Starting search...";
-    const criteriaMsg = language === "fr" ? "Critères" : "Criteria";
-    const connectMsg = language === "fr" ? "Connexion aux plateformes..." : "Connecting to platforms...";
+    // Logs initiaux - using i18n keys
     setLogs([
-      `[${new Date().toLocaleTimeString()}] 🚀 ${startMsg}`,
-      `[${new Date().toLocaleTimeString()}] 📍 ${criteriaMsg}: "${searchQuery}" - ${location || "France"}`,
-      `[${new Date().toLocaleTimeString()}] 🔗 ${connectMsg}`,
+      `[${new Date().toLocaleTimeString()}] 🚀 ${t("offers.startingSearch")}`,
+      `[${new Date().toLocaleTimeString()}] 📍 ${t("offers.criteria")}: "${searchQuery}" - ${location || "France"}`,
+      `[${new Date().toLocaleTimeString()}] 🔗 ${t("offers.connectingPlatforms")}`,
     ]);
-  }, [searchQuery, location, language]);
+  }, [searchQuery, location, t]);
 
   const progress = status?.progress || 0;
   
@@ -1091,7 +1088,7 @@ function InlineScraperStatus({
                 </div>
                 <div className="text-[11px] font-medium">
                   {isDone ? (
-                    <span className="text-white">✓ {count} {language === "fr" ? "offres" : "jobs"}</span>
+                    <span className="text-white">✓ {count} {t("offers.results")}</span>
                   ) : isRunning ? (
                     <span className="text-zinc-500">{t("offers.searchInProgress")}</span>
                   ) : (

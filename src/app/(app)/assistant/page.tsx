@@ -523,7 +523,7 @@ const ConversationSidebar: React.FC<{
     if (diffMins < 60) return `${diffMins}m`;
     if (diffHours < 24) return `${diffHours}h`;
     if (diffDays < 7) return `${diffDays}d`;
-    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    return date.toLocaleDateString(t("common.locale") === "fr" ? "fr-FR" : "en-US", { day: 'numeric', month: 'short' });
   };
 
   if (!isOpen) {
@@ -977,8 +977,8 @@ export default function AssistantPage() {
                   <TextType
                     text={[
                       userName ? `${getGreeting()} ${userName}!` : `${getGreeting()}!`,
-                      "How can I help you?",
-                      "Ready to work?"
+                      t("assistantPage.greetings.howCanIHelp"),
+                      t("assistantPage.greetings.readyToWork")
                     ]}
                     typingSpeed={60}
                     deletingSpeed={30}
@@ -1047,7 +1047,7 @@ export default function AssistantPage() {
               <div className="flex flex-col h-full py-4 overflow-hidden">
                 <div className="text-xl font-serif font-light text-[#C2C0B6] text-center mb-3 shrink-0">
                   <TextType
-                    text={["KAM", "Your Assistant", "Career Expert"]}
+                    text={["KAM", t("assistantPage.greetings.yourAssistant"), t("assistantPage.greetings.careerExpert")]}
                     className="inline"
                     typingSpeed={100}
                     deletingSpeed={50}

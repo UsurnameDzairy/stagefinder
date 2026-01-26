@@ -210,6 +210,12 @@ export const translations = {
         skillsToImprove: "Compétences à développer",
         searchStrategy: "Stratégie de recherche",
       },
+      greetings: {
+        howCanIHelp: "Comment puis-je vous aider ?",
+        readyToWork: "Prêt à travailler ?",
+        yourAssistant: "Votre Assistant",
+        careerExpert: "Expert Carrière",
+      },
       thinking: [
         "KAM analyse votre demande",
         "KAM réfléchit",
@@ -324,6 +330,7 @@ export const translations = {
       score: "score",
       details: "Détails",
       importMyCv: "Importer mon CV",
+      locale: "fr",
     },
 
     // Model Selector
@@ -580,6 +587,12 @@ export const translations = {
         skillsToImprove: "Skills to develop",
         searchStrategy: "Search strategy",
       },
+      greetings: {
+        howCanIHelp: "How can I help you?",
+        readyToWork: "Ready to work?",
+        yourAssistant: "Your Assistant",
+        careerExpert: "Career Expert",
+      },
       thinking: [
         "KAM is analyzing your request",
         "KAM is thinking",
@@ -694,6 +707,7 @@ export const translations = {
       score: "score",
       details: "Details",
       importMyCv: "Import my CV",
+      locale: "en",
     },
 
     // Model Selector
