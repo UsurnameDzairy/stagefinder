@@ -217,8 +217,8 @@ export default function LandingPage() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-1.5 rounded-full">
-                <span className="text-black text-sm font-semibold">Populaire</span>
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full" style={{ backgroundColor: '#ffffff' }}>
+                <span className="text-sm font-semibold" style={{ color: '#000000' }}>Populaire</span>
               </div>
               <h3 className="font-serif text-xl text-white mb-2">Pro</h3>
               <p className="text-sm text-zinc-400 italic mb-6">Pour les chercheurs actifs</p>
@@ -249,7 +249,7 @@ export default function LandingPage() {
                 </li>
               </ul>
               <Link href="/pricing" className="block">
-                <button className="w-full py-3 rounded-full bg-white text-black hover:bg-zinc-200 transition-all font-serif">
+                <button className="w-full py-3 rounded-full font-serif font-semibold" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
                   Essayer gratuitement
                 </button>
               </Link>
