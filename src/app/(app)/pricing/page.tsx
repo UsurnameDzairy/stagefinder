@@ -1,118 +1,10 @@
 "use client";
 
-import { motion, useSpring } from "framer-motion";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  createContext,
-  useContext,
-} from "react";
-import confetti from "canvas-confetti";
+import { motion } from "framer-motion";
+import { useState } from "react";
 import Link from "next/link";
-import { Check, Star as LucideStar } from "lucide-react";
-import NumberFlow from "@number-flow/react";
+import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-
-// --- INTERACTIVE STARFIELD ---
-
-function Star({
-  mousePosition,
-  containerRef,
-}: {
-  mousePosition: { x: number | null; y: number | null };
-  containerRef: React.RefObject<HTMLDivElement | null>;
-}) {
-  const [initialPos] = useState({
-    top: `${Math.random() * 100}%`,
-    left: `${Math.random() * 100}%`,
-  });
-
-  const springConfig = { stiffness: 100, damping: 15, mass: 0.1 };
-  const springX = useSpring(0, springConfig);
-  const springY = useSpring(0, springConfig);
-
-  useEffect(() => {
-    if (
-      !containerRef.current ||
-      mousePosition.x === null ||
-      mousePosition.y === null
-    ) {
-      springX.set(0);
-      springY.set(0);
-      return;
-    }
-
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const starX =
-      containerRect.left +
-      (parseFloat(initialPos.left) / 100) * containerRect.width;
-    const starY =
-      containerRect.top +
-      (parseFloat(initialPos.top) / 100) * containerRect.height;
-
-    const deltaX = mousePosition.x - starX;
-    const deltaY = mousePosition.y - starY;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-    const radius = 600;
-
-    if (distance < radius) {
-      const force = 1 - distance / radius;
-      const pullX = deltaX * force * 0.5;
-      const pullY = deltaY * force * 0.5;
-      springX.set(pullX);
-      springY.set(pullY);
-    } else {
-      springX.set(0);
-      springY.set(0);
-    }
-  }, [mousePosition, initialPos, containerRef, springX, springY]);
-
-  return (
-    <motion.div
-      className="absolute bg-white rounded-full"
-      style={{
-        top: initialPos.top,
-        left: initialPos.left,
-        width: `${1 + Math.random() * 2}px`,
-        height: `${1 + Math.random() * 2}px`,
-        x: springX,
-        y: springY,
-      }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: [0, 1, 0] }}
-      transition={{
-        duration: 2 + Math.random() * 3,
-        repeat: Infinity,
-        delay: Math.random() * 5,
-      }}
-    />
-  );
-}
-
-function InteractiveStarfield({
-  mousePosition,
-  containerRef,
-}: {
-  mousePosition: { x: number | null; y: number | null };
-  containerRef: React.RefObject<HTMLDivElement | null>;
-}) {
-  return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-      {Array.from({ length: 150 }).map((_, i) => (
-        <Star
-          key={`star-${i}`}
-          mousePosition={mousePosition}
-          containerRef={containerRef}
-        />
-      ))}
-    </div>
-  );
-}
-
-// --- PRICING COMPONENT LOGIC ---
 
 interface PricingPlan {
   name: string;
@@ -128,64 +20,74 @@ interface PricingPlan {
   stripeYearlyPriceId?: string;
 }
 
-interface PricingTranslations {
-  monthly: string;
-  annual: string;
-  billingMonthly: string;
-  billingAnnual: string;
-  loading: string;
-}
-
-const PricingContext = createContext<{
-  isMonthly: boolean;
-  setIsMonthly: (value: boolean) => void;
-  t: PricingTranslations;
-}>({
-  isMonthly: true,
-  setIsMonthly: () => {},
-  t: {
-    monthly: "Mensuel",
-    annual: "Annuel",
-    billingMonthly: "Facturation mensuelle",
-    billingAnnual: "Facturation annuelle",
-    loading: "Chargement...",
+const plans: PricingPlan[] = [
+  {
+    name: "Free",
+    price: "0",
+    yearlyPrice: "0",
+    period: "month",
+    description: "To discover the platform",
+    features: [
+      "5 applications every 3 days",
+      "Limited access to offers",
+      "Basic search",
+    ],
+    buttonText: "Start for free",
+    href: "/sign-up",
+    isPopular: false,
   },
-});
+  {
+    name: "Student",
+    price: "8.99",
+    yearlyPrice: "7.19",
+    period: "month",
+    description: "For students getting started",
+    features: [
+      "10 applications per day",
+      "700 total AI requests",
+      "AI writing (letters, follow-ups)",
+      "Application tracking",
+    ],
+    buttonText: "Get Started",
+    href: "#",
+    isPopular: false,
+    stripePriceId: "price_1StIZXQD4Pt8cZCMR1QR2Rnt",
+    stripeYearlyPriceId: "price_1StIZXQD4Pt8cZCMJGBbUswp",
+  },
+  {
+    name: "Pro",
+    price: "19.99",
+    yearlyPrice: "15.99",
+    period: "month",
+    description: "For active job seekers",
+    features: [
+      "10 applications per day",
+      "1500 total AI requests",
+      "Unlimited access to offers",
+      "Cover letter generation",
+      "Real-time alerts",
+    ],
+    buttonText: "Try for free",
+    href: "#",
+    isPopular: true,
+    stripePriceId: "price_1StIZYQD4Pt8cZCM0Xlrww0i",
+    stripeYearlyPriceId: "price_1StIZYQD4Pt8cZCMVuwSXF3U",
+  },
+];
 
-// Pricing Toggle Component
-function PricingToggle() {
-  const { isMonthly, setIsMonthly, t } = useContext(PricingContext);
-  const confettiRef = useRef<HTMLDivElement>(null);
-  const monthlyBtnRef = useRef<HTMLButtonElement>(null);
-  const annualBtnRef = useRef<HTMLButtonElement>(null);
-
-  const [pillStyle, setPillStyle] = useState({});
-
-  useEffect(() => {
-    const btnRef = isMonthly ? monthlyBtnRef : annualBtnRef;
-    if (btnRef.current) {
-      setPillStyle({
-        width: btnRef.current.offsetWidth,
-        transform: `translateX(${btnRef.current.offsetLeft}px)`,
-      });
-    }
-  }, [isMonthly]);
+export default function PricingPage() {
+  const [isMonthly, setIsMonthly] = useState(true);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const handleToggle = (monthly: boolean) => {
     if (isMonthly === monthly) return;
     setIsMonthly(monthly);
 
-    if (!monthly && confettiRef.current) {
-      const rect = annualBtnRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      const originX = (rect.left + rect.width / 2) / window.innerWidth;
-      const originY = (rect.top + rect.height / 2) / window.innerHeight;
-
+    if (!monthly) {
       confetti({
         particleCount: 80,
         spread: 80,
-        origin: { x: originX, y: originY },
+        origin: { x: 0.5, y: 0.3 },
         colors: ["#ffffff", "#a1a1aa", "#71717a"],
         ticks: 300,
         gravity: 1.2,
@@ -195,68 +97,10 @@ function PricingToggle() {
     }
   };
 
-  return (
-    <div className="flex justify-center">
-      <div ref={confettiRef} className="relative flex w-fit items-center rounded-full bg-zinc-900 p-1 border border-zinc-800">
-        <motion.div
-          className="absolute left-0 top-0 h-full rounded-full bg-white p-1"
-          style={pillStyle}
-          transition={{ type: "spring", stiffness: 500, damping: 40 }}
-        />
-        <button
-          ref={monthlyBtnRef}
-          onClick={() => handleToggle(true)}
-          className={cn(
-            "relative z-10 rounded-full px-4 sm:px-6 py-2 text-sm font-medium transition-colors",
-            isMonthly
-              ? "text-black"
-              : "text-zinc-500 hover:text-white",
-          )}
-        >
-          {t.monthly}
-        </button>
-        <button
-          ref={annualBtnRef}
-          onClick={() => handleToggle(false)}
-          className={cn(
-            "relative z-10 rounded-full px-4 sm:px-6 py-2 text-sm font-medium transition-colors",
-            !isMonthly
-              ? "text-black"
-              : "text-zinc-500 hover:text-white",
-          )}
-        >
-          {t.annual}
-          <span
-            className={cn(
-              "hidden sm:inline ml-1",
-              !isMonthly ? "text-black/70" : "text-zinc-600",
-            )}
-          >
-            (-20%)
-          </span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Pricing Card Component
-function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
-  const { isMonthly, t } = useContext(PricingContext);
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
-    checkDesktop();
-    window.addEventListener("resize", checkDesktop);
-    return () => window.removeEventListener("resize", checkDesktop);
-  }, []);
-
-  const handleCheckout = async () => {
+  const handleCheckout = async (plan: PricingPlan) => {
     if (!plan.stripePriceId) return;
-    
-    setIsLoading(true);
+
+    setLoadingPlan(plan.name);
     try {
       const priceId = isMonthly ? plan.stripePriceId : plan.stripeYearlyPriceId;
       const res = await fetch("/api/stripe/checkout", {
@@ -275,275 +119,146 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
     } catch (error) {
       console.error("Checkout error:", error);
     } finally {
-      setIsLoading(false);
+      setLoadingPlan(null);
     }
   };
 
   return (
-    <motion.div
-      initial={{ y: 50, opacity: 0 }}
-      whileInView={{
-        y: plan.isPopular && isDesktop ? -20 : 0,
-        opacity: 1,
-      }}
-      viewport={{ once: true }}
-      transition={{
-        duration: 0.6,
-        type: "spring",
-        stiffness: 100,
-        damping: 20,
-        delay: index * 0.15,
-      }}
-      className={cn(
-        "rounded-2xl p-8 flex flex-col relative backdrop-blur-sm",
-        plan.isPopular
-          ? "border-2 border-white bg-zinc-900/80 shadow-[0_0_40px_rgba(255,255,255,0.1)]"
-          : "border border-zinc-800 bg-black/50",
-      )}
-    >
-      {plan.isPopular && (
-        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 z-10">
-          <div className="bg-white py-1.5 px-4 rounded-full flex items-center gap-1.5 shadow-lg">
-            <LucideStar className="text-black h-4 w-4 fill-black" />
-            <span className="text-black text-sm font-semibold">
-              Populaire
-            </span>
-          </div>
-        </div>
-      )}
-      <div className="flex-1 flex flex-col text-center">
-        <h3 className="font-serif text-xl text-white">{plan.name}</h3>
-        <p className="mt-2 text-sm text-zinc-400 italic">
-          {plan.description}
-        </p>
-        <div className="mt-6 flex items-baseline justify-center gap-x-1">
-          <span className="font-serif text-5xl font-light tracking-tight text-white">
-            <NumberFlow
-              value={
-                isMonthly ? Number(plan.price) : Number(plan.yearlyPrice)
-              }
-              format={{
-                style: "currency",
-                currency: "EUR",
-                minimumFractionDigits: 0,
-              }}
-              className="font-serif"
-            />
-          </span>
-          <span className="font-serif text-sm leading-6 text-zinc-400 italic">
-            / {plan.period}
-          </span>
-        </div>
-        <p className="font-serif text-xs text-zinc-500 mt-2 italic">
-          {isMonthly ? t.billingMonthly : t.billingAnnual}
-        </p>
-
-        <ul
-          role="list"
-          className="mt-8 space-y-3 text-sm leading-6 text-left text-zinc-300"
+    <div className="min-h-screen bg-black py-24">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          {plan.features.map((feature) => (
-            <li key={feature} className="flex gap-x-3 font-serif">
-              <Check
-                className="h-5 w-5 flex-none text-zinc-400"
-                aria-hidden="true"
-              />
-              {feature}
-            </li>
-          ))}
-        </ul>
+          <h2 className="font-serif text-4xl md:text-6xl mb-4 text-white">
+            Pricing <span className="text-zinc-500 italic">Plans</span>
+          </h2>
+          <p className="text-zinc-500 max-w-2xl mx-auto text-lg">
+            Choose the strategy that fits your career goals.
+          </p>
+        </motion.div>
 
-        <div className="mt-auto pt-8">
-          {plan.stripePriceId ? (
-            <Button
-              onClick={handleCheckout}
-              disabled={isLoading}
-              variant={plan.isPopular ? "default" : "outline"}
-              size="lg"
+        {/* Toggle */}
+        <motion.div
+          className="flex justify-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <div className="relative flex items-center rounded-full bg-zinc-900 p-1 border border-zinc-800">
+            <div
               className={cn(
-                "w-full font-serif",
+                "absolute h-[calc(100%-8px)] rounded-full bg-white transition-all duration-300",
+                isMonthly ? "left-1 w-[85px]" : "left-[89px] w-[115px]"
+              )}
+            />
+            <button
+              onClick={() => handleToggle(true)}
+              className={cn(
+                "relative z-10 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                isMonthly ? "text-black" : "text-zinc-500 hover:text-white"
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => handleToggle(false)}
+              className={cn(
+                "relative z-10 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                !isMonthly ? "text-black" : "text-zinc-500 hover:text-white"
+              )}
+            >
+              Annual (-20%)
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {plans.map((plan, index) => (
+            <motion.div
+              key={plan.name}
+              className={cn(
+                "rounded-2xl p-8 border backdrop-blur-sm hover:border-zinc-700 transition-all",
                 plan.isPopular
-                  ? "bg-white text-black hover:bg-zinc-200"
-                  : "border-zinc-700 text-white hover:bg-zinc-800"
+                  ? "border-2 border-white bg-zinc-900/80 relative md:-translate-y-4"
+                  : "border-zinc-800 bg-black/50"
               )}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.15 }}
             >
-              {isLoading ? t.loading : plan.buttonText}
-            </Button>
-          ) : (
-            <Link href={plan.href} className="block">
-              <Button
-                variant={plan.isPopular ? "default" : "outline"}
-                size="lg"
-                className={cn(
-                  "w-full font-serif",
-                  plan.isPopular
-                    ? "bg-white text-black hover:bg-zinc-200"
-                    : "border-zinc-700 text-white hover:bg-zinc-800"
-                )}
-              >
-                {plan.buttonText}
-              </Button>
-            </Link>
-          )}
+              {plan.isPopular && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-white">
+                  <span className="text-sm font-semibold text-black">Popular</span>
+                </div>
+              )}
+              <h3 className="font-serif text-xl text-white mb-2">{plan.name}</h3>
+              <p className={cn(
+                "text-sm italic mb-6",
+                plan.isPopular ? "text-zinc-400" : "text-zinc-500"
+              )}>
+                {plan.description}
+              </p>
+              <div className="mb-6">
+                <span className="font-serif text-5xl font-light text-white">
+                  ${isMonthly ? plan.price : plan.yearlyPrice}
+                </span>
+                <span className={cn(
+                  "font-serif text-sm ml-2 italic",
+                  plan.isPopular ? "text-zinc-400" : "text-zinc-500"
+                )}>
+                  / {plan.period}
+                </span>
+              </div>
+              <p className="text-xs text-zinc-600 mb-6 italic">
+                {isMonthly ? "Billed monthly" : "Billed annually"}
+              </p>
+              <ul className={cn(
+                "space-y-3 mb-8 text-sm",
+                plan.isPopular ? "text-zinc-300" : "text-zinc-400"
+              )}>
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2 font-serif">
+                    <span className={plan.isPopular ? "text-white mt-0.5" : "text-zinc-500 mt-0.5"}>✓</span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              {plan.stripePriceId ? (
+                <button
+                  onClick={() => handleCheckout(plan)}
+                  disabled={loadingPlan === plan.name}
+                  className={cn(
+                    "w-full py-3 rounded-full font-serif transition-all disabled:opacity-50",
+                    plan.isPopular
+                      ? "bg-white text-black font-semibold hover:bg-zinc-200"
+                      : "border border-zinc-700 text-white hover:bg-zinc-800"
+                  )}
+                >
+                  {loadingPlan === plan.name ? "Loading..." : plan.buttonText}
+                </button>
+              ) : (
+                <Link href={plan.href} className="block">
+                  <button
+                    className={cn(
+                      "w-full py-3 rounded-full font-serif transition-all",
+                      plan.isPopular
+                        ? "bg-white text-black font-semibold hover:bg-zinc-200"
+                        : "border border-zinc-700 text-white hover:bg-zinc-800"
+                    )}
+                  >
+                    {plan.buttonText}
+                  </button>
+                </Link>
+              )}
+            </motion.div>
+          ))}
         </div>
       </div>
-    </motion.div>
-  );
-}
-
-// Plans data with Stripe price IDs - Matching landing page prices
-const plans: PricingPlan[] = [
-  {
-    name: "Free",
-    price: "0",
-    yearlyPrice: "0",
-    period: "mois",
-    description: "Pour découvrir la plateforme",
-    features: [
-      "5 candidatures tous les 3 jours",
-      "Accès limité aux offres",
-      "Recherche basique",
-    ],
-    buttonText: "Commencer gratuitement",
-    href: "/sign-up",
-    isPopular: false,
-  },
-  {
-    name: "Student",
-    price: "8.99",
-    yearlyPrice: "7.19",
-    period: "mois",
-    description: "Pour les étudiants qui démarrent",
-    features: [
-      "10 candidatures par jour",
-      "700 requêtes IA totales",
-      "Rédaction IA (lettres, relances)",
-      "Tracking des candidatures",
-    ],
-    buttonText: "Commencer",
-    href: "#",
-    isPopular: false,
-    stripePriceId: "price_1StIZXQD4Pt8cZCMR1QR2Rnt",
-    stripeYearlyPriceId: "price_1StIZXQD4Pt8cZCMJGBbUswp",
-  },
-  {
-    name: "Pro",
-    price: "19.99",
-    yearlyPrice: "15.99",
-    period: "mois",
-    description: "Pour les chercheurs actifs",
-    features: [
-      "10 candidatures par jour",
-      "1500 requêtes IA totales",
-      "Accès illimité aux offres",
-      "Génération lettres de motivation",
-      "Alertes en temps réel",
-    ],
-    buttonText: "Essayer gratuitement",
-    href: "#",
-    isPopular: true,
-    stripePriceId: "price_1StIZYQD4Pt8cZCM0Xlrww0i",
-    stripeYearlyPriceId: "price_1StIZYQD4Pt8cZCMVuwSXF3U",
-  },
-];
-
-// Main Page Component
-export default function PricingPage() {
-  const [isMonthly, setIsMonthly] = useState(true);
-  const [language, setLanguage] = useState<"fr" | "en">("fr");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePosition, setMousePosition] = useState<{
-    x: number | null;
-    y: number | null;
-  }>({ x: null, y: null });
-
-  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    const { clientX, clientY } = event;
-    setMousePosition({ x: clientX, y: clientY });
-  };
-
-  const translations = {
-    fr: {
-      title: "Tarifs",
-      subtitle: "simples",
-      description: "Choisissez le plan adapté à vos besoins.\nTous les plans incluent nos fonctionnalités essentielles.",
-      monthly: "Mensuel",
-      annual: "Annuel",
-      billingMonthly: "Facturation mensuelle",
-      billingAnnual: "Facturation annuelle",
-      loading: "Chargement...",
-    },
-    en: {
-      title: "Pricing",
-      subtitle: "Plans",
-      description: "Choose the plan that fits your needs.\nAll plans include our essential features.",
-      monthly: "Monthly",
-      annual: "Annual",
-      billingMonthly: "Billed monthly",
-      billingAnnual: "Billed annually",
-      loading: "Loading...",
-    },
-  };
-
-  const t = translations[language];
-
-  return (
-    <PricingContext.Provider value={{ isMonthly, setIsMonthly, t }}>
-      <div
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setMousePosition({ x: null, y: null })}
-        className="relative w-full min-h-screen bg-black py-20 sm:py-24"
-      >
-        <InteractiveStarfield
-          mousePosition={mousePosition}
-          containerRef={containerRef}
-        />
-        <div className="relative z-10 container mx-auto px-4 md:px-6">
-          {/* Language Switcher */}
-          <div className="absolute top-8 right-8 flex gap-2">
-            <button
-              onClick={() => setLanguage("fr")}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all",
-                language === "fr"
-                  ? "bg-white text-black"
-                  : "bg-zinc-900 text-zinc-500 hover:text-white"
-              )}
-            >
-              FR
-            </button>
-            <button
-              onClick={() => setLanguage("en")}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all",
-                language === "en"
-                  ? "bg-white text-black"
-                  : "bg-zinc-900 text-zinc-500 hover:text-white"
-              )}
-            >
-              EN
-            </button>
-          </div>
-
-          <div className="max-w-3xl mx-auto text-center space-y-4 mb-12">
-            <Link href="/pricing" className="inline-block group">
-              <h1 className="font-serif text-4xl sm:text-5xl tracking-tight text-white transition-colors group-hover:text-zinc-300 cursor-pointer">
-                {t.title} <span className="text-zinc-500 italic">{t.subtitle}</span>
-              </h1>
-            </Link>
-            <p className="text-zinc-500 text-lg">
-              {t.description}
-            </p>
-          </div>
-          <PricingToggle />
-          <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 items-start gap-8 max-w-6xl mx-auto">
-            {plans.map((plan, index) => (
-              <PricingCard key={index} plan={plan} index={index} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </PricingContext.Provider>
+    </div>
   );
 }

@@ -144,28 +144,28 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0 }}
             >
               <h3 className="font-serif text-xl text-white mb-2">Free</h3>
-              <p className="text-sm text-zinc-500 italic mb-6">Pour découvrir la plateforme</p>
+              <p className="text-sm text-zinc-500 italic mb-6">To discover the platform</p>
               <div className="mb-6">
-                <span className="font-serif text-5xl font-light text-white">0€</span>
-                <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ mois</span>
+                <span className="font-serif text-5xl font-light text-white">$0</span>
+                <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ month</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-zinc-500 mt-0.5">✓</span>
-                  <span>5 candidatures tous les 3 jours</span>
+                  <span>5 applications every 3 days</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-zinc-500 mt-0.5">✓</span>
-                  <span>Accès limité aux offres</span>
+                  <span>Limited access to offers</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-zinc-500 mt-0.5">✓</span>
-                  <span>Recherche basique</span>
+                  <span>Basic search</span>
                 </li>
               </ul>
               <Link href="/sign-up" className="block">
                 <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-serif">
-                  Commencer gratuitement
+                  Start for free
                 </button>
               </Link>
             </motion.div>
@@ -179,32 +179,32 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.15 }}
             >
               <h3 className="font-serif text-xl text-white mb-2">Student</h3>
-              <p className="text-sm text-zinc-500 italic mb-6">Pour les étudiants qui démarrent</p>
+              <p className="text-sm text-zinc-500 italic mb-6">For students getting started</p>
               <div className="mb-6">
-                <span className="font-serif text-5xl font-light text-white">8,99€</span>
-                <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ mois</span>
+                <span className="font-serif text-5xl font-light text-white">$8.99</span>
+                <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ month</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-zinc-500 mt-0.5">✓</span>
-                  <span>10 candidatures par jour</span>
+                  <span>10 applications per day</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-zinc-500 mt-0.5">✓</span>
-                  <span>700 requêtes IA totales</span>
+                  <span>700 total AI requests</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-zinc-500 mt-0.5">✓</span>
-                  <span>Rédaction IA (lettres, relances)</span>
+                  <span>AI writing (letters, follow-ups)</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-zinc-500 mt-0.5">✓</span>
-                  <span>Tracking des candidatures</span>
+                  <span>Application tracking</span>
                 </li>
               </ul>
               <Link href="/pricing" className="block">
                 <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-serif">
-                  Commencer
+                  Get Started
                 </button>
               </Link>
             </motion.div>
@@ -217,40 +217,40 @@ export default function LandingPage() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full" style={{ backgroundColor: '#ffffff' }}>
-                <span className="text-sm font-semibold" style={{ color: '#000000' }}>Populaire</span>
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-white">
+                <span className="text-sm font-semibold text-black">Popular</span>
               </div>
               <h3 className="font-serif text-xl text-white mb-2">Pro</h3>
-              <p className="text-sm text-zinc-400 italic mb-6">Pour les chercheurs actifs</p>
+              <p className="text-sm text-zinc-400 italic mb-6">For active job seekers</p>
               <div className="mb-6">
-                <span className="font-serif text-5xl font-light text-white">19,99€</span>
-                <span className="font-serif text-zinc-400 text-sm ml-2 italic">/ mois</span>
+                <span className="font-serif text-5xl font-light text-white">$19.99</span>
+                <span className="font-serif text-zinc-400 text-sm ml-2 italic">/ month</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-300">
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>10 candidatures par jour</span>
+                  <span>10 applications per day</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>1500 requêtes IA totales</span>
+                  <span>1500 total AI requests</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>Accès illimité aux offres</span>
+                  <span>Unlimited access to offers</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>Génération lettres de motivation</span>
+                  <span>Cover letter generation</span>
                 </li>
                 <li className="flex items-start gap-2 font-serif">
                   <span className="text-white mt-0.5">✓</span>
-                  <span>Alertes en temps réel</span>
+                  <span>Real-time alerts</span>
                 </li>
               </ul>
               <Link href="/pricing" className="block">
-                <button className="w-full py-3 rounded-full font-serif font-semibold" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
-                  Essayer gratuitement
+                <button className="w-full py-3 rounded-full font-serif font-semibold bg-white text-black hover:bg-zinc-200 transition-colors">
+                  Try for free
                 </button>
               </Link>
             </motion.div>

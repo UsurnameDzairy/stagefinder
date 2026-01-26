@@ -48,8 +48,8 @@ export async function GET() {
       activity.push({
         id: `app-${app.id}`,
         type: isInterview ? "interview" : "application",
-        title: app.jobTitle || "Candidature",
-        subtitle: app.companyName || "Entreprise",
+        title: app.jobTitle || "Application",
+        subtitle: app.companyName || "Company",
         date: formatRelativeDate(app.createdAt),
       });
     });
@@ -59,7 +59,7 @@ export async function GET() {
       activity.push({
         id: `offer-${offer.id}`,
         type: "saved_offer",
-        title: offer.offerId || "Offre sauvegardée",
+        title: offer.offerId || "Saved offer",
         subtitle: `Score: ${offer.matchScore || 0}%`,
         date: formatRelativeDate(offer.createdAt),
       });
@@ -71,7 +71,7 @@ export async function GET() {
         id: `company-${savedCompany.id}`,
         type: "saved_company",
         title: savedCompany.company.name,
-        subtitle: savedCompany.company.sector || "Entreprise",
+        subtitle: savedCompany.company.sector || "Company",
         date: formatRelativeDate(savedCompany.createdAt),
       });
     });
@@ -97,16 +97,16 @@ function formatRelativeDate(date: Date): string {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffMins < 60) {
-    return diffMins <= 1 ? "À l'instant" : `Il y a ${diffMins} min`;
+    return diffMins <= 1 ? "Just now" : `${diffMins} min ago`;
   }
   if (diffHours < 24) {
-    return `Il y a ${diffHours}h`;
+    return `${diffHours}h ago`;
   }
   if (diffDays === 1) {
-    return "Hier";
+    return "Yesterday";
   }
   if (diffDays < 7) {
-    return `Il y a ${diffDays} jours`;
+    return `${diffDays} days ago`;
   }
-  return date.toLocaleDateString("fr-FR");
+  return date.toLocaleDateString("en-US");
 }

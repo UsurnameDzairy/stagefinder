@@ -32,12 +32,12 @@ function formatDate(dateString: string): string {
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) return "Aujourd'hui";
-  if (diffDays === 1) return "Hier";
-  if (diffDays < 7) return `Il y a ${diffDays} jours`;
-  if (diffDays < 14) return "Il y a 1 semaine";
-  return `Il y a ${Math.floor(diffDays / 7)} semaines`;
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 14) return "1 week ago";
+  return `${Math.floor(diffDays / 7)} weeks ago`;
 }
 
 function calculateMatchScore(offerSkills: string[], userSkills: string[]): number {
@@ -402,7 +402,7 @@ export default function OffresPage() {
           companyName: offer.companyName,
           jobTitle: offer.title,
           companyUrl: offer.sourceUrl,
-          notes: `Postulé via ${offer.sourceProvider} le ${new Date().toLocaleDateString("fr-FR")}`,
+          notes: `Applied via ${offer.sourceProvider} on ${new Date().toLocaleDateString("en-US")}`,
         }),
       });
       
@@ -416,7 +416,7 @@ export default function OffresPage() {
           body: JSON.stringify({
             offerId: offer.id,
             matchScore: offer.matchScore,
-            notes: "Postulé le " + new Date().toLocaleDateString("fr-FR"),
+            notes: "Applied on " + new Date().toLocaleDateString("en-US"),
           }),
         });
         setSavedOffers(prev => new Set([...prev, offer.id]));
@@ -441,7 +441,7 @@ export default function OffresPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader size="lg" className="mx-auto mb-4" />
-          <p className="text-zinc-400">Chargement de votre profil...</p>
+          <p className="text-zinc-400">Loading your profile...</p>
         </div>
       </div>
     );
@@ -664,7 +664,7 @@ export default function OffresPage() {
               <div className="p-1 bg-zinc-900 rounded-md border border-zinc-800">
                 <Target className="h-3 w-3 text-zinc-500" />
               </div>
-              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">Vos skills:</span>
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">Your skills:</span>
             </div>
             
             <div className="flex flex-wrap gap-1.5 flex-1">
@@ -680,15 +680,15 @@ export default function OffresPage() {
               ))}
               
               {userSkills.length > 8 && (
-                <button 
+                <button
                   onClick={() => setShowAllSkills(!showAllSkills)}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-950 border border-zinc-900 text-[10px] font-bold text-zinc-500 hover:text-white hover:border-zinc-700 transition-all group"
                 >
                   {showAllSkills ? (
-                    <>Voir moins</>
+                    <>Show less</>
                   ) : (
                     <>
-                      Voir plus 
+                      Show more
                       <span className="text-zinc-700 group-hover:text-zinc-500">({userSkills.length - 8})</span>
                     </>
                   )}
@@ -699,45 +699,45 @@ export default function OffresPage() {
         </div>
       )}
 
-      {/* Message si pas de recherche */}
+      {/* Message if no search */}
       {!hasSearched && !isSearching && (
         <Card className="border-dashed border-zinc-700 bg-zinc-900/50">
           <CardContent className="p-8 text-center">
             <Sparkles className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-zinc-300 mb-2">
-              Recherche personnalisée
+              Personalized Search
             </h3>
             <p className="text-sm text-zinc-500 mb-4">
-              {userSkills.length > 0 
-                ? "Cliquez sur vos skills ou lancez une recherche pour trouver des offres adaptées à votre profil"
-                : "Ajoutez des compétences dans votre profil pour des recommandations personnalisées"
+              {userSkills.length > 0
+                ? "Click on your skills or start a search to find offers tailored to your profile"
+                : "Add skills to your profile for personalized recommendations"
               }
             </p>
             {userSkills.length === 0 && (
               <a href="/parametres#cv">
-                <Button variant="outline">Importer mon CV</Button>
+                <Button variant="outline">Import my CV</Button>
               </a>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Aucun résultat */}
+      {/* No results */}
       {hasSearched && !isSearching && results.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-zinc-500">Aucune offre trouvée. Essayez d'autres critères.</p>
+          <p className="text-zinc-500">No offers found. Try different criteria.</p>
         </div>
       )}
 
-      {/* Résultats */}
+      {/* Results */}
       {results.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-zinc-400">
-              <span className="font-medium text-zinc-200">{results.length}</span> offres trouvées
+              <span className="font-medium text-zinc-200">{results.length}</span> offers found
             </p>
             <p className="text-xs text-zinc-500">
-              Triées par compatibilité avec votre profil
+              Sorted by compatibility with your profile
             </p>
           </div>
 
@@ -974,14 +974,14 @@ function InlineScraperStatus({
         // Ajouter des logs
         if (data.step === "PROVIDER_FETCH") {
           setLogs(prev => {
-            const newLog = `[${new Date().toLocaleTimeString()}] Recherche en cours...`;
+            const newLog = `[${new Date().toLocaleTimeString()}] Searching...`;
             if (!prev.includes(newLog)) return [...prev.slice(-4), newLog];
             return prev;
           });
         }
 
         if (data.status === "DONE") {
-          setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ✅ Recherche terminée!`]);
+          setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] Search complete!`]);
           const resultsRes = await fetch(`/api/search-jobs/${jobId}/results`);
           const results = await resultsRes.json();
           setTimeout(() => onComplete(results.offers || []), 500);

@@ -170,7 +170,7 @@ export default function ParametresPage() {
       if (file.size <= 5 * 1024 * 1024) {
         setCvFile(file);
         setUploadingCv(true);
-        setCvStatus("Analyse du CV en cours...");
+        setCvStatus("Analyzing CV...");
         
         // Upload le CV automatiquement
         const formData = new FormData();
@@ -204,24 +204,24 @@ export default function ParametresPage() {
                 setDomains(extractedDomains.join(", "));
               }
               
-              setCvStatus(`✅ CV analysé! ${extractedSkills.length} compétences, ${extractedCities.length} villes, ${extractedDomains.length} domaines détectés.`);
+              setCvStatus(`✅ CV analyzed! ${extractedSkills.length} skills, ${extractedCities.length} cities, ${extractedDomains.length} domains detected.`);
             } else {
-              setCvStatus("⚠️ CV uploadé mais aucune donnée extraite. Vérifiez le format du fichier.");
+              setCvStatus("⚠️ CV uploaded but no data extracted. Check the file format.");
             }
           } else {
-            setCvStatus("❌ Erreur lors de l'upload du CV");
+            setCvStatus("❌ Error uploading CV");
           }
         } catch (error) {
           console.error("CV upload error:", error);
-          setCvStatus("❌ Erreur lors de l'upload du CV");
+          setCvStatus("❌ Error uploading CV");
         } finally {
           setUploadingCv(false);
         }
       } else {
-        alert("Le fichier doit faire moins de 5MB");
+        alert("File must be less than 5MB");
       }
     } else {
-      alert("Format non supporté. Utilisez PDF ou DOCX");
+      alert("Unsupported format. Use PDF or DOCX");
     }
   };
 
@@ -239,13 +239,13 @@ export default function ParametresPage() {
       });
 
       if (response.ok) {
-        alert("Paramètres enregistrés avec succès!");
+        alert("Settings saved successfully!");
       } else {
-        alert("Erreur lors de l'enregistrement des paramètres");
+        alert("Error saving settings");
       }
     } catch (error) {
       console.error("Save settings error:", error);
-      alert("Erreur lors de l'enregistrement des paramètres");
+      alert("Error saving settings");
     }
   };
 
@@ -267,8 +267,8 @@ export default function ParametresPage() {
   };
 
   const handleDeleteAccount = () => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
-      alert("Fonctionnalité de suppression de compte à implémenter");
+    if (confirm("Are you sure you want to delete your account? This action is irreversible.")) {
+      alert("Account deletion feature to be implemented");
     }
   };
 
@@ -284,21 +284,21 @@ export default function ParametresPage() {
       });
 
       if (response.ok) {
-        alert("Avatar mis à jour avec succès! Rafraîchissez la page pour voir les changements.");
+        alert("Avatar updated successfully! Refresh the page to see changes.");
         setAvatarUrl("");
       } else {
-        alert("Erreur lors de la mise à jour de l'avatar");
+        alert("Error updating avatar");
       }
     } catch (error) {
       console.error("Avatar update error:", error);
-      alert("Erreur lors de la mise à jour de l'avatar");
+      alert("Error updating avatar");
     } finally {
       setUploadingAvatar(false);
     }
   };
 
   const handleRemoveAvatar = async () => {
-    if (!confirm("Supprimer votre avatar ?")) return;
+    if (!confirm("Remove your avatar?")) return;
     
     setUploadingAvatar(true);
     try {
@@ -307,13 +307,13 @@ export default function ParametresPage() {
       });
 
       if (response.ok) {
-        alert("Avatar supprimé avec succès! Rafraîchissez la page pour voir les changements.");
+        alert("Avatar removed successfully! Refresh the page to see changes.");
       } else {
-        alert("Erreur lors de la suppression de l'avatar");
+        alert("Error removing avatar");
       }
     } catch (error) {
       console.error("Avatar delete error:", error);
-      alert("Erreur lors de la suppression de l'avatar");
+      alert("Error removing avatar");
     } finally {
       setUploadingAvatar(false);
     }
@@ -327,7 +327,7 @@ export default function ParametresPage() {
           {t("settings.title")}
         </h1>
         <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em] mt-1">
-          Configuration du profil et préférences stratégiques
+          Profile configuration and strategic preferences
         </p>
       </div>
 
@@ -335,8 +335,8 @@ export default function ParametresPage() {
         {/* Avatar Section */}
         <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
           <CardHeader className="p-6 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Identité Visuelle</CardTitle>
-            <CardDescription className="text-[13px] text-zinc-600 font-medium">Personnalisez votre profil professionnel</CardDescription>
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Visual Identity</CardTitle>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">Customize your professional profile</CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-4 space-y-6">
             <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-zinc-950 border border-zinc-900 rounded-2xl">
@@ -353,7 +353,7 @@ export default function ParametresPage() {
                     type="url"
                     value={avatarUrl}
                     onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="URL de votre image (ex: LinkedIn, Gravatar...)"
+                    placeholder="Your image URL (e.g., LinkedIn, Gravatar...)"
                     disabled={uploadingAvatar}
                     className="h-10 bg-black border-zinc-900 focus:border-white transition-all text-sm"
                   />
@@ -376,7 +376,7 @@ export default function ParametresPage() {
                     <Trash2 className="h-3.5 w-3.5 mr-2" />
                     Remove
                   </Button>
-                  <span className="text-[10px] font-medium text-zinc-700 self-center uppercase tracking-wider">Recommandé: 200x200px</span>
+                  <span className="text-[10px] font-medium text-zinc-700 self-center uppercase tracking-wider">Recommended: 200x200px</span>
                 </div>
               </div>
             </div>
@@ -386,8 +386,8 @@ export default function ParametresPage() {
         {/* CV Section */}
         <Card id="cv" className="bg-black border-zinc-900 shadow-none">
           <CardHeader className="p-6 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Base Documentaire</CardTitle>
-            <CardDescription className="text-[13px] text-zinc-600 font-medium">Extraction automatique par IA pour un matching chirurgical</CardDescription>
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Document Base</CardTitle>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">Automatic AI extraction for precise matching</CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-4">
             <input
@@ -403,7 +403,7 @@ export default function ParametresPage() {
                   <Loader size="lg" className="mx-auto" />
                   <div className="space-y-1">
                     <p className="text-[11px] font-bold text-white uppercase tracking-[0.2em] animate-pulse">Intelligence Engine Processing...</p>
-                    <p className="text-[12px] text-zinc-600 font-medium italic">Analyse sémantique de votre parcours</p>
+                    <p className="text-[12px] text-zinc-600 font-medium italic">Semantic analysis of your background</p>
                   </div>
                 </div>
               ) : (
@@ -413,7 +413,7 @@ export default function ParametresPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[13px] font-bold text-zinc-300 group-hover:text-white transition-colors">
-                      {cvFile ? cvFile.name : "Cliquez pour importer votre CV"}
+                      {cvFile ? cvFile.name : "Click to import your CV"}
                     </p>
                     <p className="text-[11px] font-bold text-zinc-700 uppercase tracking-widest">PDF ou DOCX (Max 5MB)</p>
                   </div>
@@ -474,11 +474,11 @@ export default function ParametresPage() {
           {/* Preferences Section */}
           <Card className="bg-black border-zinc-900 shadow-none">
             <CardHeader className="p-6 pb-2">
-              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Paramètres de Recherche</CardTitle>
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Search Preferences</CardTitle>
             </CardHeader>
             <CardContent className="p-6 pt-4 space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Villes cibles</label>
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Target cities</label>
                 <Input
                   placeholder="Paris, London, Remote..."
                   value={preferredCities}
@@ -488,7 +488,7 @@ export default function ParametresPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Formats contractuels</label>
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Contract types</label>
                 <div className="flex flex-wrap gap-2">
                   {["stage", "alternance", "cdi", "cdd"].map((type) => (
                     <button
@@ -508,7 +508,7 @@ export default function ParametresPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Domaines d'expertise</label>
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Expertise domains</label>
                 <Input
                   placeholder="Banking, AI, Web Dev..."
                   value={domains}
@@ -528,9 +528,9 @@ export default function ParametresPage() {
           <CardHeader className="p-6 pb-2">
             <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
               <BellRing className="h-4 w-4 text-zinc-400" />
-              Système d'Alertes Stratégiques
+              Strategic Alert System
             </CardTitle>
-            <CardDescription className="text-[13px] text-zinc-600 font-medium">Surveillance en temps réel des flux d'opportunités</CardDescription>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">Real-time monitoring of opportunity flows</CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-4 space-y-6">
             {alerts.length > 0 ? (
@@ -586,16 +586,16 @@ export default function ParametresPage() {
                 <div className="p-4 bg-black border border-zinc-900 rounded-full w-fit mx-auto">
                   <Bell className="h-6 w-6 text-zinc-800" />
                 </div>
-                <p className="text-[13px] font-medium text-zinc-600">Aucune surveillance active configurée.</p>
+                <p className="text-[13px] font-medium text-zinc-600">No active monitoring configured.</p>
               </div>
             )}
 
             {showAlertForm ? (
               <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 space-y-6 animate-in fade-in slide-in-from-top-4">
-                <h4 className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Configuration de l'alerte</h4>
+                <h4 className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Alert Configuration</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Nom du flux *</label>
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Alert name *</label>
                     <Input
                       placeholder="Ex: Banking London"
                       value={newAlert.name}
@@ -604,7 +604,7 @@ export default function ParametresPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Secteurs *</label>
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Sectors *</label>
                     <Input
                       placeholder="Tech, Luxury..."
                       value={newAlert.domains}
@@ -613,7 +613,7 @@ export default function ParametresPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Localisations</label>
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Locations</label>
                     <Input
                       placeholder="Paris, New York..."
                       value={newAlert.locations}
@@ -622,21 +622,21 @@ export default function ParametresPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Fréquence</label>
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Frequency</label>
                     <select
                       value={newAlert.frequency}
                       onChange={(e) => setNewAlert({ ...newAlert, frequency: e.target.value })}
                       className="w-full h-10 px-4 rounded-xl bg-black border border-zinc-900 text-sm font-medium"
                     >
-                      <option value="instant">Temps Réel</option>
-                      <option value="daily">Quotidien</option>
-                      <option value="weekly">Hebdomadaire</option>
+                      <option value="instant">Real-time</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
                     </select>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-4 border-t border-zinc-900">
-                  <Button onClick={() => setShowAlertForm(false)} variant="ghost" className="h-10 px-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white rounded-full">Annuler</Button>
-                  <Button onClick={createAlert} className="flex-1 bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-full border border-zinc-800 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">Activer la surveillance</Button>
+                  <Button onClick={() => setShowAlertForm(false)} variant="ghost" className="h-10 px-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white rounded-full">Cancel</Button>
+                  <Button onClick={createAlert} className="flex-1 bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-full border border-zinc-800 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">Enable monitoring</Button>
                 </div>
               </div>
             ) : (
@@ -646,7 +646,7 @@ export default function ParametresPage() {
                 className="w-full h-12 border-zinc-900 bg-black hover:bg-zinc-900 text-zinc-400 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Ajouter une nouvelle règle de flux
+                Add new alert rule
               </Button>
             )}
           </CardContent>
@@ -655,23 +655,23 @@ export default function ParametresPage() {
         {/* Account Controls Section Premium */}
         <Card className="bg-black border-zinc-900 shadow-none border-zinc-800/20">
           <CardHeader className="p-6 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Commandes Systèmes</CardTitle>
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">System Commands</CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-4 space-y-4">
             <div className="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-900 rounded-2xl transition-all hover:border-zinc-800 group">
               <div className="space-y-1">
-                <p className="text-[13px] font-bold text-zinc-200 group-hover:text-white">Portabilité des données</p>
-                <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Téléchargement archive RGPD</p>
+                <p className="text-[13px] font-bold text-zinc-200 group-hover:text-white">Data portability</p>
+                <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">GDPR archive download</p>
               </div>
-              <Button variant="outline" size="sm" onClick={handleExportData} className="h-9 px-8 rounded-full border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest">Exporter</Button>
+              <Button variant="outline" size="sm" onClick={handleExportData} className="h-9 px-8 rounded-full border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest">Export</Button>
             </div>
             
             <div className="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-900 rounded-2xl transition-all hover:border-zinc-800 group">
               <div className="space-y-1">
-                <p className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-200">Destruction du compte</p>
-                <p className="text-[11px] font-medium text-zinc-700 uppercase tracking-wider">Cette action est irréversible</p>
+                <p className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-200">Account deletion</p>
+                <p className="text-[11px] font-medium text-zinc-700 uppercase tracking-wider">This action is irreversible</p>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleDeleteAccount} className="h-9 px-8 rounded-full text-zinc-700 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest transition-all">Supprimer</Button>
+              <Button variant="ghost" size="sm" onClick={handleDeleteAccount} className="h-9 px-8 rounded-full text-zinc-700 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest transition-all">Delete</Button>
             </div>
           </CardContent>
         </Card>
@@ -682,7 +682,7 @@ export default function ParametresPage() {
             className="bg-black hover:bg-zinc-900 text-white h-12 px-10 rounded-full border border-zinc-800 transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] font-serif italic text-base hover:scale-[1.02] active:scale-[0.98]"
           >
             <Save className="h-4 w-4 mr-3" />
-            Sauvegarder la configuration
+            Save configuration
           </Button>
         </div>
       </div>

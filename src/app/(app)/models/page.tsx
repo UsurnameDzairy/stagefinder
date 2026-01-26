@@ -84,7 +84,7 @@ export default function ModelsManagementPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="text-zinc-500">Chargement...</div>
+                <div className="text-zinc-500">Loading...</div>
             </div>
         );
     }
@@ -93,10 +93,10 @@ export default function ModelsManagementPage() {
         <div className="container max-w-4xl mx-auto py-10 space-y-8">
             <div>
                 <h1 className="text-4xl font-serif font-normal tracking-tight text-white">
-                    Gestion des Modèles IA
+                    AI Models Management
                 </h1>
                 <p className="text-sm text-zinc-500 mt-2">
-                    Ajoutez ou supprimez des modèles depuis OpenRouter
+                    Add or remove models from OpenRouter
                 </p>
             </div>
 
@@ -104,7 +104,7 @@ export default function ModelsManagementPage() {
             <Card className="bg-black border-zinc-900">
                 <CardHeader>
                     <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                        Modèles Actifs
+                        Active Models
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -142,13 +142,13 @@ export default function ModelsManagementPage() {
             <Card className="bg-black border-zinc-900">
                 <CardHeader>
                     <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                        Ajouter un Modèle
+                        Add a Model
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
-                            <Label className="text-xs text-zinc-400">Nom du modèle</Label>
+                            <Label className="text-xs text-zinc-400">Model name</Label>
                             <Input
                                 value={newModel.name || ""}
                                 onChange={(e) => setNewModel({ ...newModel, name: e.target.value })}
@@ -157,11 +157,11 @@ export default function ModelsManagementPage() {
                             />
                         </div>
                         <div>
-                            <Label className="text-xs text-zinc-400">Badge (optionnel)</Label>
+                            <Label className="text-xs text-zinc-400">Badge (optional)</Label>
                             <Input
                                 value={newModel.badge || ""}
                                 onChange={(e) => setNewModel({ ...newModel, badge: e.target.value })}
-                                placeholder="GRATUIT"
+                                placeholder="FREE"
                                 className="bg-zinc-900 border-zinc-800 text-white"
                             />
                         </div>
@@ -172,7 +172,7 @@ export default function ModelsManagementPage() {
                         <Input
                             value={newModel.description || ""}
                             onChange={(e) => setNewModel({ ...newModel, description: e.target.value })}
-                            placeholder="Modèle puissant pour..."
+                            placeholder="Powerful model for..."
                             className="bg-zinc-900 border-zinc-800 text-white"
                         />
                     </div>
@@ -186,7 +186,7 @@ export default function ModelsManagementPage() {
                                 rel="noopener noreferrer"
                                 className="ml-2 text-blue-500 hover:underline"
                             >
-                                Voir les modèles →
+                                View models →
                             </a>
                         </Label>
                         <Input
@@ -203,7 +203,7 @@ export default function ModelsManagementPage() {
                         className="w-full bg-white text-black hover:bg-zinc-200"
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Ajouter le modèle
+                        Add model
                     </Button>
                 </CardContent>
             </Card>
@@ -217,12 +217,12 @@ export default function ModelsManagementPage() {
                     {saving ? (
                         <>
                             <Check className="h-4 w-4 mr-2 animate-spin" />
-                            Sauvegarde...
+                            Saving...
                         </>
                     ) : (
                         <>
                             <Check className="h-4 w-4 mr-2" />
-                            Sauvegarder
+                            Save
                         </>
                     )}
                 </Button>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { extractText } from "unpdf";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,19 +20,19 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     if (fileName.endsWith(".pdf")) {
-      // Parser le PDF with require to avoid ESM issues
+      // Parser le PDF with unpdf (works in Node.js)
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const pdfParse = require("pdf-parse");
-        const pdfData = await pdfParse(buffer);
-        text = pdfData.text;
+        const uint8Array = new Uint8Array(buffer);
+        const { text: pdfText, totalPages } = await extractText(uint8Array, { mergePages: true });
+        console.log(`[CV Parse] Extracted ${pdfText?.length || 0} chars from ${totalPages} pages`);
+        text = pdfText || "";
 
         // Nettoyer le texte extrait
         text = cleanExtractedText(text);
       } catch (pdfError) {
         console.error("PDF parsing error:", pdfError);
         return NextResponse.json(
-          { success: false, error: "Erreur lors de la lecture du PDF. Essayez de copier-coller le texte." },
+          { success: false, error: "Error reading PDF. Try copy-pasting the text instead." },
           { status: 400 }
         );
       }
@@ -52,14 +53,14 @@ export async function POST(req: NextRequest) {
       }
     } else {
       return NextResponse.json(
-        { success: false, error: "Format de fichier non supporté" },
+        { success: false, error: "Unsupported file format" },
         { status: 400 }
       );
     }
 
     if (!text || text.trim().length < 50) {
       return NextResponse.json(
-        { success: false, error: "Le fichier semble vide ou illisible. Essayez de copier-coller le texte." },
+        { success: false, error: "The file appears to be empty or unreadable. Try copy-pasting the text instead." },
         { status: 400 }
       );
     }
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("CV parse error:", error);
     return NextResponse.json(
-      { success: false, error: "Erreur lors du traitement du fichier" },
+      { success: false, error: "Error processing file" },
       { status: 500 }
     );
   }

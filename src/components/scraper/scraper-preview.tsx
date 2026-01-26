@@ -160,11 +160,11 @@ export function ScraperPreview({ isActive, searchQuery, location, jobId }: Scrap
 
   const getStepLabel = (step: string) => {
     switch (step) {
-      case "RESUME_ANALYSIS": return "Analyse du CV...";
-      case "PROVIDER_FETCH": return "Scraping en cours...";
-      case "DEDUPLICATION": return "Dédoublonnage...";
-      case "RECOMMENDATIONS": return "Calcul des recommandations...";
-      default: return "Traitement...";
+      case "RESUME_ANALYSIS": return "Analyzing CV...";
+      case "PROVIDER_FETCH": return "Scraping in progress...";
+      case "DEDUPLICATION": return "Removing duplicates...";
+      case "RECOMMENDATIONS": return "Calculating recommendations...";
+      default: return "Processing...";
     }
   };
 

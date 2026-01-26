@@ -97,15 +97,15 @@ const landingNavigationLinks: NavLink[] = [
 const appNavigationLinks: NavLink[] = [
   { href: "/assistant", label: "KAM" },
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/offres", label: "Offres" },
-  { href: "/candidatures", label: "Candidatures" },
+  { href: "/offres", label: "Jobs" },
+  { href: "/candidatures", label: "Applications" },
   {
-    label: "Outils",
+    label: "Tools",
     submenu: true,
     type: "simple",
     items: [
       { href: "/cv-improver", label: "CV Improver" },
-      { href: "/lettres", label: "Lettres de motivation" },
+      { href: "/lettres", label: "Cover Letters" },
     ],
   },
 ];
@@ -347,13 +347,13 @@ export default function Navbar({ user }: NavbarProps) {
                   ) : (
                     <div className="flex flex-col gap-1">
                       <Link href="/parametres" className="px-5 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-3 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all">
-                        <Settings className="size-3.5" /> Paramètres
+                        <Settings className="size-3.5" /> Settings
                       </Link>
-                      <button 
+                      <button
                         onClick={handleSignOut}
                         className="w-full px-5 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-red-400/80 flex items-center gap-3 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all cursor-pointer"
                       >
-                        <LogOut className="size-3.5" /> Déconnexion
+                        <LogOut className="size-3.5" /> Log out
                       </button>
                     </div>
                   )}

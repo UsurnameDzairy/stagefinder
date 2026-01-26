@@ -15,13 +15,13 @@ interface Message {
 }
 
 const PAGE_CONTEXTS: Record<string, string> = {
-  "/dashboard": "Tu es sur le Dashboard. L'utilisateur voit ses statistiques et activités récentes.",
-  "/offres": "Tu es sur la page Offres. L'utilisateur recherche des stages et emplois.",
-  "/entreprises": "Tu es sur la page Entreprises. L'utilisateur explore les entreprises.",
-  "/candidatures": "Tu es sur la page Candidatures. L'utilisateur gère ses candidatures.",
-  "/lettres": "Tu es sur la page Lettres de motivation. L'utilisateur génère des lettres.",
-  "/parametres": "Tu es sur la page Paramètres. L'utilisateur modifie son profil et préférences.",
-  "/assistant": "Tu es sur la page Assistant IA principale.",
+  "/dashboard": "You are on the Dashboard. The user sees their statistics and recent activity.",
+  "/offres": "You are on the Jobs page. The user is searching for internships and jobs.",
+  "/entreprises": "You are on the Companies page. The user is exploring companies.",
+  "/candidatures": "You are on the Applications page. The user is managing their applications.",
+  "/lettres": "You are on the Cover Letters page. The user is generating cover letters.",
+  "/parametres": "You are on the Settings page. The user is modifying their profile and preferences.",
+  "/assistant": "You are on the main AI Assistant page.",
 };
 
 export function FloatingAssistant() {
@@ -36,7 +36,7 @@ export function FloatingAssistant() {
   useEffect(() => {
     if (messages.length === 0 && isOpen) {
       const pageContext = PAGE_CONTEXTS[pathname] || "";
-      const greeting = `👋 Bonjour ! Je suis votre assistant IA.${pageContext ? `\n\n${pageContext}` : ""}\n\nComment puis-je vous aider ?`;
+      const greeting = `Hello! I'm your AI assistant.${pageContext ? `\n\n${pageContext}` : ""}\n\nHow can I help you?`;
       
       setMessages([
         {
@@ -81,7 +81,7 @@ export function FloatingAssistant() {
         ...prev,
         {
           role: "assistant",
-          content: "Désolé, une erreur est survenue. Veuillez réessayer.",
+          content: "Sorry, an error occurred. Please try again.",
         },
       ]);
     } finally {
@@ -117,7 +117,7 @@ export function FloatingAssistant() {
         ...prev,
         {
           role: "assistant",
-          content: "Désolé, une erreur est survenue. Veuillez réessayer.",
+          content: "Sorry, an error occurred. Please try again.",
         },
       ]);
     } finally {
@@ -200,7 +200,7 @@ export function FloatingAssistant() {
               onClick={() => {
                 setMessages([]);
                 const pageContext = PAGE_CONTEXTS[pathname] || "";
-                const greeting = `👋 Bonjour ! Je suis votre assistant IA.${pageContext ? `\n\n${pageContext}` : ""}\n\nComment puis-je vous aider ?`;
+                const greeting = `Hello! I'm your AI assistant.${pageContext ? `\n\n${pageContext}` : ""}\n\nHow can I help you?`;
                 setMessages([{ role: "assistant", content: greeting }]);
               }}
               className="h-8 w-8 rounded-lg border border-zinc-900 bg-black text-zinc-600 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"

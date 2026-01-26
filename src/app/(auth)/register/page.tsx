@@ -34,14 +34,14 @@ export default function RegisterPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Erreur d'inscription");
+        setError(result.error.message || "Registration error");
         setLoading(false);
         return;
       }
 
       router.push("/complete-profile");
     } catch {
-      setError("Erreur d'inscription");
+      setError("Registration error");
       setLoading(false);
     }
   };

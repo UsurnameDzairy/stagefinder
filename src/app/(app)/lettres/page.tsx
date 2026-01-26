@@ -119,9 +119,9 @@ export default function LettresPage() {
                   onChange={(e) => setContractType(e.target.value)}
                   className="flex h-11 w-full rounded-xl border border-zinc-900 bg-zinc-950 px-4 py-1 text-sm text-zinc-100 shadow-none focus:outline-none focus:border-zinc-500 transition-all font-medium"
                 >
-                  <option value="stage">Stage</option>
-                  <option value="alternance">Alternance</option>
-                  <option value="cdi">CDI / CDD</option>
+                  <option value="stage">Internship</option>
+                  <option value="alternance">Apprenticeship</option>
+                  <option value="cdi">Full-time</option>
                 </select>
               </div>
               <div className="space-y-2">
@@ -133,7 +133,7 @@ export default function LettresPage() {
                   onChange={(e) => setLanguage(e.target.value)}
                   className="flex h-11 w-full rounded-xl border border-zinc-900 bg-zinc-950 px-4 py-1 text-sm text-zinc-100 shadow-none focus:outline-none focus:border-zinc-500 transition-all font-medium"
                 >
-                  <option value="fr">Français</option>
+                  <option value="fr">French</option>
                   <option value="en">English</option>
                 </select>
               </div>

@@ -1,32 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { extractText } from "unpdf";
 
-// Use pdf-parse which bundles its own compatible pdfjs version
+// Use unpdf which works in Node.js server environment
 async function parsePDF(buffer: Buffer): Promise<string> {
   try {
-    console.log('[PDF Extract] Starting extraction with pdf-parse...');
+    console.log('[PDF Extract] Starting extraction with unpdf...');
+    console.log('[PDF Extract] Buffer size:', buffer.length, 'bytes');
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse");
+    // Convert Buffer to Uint8Array for unpdf
+    const uint8Array = new Uint8Array(buffer);
 
-    const data = await pdfParse(buffer, {
-      // Custom render to get better text extraction
-      pagerender: function (pageData: any) {
-        return pageData.getTextContent().then(function (textContent: any) {
-          let text = '';
-          for (const item of textContent.items) {
-            text += item.str + ' ';
-          }
-          return text;
-        });
-      }
-    });
+    // Extract text using unpdf
+    const { text, totalPages } = await extractText(uint8Array, { mergePages: true });
 
-    console.log(`[PDF Extract] Success! Extracted ${data.text?.length || 0} characters`);
-    return data.text || "";
+    console.log(`[PDF Extract] Success! Extracted ${text?.length || 0} characters from ${totalPages} pages`);
+
+    if (!text) {
+      console.warn('[PDF Extract] No text extracted');
+      return "";
+    }
+
+    return text;
 
   } catch (error) {
-    console.error('[PDF Extract] pdf-parse failed:', error);
+    console.error('[PDF Extract] unpdf failed:', error);
     throw new Error(`PDF extraction failed: ${(error as Error).message}`);
   }
 }
@@ -65,12 +63,12 @@ export async function POST(req: NextRequest) {
         }
 
         if (!extractedText || extractedText.length < 50) {
-          extractedText = `[PDF: ${file.name}] - L'extraction a retourné trop peu de texte. Ce PDF est peut-être scanné. Veuillez copier-coller le contenu manuellement.`;
+          extractedText = `[PDF: ${file.name}] - Extraction returned too little text. This PDF may be scanned. Please copy-paste the content manually.`;
         }
       } catch (pdfError) {
         const errorMessage = (pdfError as Error).message || 'Unknown error';
         console.error("[PDF Extract] Error:", errorMessage);
-        extractedText = `[PDF: ${file.name}] - Erreur d'extraction: ${errorMessage}. Veuillez copier-coller le contenu.`;
+        extractedText = `[PDF: ${file.name}] - Extraction error: ${errorMessage}. Please copy-paste the content.`;
       }
     } else if (fileName.endsWith(".docx")) {
       try {
@@ -81,14 +79,14 @@ export async function POST(req: NextRequest) {
         extractedText = cleanExtractedText(extractedText);
 
         if (!extractedText || extractedText.length < 50) {
-          extractedText = `[DOCX: ${file.name}] - Le texte n'a pas pu être extrait.`;
+          extractedText = `[DOCX: ${file.name}] - Text could not be extracted.`;
         }
       } catch (docxError) {
         console.error("DOCX parse error:", docxError);
-        extractedText = `[DOCX: ${file.name}] - Erreur lors de l'extraction.`;
+        extractedText = `[DOCX: ${file.name}] - Error during extraction.`;
       }
     } else if (fileName.endsWith(".doc")) {
-      extractedText = `[DOC: ${file.name}] - Format ancien non supporté. Veuillez convertir en .docx ou copier-coller le contenu.`;
+      extractedText = `[DOC: ${file.name}] - Old format not supported. Please convert to .docx or copy-paste the content.`;
     } else if (fileName.endsWith(".txt") || fileName.endsWith(".md")) {
       extractedText = await file.text();
     } else {

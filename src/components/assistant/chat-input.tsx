@@ -217,15 +217,15 @@ const ModelSelectorDropdown: React.FC<{ models: ModelOption[]; selectedModel: st
 };
 
 const DEFAULT_PLACEHOLDER_SUGGESTIONS = [
-  "Analysez mon CV...",
-  "Aidez-moi à rédiger une lettre...",
-  "Simulons un entretien...",
+  "Analyze my CV...",
+  "Help me write a cover letter...",
+  "Let's simulate an interview...",
 ];
 
 export function AssistantChatInput({
   onSendMessage,
   disabled = false,
-  placeholder = "Décrivez votre objectif de carrière...",
+  placeholder = "Describe your career goals...",
   maxFiles = MAX_FILES,
   maxFileSize = MAX_FILE_SIZE,
   models = DEFAULT_MODELS,
@@ -273,7 +273,7 @@ export function AssistantChatInput({
         readFileAsText(fileToUpload.file).then((textContent) => {
           setFiles((prev) => prev.map((f) => f.id === fileToUpload.id ? { ...f, textContent } : f));
         }).catch(() => {
-          setFiles((prev) => prev.map((f) => f.id === fileToUpload.id ? { ...f, textContent: "Erreur de lecture" } : f));
+          setFiles((prev) => prev.map((f) => f.id === fileToUpload.id ? { ...f, textContent: "Error reading file" } : f));
         });
       }
       setFiles((prev) => prev.map((f) => f.id === fileToUpload.id ? { ...f, uploadStatus: "uploading" } : f));
@@ -341,7 +341,7 @@ export function AssistantChatInput({
     <div className="relative w-full max-w-2xl mx-auto" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
       {isDragging && (
         <div className="absolute inset-0 z-50 bg-[#1C3F62] border-2 border-dashed border-blue-500 rounded-xl flex flex-col items-center justify-center pointer-events-none">
-          <p className="text-sm text-blue-500 flex items-center gap-2"><ImageIcon className="size-4 opacity-50" />Déposez vos fichiers ici</p>
+          <p className="text-sm text-blue-500 flex items-center gap-2"><ImageIcon className="size-4 opacity-50" />Drop your files here</p>
         </div>
       )}
       <div className="bg-[#30302E] border border-zinc-700 rounded-xl shadow-lg items-end gap-2 min-h-[150px] flex flex-col relative">

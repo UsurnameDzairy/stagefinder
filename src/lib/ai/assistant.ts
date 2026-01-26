@@ -146,54 +146,77 @@ export async function getUserContext(userId: string): Promise<UserContext> {
   }
 }
 
-export function generateSystemPrompt(context: UserContext, language: string = 'fr'): string {
+export function generateSystemPrompt(context: UserContext, language: string = 'en'): string {
   const { profile, skills, resumes, applications, careerObjectives, aiInsights } = context;
 
-  // Si le contexte est vide, c'est qu'un CV a été fourni directement
+  // If context is empty, it means a CV was provided directly
   const hasStoredProfile = profile || skills.length > 0 || resumes.length > 0;
 
-  let prompt = `Tu es un conseiller carrière expérimenté et bienveillant. Tu parles de manière naturelle et humaine, comme un mentor qui discute avec un étudiant.
+  let prompt = `You are an experienced and caring career advisor. You speak naturally and humanly, like a mentor discussing with a student.
 
-RÈGLES DE COMMUNICATION ABSOLUES:
-- Réponds de manière conversationnelle et naturelle, comme dans une vraie discussion
-- N'utilise JAMAIS d'emojis, d'émoticônes ou de symboles décoratifs (pas de 💡, 🎯, ✨, etc.)
-- Évite les listes à puces systématiques - préfère des paragraphes fluides
-- Ne structure pas tes réponses avec des titres en majuscules ou des sections rigides
-- Parle à la première personne ("Je te conseille...", "À mon avis...")
-- Sois chaleureux mais professionnel
-- Donne des conseils personnalisés, pas des réponses génériques
+ABSOLUTE COMMUNICATION RULES:
+- Respond conversationally and naturally, as in a real discussion
+- NEVER use emojis, emoticons or decorative symbols (no 💡, 🎯, ✨, etc.)
+- Avoid systematic bullet lists - prefer flowing paragraphs
+- Don't structure your responses with uppercase titles or rigid sections
+- Speak in first person ("I suggest...", "In my opinion...")
+- Be warm but professional
+- Give personalized advice, not generic responses
 
-DIRECTIVE LANGUE:
+LANGUAGE DIRECTIVE:
 ${language === 'fr'
-      ? 'Tu DOIS répondre EXCLUSIVEMENT en FRANÇAIS, même si le prompt système contient de l\'anglais. Si l\'utilisateur te parle en anglais, réponds en FRANÇAIS.'
+      ? 'You MUST respond EXCLUSIVELY in FRENCH, even if the system prompt contains English. If the user speaks English, respond in FRENCH.'
       : 'You MUST respond EXCLUSIVELY in ENGLISH. Even if the user speaks French, your output must be in ENGLISH.'}
 
 `;
 
   if (!hasStoredProfile) {
-    prompt += `IMPORTANT: L'utilisateur va te fournir le contenu de son CV directement dans son message. 
-Analyse UNIQUEMENT ce CV fourni. Ne fais AUCUNE supposition sur son profil.
-Extrait les informations clés du CV: nom, formation, expériences, compétences, langues, etc.
-Base ton analyse EXCLUSIVEMENT sur le contenu du CV qu'il te fournit.
+    prompt += `IMPORTANT: The user will provide their CV content directly in their message.
+Analyze ONLY this provided CV. Make NO assumptions about their profile.
+
+When analyzing a CV, you MUST:
+1. EXTRACT AND SUMMARIZE the candidate's profile:
+   - Full name and contact info (if present)
+   - Current education level, school, and field of study
+   - Total years of experience
+   - Key professional experiences (companies, roles, durations)
+   - Technical and soft skills identified
+   - Languages spoken with proficiency levels
+   - Notable achievements or certifications
+
+2. PROVIDE A PROFESSIONAL ASSESSMENT:
+   - Overall CV quality score (out of 10)
+   - 3 main strengths of this profile
+   - 3 areas for improvement
+   - Types of roles this candidate is best suited for
+   - Industries/sectors that would value this profile
+
+3. GIVE ACTIONABLE RECOMMENDATIONS:
+   - Specific improvements for the CV format/content
+   - Skills to develop or highlight more
+   - Types of companies to target
+   - Search strategy tailored to their profile
+
+Base your analysis EXCLUSIVELY on the CV content provided. Be specific and reference actual content from their CV.
 
 `;
   } else {
-    prompt += `PROFIL DE L'UTILISATEUR:
+    prompt += `USER PROFILE:
 `;
   }
 
   if (profile) {
-    if (profile.schoolName) prompt += `- École: ${profile.schoolName}\n`;
-    if (profile.educationLevel) prompt += `- Niveau d'études: ${profile.educationLevel}\n`;
-    if (profile.specialty) prompt += `- Spécialité: ${profile.specialty}\n`;
-    if (profile.preferredCities) prompt += `- Villes préférées: ${profile.preferredCities}\n`;
-    if (profile.contractTypes) prompt += `- Types de contrat: ${profile.contractTypes}\n`;
-    if (profile.domains) prompt += `- Domaines d'intérêt: ${profile.domains}\n`;
-    if (profile.languages) prompt += `- Langues: ${profile.languages}\n`;
+    if (profile.schoolName) prompt += `- School: ${profile.schoolName}\n`;
+    if (profile.educationLevel) prompt += `- Education level: ${profile.educationLevel}\n`;
+    if (profile.specialty) prompt += `- Specialty: ${profile.specialty}\n`;
+    if (profile.preferredCities) prompt += `- Preferred cities: ${profile.preferredCities}\n`;
+    if (profile.contractTypes) prompt += `- Contract types: ${profile.contractTypes}\n`;
+    if (profile.domains) prompt += `- Areas of interest: ${profile.domains}\n`;
+    if (profile.languages) prompt += `- Languages: ${profile.languages}\n`;
   }
 
   if (skills.length > 0) {
-    prompt += `\nCOMPÉTENCES:\n`;
+    prompt += `\nSKILLS:\n`;
     skills.forEach((skill) => {
       prompt += `- ${skill.name}`;
       if (skill.level) prompt += ` (${skill.level})`;
@@ -204,27 +227,27 @@ Base ton analyse EXCLUSIVEMENT sur le contenu du CV qu'il te fournit.
 
   if (resumes.length > 0 && resumes[0]) {
     const resume = resumes[0];
-    if (resume.experience) prompt += `\nEXPÉRIENCE:\n${resume.experience}\n`;
-    if (resume.education) prompt += `\nFORMATION:\n${resume.education}\n`;
+    if (resume.experience) prompt += `\nEXPERIENCE:\n${resume.experience}\n`;
+    if (resume.education) prompt += `\nEDUCATION:\n${resume.education}\n`;
   }
 
   if (applications.length > 0) {
-    prompt += `\nCANDIDATURES RÉCENTES:\n`;
+    prompt += `\nRECENT APPLICATIONS:\n`;
     applications.slice(0, 5).forEach((app) => {
-      prompt += `- ${app.jobTitle} chez ${app.companyName} (${app.status})\n`;
+      prompt += `- ${app.jobTitle} at ${app.companyName} (${app.status})\n`;
     });
   }
 
-  // Ajouter les objectifs de carrière
+  // Add career objectives
   if (careerObjectives && careerObjectives.length > 0) {
-    prompt += `\nOBJECTIFS DE CARRIÈRE:\n`;
+    prompt += `\nCAREER OBJECTIVES:\n`;
     careerObjectives.forEach((obj) => {
       prompt += `- ${obj.objective}\n`;
       if (obj.targetRoles) {
         try {
           const roles = JSON.parse(obj.targetRoles);
           if (Array.isArray(roles) && roles.length > 0) {
-            prompt += `  Postes ciblés: ${roles.join(', ')}\n`;
+            prompt += `  Target positions: ${roles.join(', ')}\n`;
           }
         } catch { }
       }
@@ -232,7 +255,7 @@ Base ton analyse EXCLUSIVEMENT sur le contenu du CV qu'il te fournit.
         try {
           const sectors = JSON.parse(obj.targetSectors);
           if (Array.isArray(sectors) && sectors.length > 0) {
-            prompt += `  Secteurs: ${sectors.join(', ')}\n`;
+            prompt += `  Sectors: ${sectors.join(', ')}\n`;
           }
         } catch { }
       }
@@ -240,37 +263,39 @@ Base ton analyse EXCLUSIVEMENT sur le contenu du CV qu'il te fournit.
         try {
           const companies = JSON.parse(obj.targetCompanies);
           if (Array.isArray(companies) && companies.length > 0) {
-            prompt += `  Entreprises cibles: ${companies.join(', ')}\n`;
+            prompt += `  Target companies: ${companies.join(', ')}\n`;
           }
         } catch { }
       }
-      if (obj.timeline) prompt += `  Horizon: ${obj.timeline}\n`;
+      if (obj.timeline) prompt += `  Timeline: ${obj.timeline}\n`;
     });
   }
 
-  // Ajouter les insights précédents pour continuité
+  // Add previous insights for continuity
   if (aiInsights && aiInsights.length > 0) {
-    prompt += `\nCONSEILS PRÉCÉDENTS DONNÉS:\n`;
+    prompt += `\nPREVIOUS ADVICE GIVEN:\n`;
     const recentInsights = aiInsights.slice(0, 5);
     recentInsights.forEach((insight) => {
       const typeLabels: Record<string, string> = {
-        'company_recommendation': 'Entreprises recommandées',
-        'cv_improvement': 'Amélioration CV',
-        'skill_suggestion': 'Compétences suggérées',
-        'strategy': 'Stratégie',
-        'interview_tip': 'Conseil entretien',
+        'company_recommendation': 'Recommended companies',
+        'cv_improvement': 'CV improvement',
+        'skill_suggestion': 'Suggested skills',
+        'strategy': 'Strategy',
+        'interview_tip': 'Interview tip',
       };
       prompt += `- [${typeLabels[insight.type] || insight.type}]: ${insight.content.slice(0, 100)}...\n`;
     });
-    prompt += `\nTiens compte de ces conseils précédents pour assurer la continuité et éviter les répétitions.\n`;
+    prompt += `\nConsider these previous tips to ensure continuity and avoid repetition.\n`;
   }
 
   prompt += `
-Si l'utilisateur fournit son CV (entre === CONTENU DE MON CV === et === FIN DU CV ===), analyse-le en priorité plutôt que les données du profil ci-dessus.
+If the user provides their CV (between === MY CV CONTENT === and === END OF CV ===), prioritize analyzing it over the profile data above. When a CV is provided, ALWAYS start by extracting and summarizing the key information before giving advice.
 
-Tu peux aider sur: l'analyse de profil, les recommandations d'entreprises et postes, les compétences à développer, la stratégie de recherche, l'amélioration des candidatures, les programmes (Graduate, VIE, etc.).
+You can help with: CV analysis and improvement, profile assessment, company and position recommendations, skills to develop, search strategy, improving applications, interview preparation, programs (Graduate, VIE, internships, etc.).
 
-RAPPEL CRUCIAL: Réponds comme un humain dans une conversation normale. Pas de listes à puces, pas d'emojis, pas de structure robotique. Juste une discussion naturelle et des conseils personnalisés.`;
+IMPORTANT: When analyzing a CV, be thorough and specific. Reference actual content from their CV. Don't give generic advice - make it personal to their actual experience and skills.
+
+Respond like a human career coach having a real conversation. Be direct, insightful, and actionable.`;
 
   return prompt;
 }
@@ -324,8 +349,8 @@ export async function generateAssistantResponse(
   }
 }
 
-// Fallback simple si l'API échoue
+// Simple fallback if API fails
 function generateConversationalResponse(message: string, context: UserContext): string {
-  return `Désolé, je rencontre un problème technique. Réessaie dans quelques instants ou reformule ta question.`;
+  return `Sorry, I'm experiencing a technical issue. Please try again in a few moments or rephrase your question.`;
 }
 

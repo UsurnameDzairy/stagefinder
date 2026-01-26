@@ -32,7 +32,7 @@ export function ProgressTracker({
 }: ProgressTrackerProps) {
   const formatDate = (date: string | null | undefined) => {
     if (!date) return undefined;
-    return new Date(date).toLocaleDateString("fr-FR", {
+    return new Date(date).toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
     });
@@ -42,51 +42,51 @@ export function ProgressTracker({
     const stages: ProgressStage[] = [
       {
         id: "applied",
-        label: "Candidature",
+        label: "Applied",
         icon: <Check className="h-4 w-4" strokeWidth={3} />,
         status: "completed",
       },
       {
         id: "email_sent",
-        label: "Email envoyé",
+        label: "Email sent",
         icon: <Send className="h-4 w-4" strokeWidth={2.5} />,
         status: emailSent ? "completed" : "pending",
         date: formatDate(emailSentAt),
       },
       {
         id: "response",
-        label: "Réponse",
+        label: "Response",
         icon: <MessageCircle className="h-4 w-4" strokeWidth={2.5} />,
-        status: responseReceived 
+        status: responseReceived
           ? (responseType === "negative" ? "failed" : "completed")
           : (emailSent ? "current" : "pending"),
         date: formatDate(responseReceivedAt),
       },
     ];
 
-    // Ajouter l'étape entretien si applicable
+    // Add interview stage if applicable
     if (applicationStatus === "INTERVIEW" || interviewAt || responseType === "interview") {
       stages.push({
         id: "interview",
-        label: "Entretien",
+        label: "Interview",
         icon: <Video className="h-4 w-4" strokeWidth={2.5} />,
         status: interviewAt ? "completed" : "current",
         date: formatDate(interviewAt),
       });
     }
 
-    // Ajouter l'étape finale selon le statut
+    // Add final stage based on status
     if (applicationStatus === "OFFER") {
       stages.push({
         id: "offer",
-        label: "Offre reçue",
+        label: "Offer received",
         icon: <Trophy className="h-4 w-4" strokeWidth={2.5} />,
         status: "completed",
       });
     } else if (applicationStatus === "REJECTED") {
       stages.push({
         id: "rejected",
-        label: "Refusé",
+        label: "Rejected",
         icon: <X className="h-4 w-4" strokeWidth={3} />,
         status: "failed",
       });

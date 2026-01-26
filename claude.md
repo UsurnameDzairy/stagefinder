@@ -1,180 +1,114 @@
-# TODO List - StageFinder Fixes
+# StageFinder - Notes de développement
 
-## 🔴 URGENT - Build Errors
+## Changements récents (2026-01-26)
 
-### 1. Fix PDF Import Error in `/api/cv/parse/route.ts`
-**Error**: `Export default doesn't exist in target module`
-**File**: `src/app/api/cv/parse/route.ts:2`
+### Terminé
+- [x] Menu utilisateur style Claude avec:
+  - Email en header
+  - Paramètres
+  - Langue (sous-menu FR/EN)
+  - Obtenir de l'aide
+  - Voir tous les forfaits
+  - En savoir plus
+  - Se déconnecter
+  - Info plan (avatar + nom + plan actuel)
+- [x] Sélecteur de langue retiré de la navbar (déplacé dans le menu utilisateur)
+- [x] Checkbox "Remember me" supprimée de la page login
+- [x] Traductions ajoutées pour le menu (account, language, help, pricing, learnMore)
+- [x] Extraction PDF configurée avec pdf-parse (require() pour éviter les erreurs ESM)
+- [x] Sidebar avec historique des conversations sur /assistant
+  - Liste des sessions avec date
+  - Suppression des conversations
+  - Bouton "Nouvelle session"
+  - Toggle pour cacher/afficher la sidebar
+- [x] Navbar: "Entreprises" remplacé par "Candidatures"
+- [x] "Mes Candidatures" retiré du sous-menu Outils (doublon)
+- [x] API DELETE pour supprimer les conversations
 
-**Solution**:
+---
+
+## Structure de la navbar
+
+```
+KAM | Dashboard | Offres | Candidatures | Outils ▼
+                                          ├── CV Improver
+                                          └── Lettres de motivation
+```
+
+---
+
+## Structure des fichiers clés
+
+### Navigation
+- `src/components/ui/navbar.tsx` - Navbar avec menu utilisateur style Claude
+
+### Authentification
+- `src/app/(auth)/login/page.tsx` - Page de connexion (sans remember me)
+- `src/app/(auth)/register/page.tsx` - Page d'inscription
+
+### Assistant IA
+- `src/app/(app)/assistant/page.tsx` - Page assistant avec sidebar conversations
+
+### API
+- `src/app/api/extract-text/route.ts` - Extraction de texte (PDF, DOCX, TXT)
+- `src/app/api/cv/parse/route.ts` - Parsing CV spécifique
+- `src/app/api/assistant/conversation/route.ts` - CRUD conversations (GET, POST, DELETE)
+
+### Traductions
+- `src/lib/i18n/translations.ts` - Toutes les traductions FR/EN
+- `src/lib/i18n/LanguageContext.tsx` - Context React pour la langue
+
+---
+
+## Notes techniques
+
+### Extraction PDF
+Le projet utilise `pdf-parse` avec `require()` au lieu de `import` pour éviter les erreurs ESM:
 ```typescript
-// BEFORE (ligne 2)
-import pdf from "pdf-parse";
-
-// AFTER
-// Remove the import line completely, it's already using require() in the function
+const pdfParse = require("pdf-parse");
 ```
 
-**Status**: ⏳ Already fixed with require() but import line still exists
+### Menu utilisateur (style Claude)
+Le menu utilisateur contient maintenant:
+1. Email de l'utilisateur
+2. Paramètres
+3. Langue (sous-menu avec FR/EN)
+4. Obtenir de l'aide
+5. Voir tous les forfaits
+6. En savoir plus
+7. Se déconnecter
+8. Info plan (avatar + nom + plan actuel)
+
+### Sidebar conversations
+- Les conversations sont sauvegardées via `/api/assistant/conversation`
+- DELETE endpoint pour supprimer les conversations
+- La sidebar affiche les 20 dernières conversations
+- Format de date relatif (5m, 2h, 3j, ou date)
 
 ---
 
-### 2. Fix Missing `availableModels` Variable
-**Error**: `Cannot find name 'availableModels'`
-**File**: `src/app/(app)/assistant/page.tsx:434`
-
-**Solution**:
-Add state variable in the `ClaudeChatInput` component (around line 150):
-
-```typescript
-function ClaudeChatInput({ onSendMessage, placeholder = "Message KAM...", isLoading = false }: ClaudeChatInputProps) {
-  const { t } = useTranslation();
-  const [message, setMessage] = useState("");
-  const [files, setFiles] = useState<FileWithPreview[]>([]);
-  const [pastedContent, setPastedContent] = useState<PastedContent[]>([]);
-  const [selectedModel, setSelectedModel] = useState("llama-3.3-70b");
-  const [availableModels, setAvailableModels] = useState<ModelOption[]>(DEFAULT_MODELS); // ADD THIS LINE
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [cvAnalysisMode, setCvAnalysisMode] = useState(false);
-
-  // ADD THIS useEffect to load models from API
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        const res = await fetch("/api/models");
-        const data = await res.json();
-        if (data.models && data.models.length > 0) {
-          setAvailableModels(data.models);
-          setSelectedModel(data.models[0].id);
-        }
-      } catch (error) {
-        console.error("Failed to load models:", error);
-      }
-    };
-    fetchModels();
-  }, []);
-```
-
-**Status**: ⏳ Partially done
-
----
-
-### 3. Database Migration Issue
-**Error**: `Migration failed - Application table does not exist in shadow database`
-
-**Solution**:
-```bash
-# Option 1: Reset shadow database
-npx prisma migrate reset --skip-seed
-
-# Option 2: Force push schema
-npx prisma db push --force-reset
-
-# Then generate client
-npx prisma generate
-```
-
-**Status**: ❌ Not done
-
----
-
-## 🟡 MEDIUM Priority - Features
-
-### 4. Add Link to Models Management Page
-**File**: `src/app/(app)/assistant/page.tsx`
-
-Add a settings button to access `/models` page:
-
-```typescript
-// In the header section, add:
-<Link href="/models">
-  <Button variant="ghost" size="sm">
-    <Settings className="h-4 w-4" />
-  </Button>
-</Link>
-```
-
-**Status**: ❌ Not done
-
----
-
-### 5. Test PDF Extraction
-**Files**: 
-- `src/app/api/extract-text/route.ts`
-- `src/app/api/cv/parse/route.ts`
-
-**Test**:
-1. Upload a PDF via the "+" button in `/assistant`
-2. Verify text extraction works
-3. Check console logs for errors
-
-**Status**: ❌ Not tested
-
----
-
-## 🟢 LOW Priority - Polish
-
-### 6. Add Translation Keys
-**Files**: `src/lib/i18n/translations/*.json`
-
-Add missing translation keys:
-- `assistantPage.starters.cvAnalysis`
-- `assistantPage.starters.interviewPrep`
-- `dashboard.quickActions`
-
-**Status**: ⚠️ Using fallback text
-
----
-
-### 7. Improve Error Messages
-**File**: `src/app/api/extract-text/route.ts`
-
-Make error messages more user-friendly in French.
-
-**Status**: ✅ Done
-
----
-
-## 📋 Checklist
-
-- [ ] Fix PDF import error (remove unused import)
-- [ ] Add `availableModels` state variable
-- [ ] Fix database migration
-- [ ] Add link to models management page
-- [ ] Test PDF extraction end-to-end
-- [ ] Add missing translations
-- [ ] Verify all pages load without errors
-
----
-
-## 🚀 Quick Start Commands
+## Commandes utiles
 
 ```bash
-# 1. Fix database
-npx prisma db push
-npx prisma generate
-
-# 2. Restart dev server
+# Démarrer le serveur de développement
 npm run dev
 
-# 3. Test in browser
-# - Go to http://localhost:3000/assistant
-# - Click "+" and upload a PDF
-# - Go to http://localhost:3000/models to manage AI models
+# Générer le client Prisma
+npx prisma generate
+
+# Pousser le schéma vers la base de données
+npx prisma db push
 ```
 
 ---
 
-## 📝 Notes
+## À faire
 
-- PDF extraction now uses `pdf-parse` with `require()` to avoid ESM issues
-- Models are loaded dynamically from `/api/models`
-- Dashboard shows only real data (no fake data)
-- AI typing speed increased 6x (5ms per character)
-- Starter buttons now send messages directly to chat
+- [ ] Ajouter page /aide (help page)
+- [ ] Ajouter page /about (learn more)
+- [ ] Vérifier que les pages utilisent bien les traductions
+- [ ] Tester l'extraction PDF end-to-end
 
 ---
 
-**Last Updated**: 2026-01-25 22:22
-**Priority**: Fix items 1, 2, 3 first (build errors)
+**Dernière mise à jour**: 2026-01-26

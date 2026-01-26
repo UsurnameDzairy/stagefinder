@@ -112,7 +112,7 @@ export default function CandidaturesPage() {
     if (!file) return;
 
     if (!file.name.endsWith('.pdf') && !file.name.endsWith('.txt') && !file.name.endsWith('.docx')) {
-      alert("Format non supporté. Utilisez PDF, TXT ou DOCX.");
+      alert("Unsupported format. Please use PDF, TXT or DOCX.");
       return;
     }
 
@@ -145,11 +145,11 @@ export default function CandidaturesPage() {
           }),
         });
       } else {
-        alert(data.error || "Erreur lors de la lecture du fichier");
+        alert(data.error || "Error reading file");
       }
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Erreur lors de l'upload du fichier");
+      alert("Error uploading file");
     } finally {
       setCvUploading(false);
     }
@@ -198,7 +198,7 @@ export default function CandidaturesPage() {
           type: emailType,
           companyName: app.companyName,
           jobTitle: app.jobTitle,
-          appliedDate: app.appliedAt ? new Date(app.appliedAt).toLocaleDateString("fr-FR") : undefined,
+          appliedDate: app.appliedAt ? new Date(app.appliedAt).toLocaleDateString("en-US") : undefined,
         }),
       });
       
@@ -288,7 +288,7 @@ export default function CandidaturesPage() {
   };
 
   const deleteApplication = async (appId: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette candidature ?")) return;
+    if (!confirm("Are you sure you want to delete this application?")) return;
     
     try {
       await fetch(`/api/applications/${appId}`, {
@@ -306,7 +306,7 @@ export default function CandidaturesPage() {
 
   const formatDate = (date: string | null) => {
     if (!date) return "-";
-    return new Date(date).toLocaleDateString("fr-FR", {
+    return new Date(date).toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -420,40 +420,40 @@ export default function CandidaturesPage() {
       {showNewForm && (
         <Card className="border-white bg-black shadow-2xl">
           <CardHeader>
-            <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest">Nouvelle candidature</CardTitle>
+            <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest">New Application</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider ml-1">Entreprise *</label>
+                <label className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider ml-1">Company *</label>
                 <Input
-                  placeholder="Nom de l'entreprise"
+                  placeholder="Company name"
                   value={newApp.companyName}
                   onChange={(e) => setNewApp({ ...newApp, companyName: e.target.value })}
                   className="h-10 bg-zinc-950 border-zinc-900 focus:border-white transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider ml-1">Poste *</label>
+                <label className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider ml-1">Position *</label>
                 <Input
-                  placeholder="Titre du poste"
+                  placeholder="Job title"
                   value={newApp.jobTitle}
                   onChange={(e) => setNewApp({ ...newApp, jobTitle: e.target.value })}
                   className="h-10 bg-zinc-950 border-zinc-900 focus:border-white transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider ml-1">Email contact</label>
+                <label className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider ml-1">Contact Email</label>
                 <Input
                   type="email"
-                  placeholder="recrutement@entreprise.com"
+                  placeholder="recruiting@company.com"
                   value={newApp.contactEmail}
                   onChange={(e) => setNewApp({ ...newApp, contactEmail: e.target.value })}
                   className="h-10 bg-zinc-950 border-zinc-900 focus:border-white transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider ml-1">Site carrière</label>
+                <label className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider ml-1">Career Site</label>
                 <Input
                   placeholder="https://..."
                   value={newApp.companyUrl}
@@ -463,8 +463,8 @@ export default function CandidaturesPage() {
               </div>
             </div>
             <div className="flex gap-3 justify-end pt-4 border-t border-zinc-900">
-              <Button variant="ghost" onClick={() => setShowNewForm(false)} className="text-zinc-500 hover:text-white h-10 px-6 font-bold text-[11px] uppercase tracking-widest rounded-full">Annuler</Button>
-              <Button onClick={createApplication} className="bg-black hover:bg-zinc-900 text-white h-10 px-8 font-serif italic text-sm rounded-full border border-zinc-800 shadow-xl transition-all hover:scale-105 active:scale-95">Créer</Button>
+              <Button variant="ghost" onClick={() => setShowNewForm(false)} className="text-zinc-500 hover:text-white h-10 px-6 font-bold text-[11px] uppercase tracking-widest rounded-full">Cancel</Button>
+              <Button onClick={createApplication} className="bg-black hover:bg-zinc-900 text-white h-10 px-8 font-serif italic text-sm rounded-full border border-zinc-800 shadow-xl transition-all hover:scale-105 active:scale-95">Create</Button>
             </div>
           </CardContent>
         </Card>
@@ -477,16 +477,16 @@ export default function CandidaturesPage() {
             <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-full w-fit mx-auto mb-6">
               <Send className="h-8 w-8 text-zinc-700" />
             </div>
-            <p className="text-zinc-500 font-medium mb-8">Aucune candidature pour le moment</p>
+            <p className="text-zinc-500 font-medium mb-8">No applications yet</p>
             <div className="flex gap-4 justify-center">
               <Button variant="outline" onClick={() => setShowNewForm(true)} className="h-10 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-950 text-[11px] font-bold uppercase tracking-widest px-8 rounded-full transition-all">
                 <Plus className="h-3.5 w-3.5 mr-2" />
-                Ajouter manuellement
+                Add manually
               </Button>
               <Link href="/offres">
                 <Button className="bg-black hover:bg-zinc-900 text-white h-10 px-8 font-serif italic text-sm rounded-full border border-zinc-800 shadow-xl transition-all hover:scale-105 active:scale-95">
                   <Search className="h-4 w-4 mr-2 text-zinc-400" />
-                  Rechercher des offres
+                  Search for offers
                 </Button>
               </Link>
             </div>
@@ -551,7 +551,7 @@ export default function CandidaturesPage() {
                     <div className="border-t border-zinc-900 p-6 bg-zinc-950/40 space-y-8 animate-in fade-in slide-in-from-top-2 duration-300">
                       {/* Full Progress Tracker */}
                       <div className="bg-black/40 border border-zinc-900 rounded-2xl p-6">
-                        <h4 className="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-8">Progression de la candidature</h4>
+                        <h4 className="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-8">Application Progress</h4>
                         <ProgressTracker
                           applicationStatus={app.status}
                           emailSent={app.emailSent}
@@ -598,7 +598,7 @@ export default function CandidaturesPage() {
                             }}
                           >
                             <FileText className="h-3.5 w-3.5 mr-2" />
-                            Lettre
+                            Letter
                           </Button>
                           <Button
                             variant="outline"
@@ -615,7 +615,7 @@ export default function CandidaturesPage() {
                             }}
                           >
                             <MessageSquare className="h-3.5 w-3.5 mr-2" />
-                            Réponse
+                            Response
                           </Button>
                           {app.companyUrl && (
                             <a href={app.companyUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
@@ -636,7 +636,7 @@ export default function CandidaturesPage() {
                           className="h-9 text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white hover:bg-zinc-900"
                         >
                           <XCircle className="h-3.5 w-3.5 mr-2" />
-                          Supprimer
+                          Delete
                         </Button>
                       </div>
 
@@ -646,7 +646,7 @@ export default function CandidaturesPage() {
                           <div className="flex items-center justify-between">
                             <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
                               <Mail className="h-4 w-4 text-white" />
-                              Générateur d'email intelligent
+                              Smart Email Generator
                             </h4>
                           <div className="flex gap-1.5 p-1 bg-zinc-950 border border-zinc-900 rounded-lg">
                             {(["application", "followUp", "thankYou"] as const).map((type) => (
@@ -660,25 +660,25 @@ export default function CandidaturesPage() {
                                     : "text-zinc-600 hover:text-zinc-400"
                                 )}
                               >
-                                {type === "application" ? "Candidature" : type === "followUp" ? "Relance" : "Merci"}
+                                {type === "application" ? "Application" : type === "followUp" ? "Follow-up" : "Thank you"}
                               </button>
                             ))}
                           </div>
                           </div>
-                          
-                          <Button 
-                            onClick={() => generateEmail(app.id, app)} 
+
+                          <Button
+                            onClick={() => generateEmail(app.id, app)}
                             disabled={generating}
                             className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-full h-11 border border-zinc-800 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                           >
                             {generating ? <Loader size="sm" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                            Générer l'email parfait
+                            Generate perfect email
                           </Button>
 
                           {generatedEmail && (
                             <div className="space-y-4 animate-in fade-in duration-500">
                               <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Objet de l'email</label>
+                                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Email Subject</label>
                                 <div className="flex gap-2">
                                   <Input value={generatedEmail.subject} readOnly className="bg-zinc-950 border-zinc-900 text-sm h-10 font-medium" />
                                   <Button variant="outline" size="sm" onClick={() => copyToClipboard(generatedEmail.subject)} className="h-10 border-zinc-900 hover:bg-zinc-900 px-3">
@@ -687,28 +687,28 @@ export default function CandidaturesPage() {
                                 </div>
                               </div>
                               <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Contenu généré</label>
+                                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Generated Content</label>
                                 <div className="relative group">
-                                  <Textarea 
-                                    value={generatedEmail.body} 
-                                    readOnly 
-                                    rows={12} 
+                                  <Textarea
+                                    value={generatedEmail.body}
+                                    readOnly
+                                    rows={12}
                                     className="bg-zinc-950 border-zinc-900 text-[13px] leading-relaxed font-medium p-4 scrollbar-hide"
                                   />
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="absolute top-3 right-3 h-8 border-zinc-800 bg-zinc-950/80 backdrop-blur opacity-0 group-hover:opacity-100 transition-all"
                                     onClick={() => copyToClipboard(generatedEmail.body)}
                                   >
                                     <Copy className="h-3.5 w-3.5 mr-2" />
-                                    Copier
+                                    Copy
                                   </Button>
                                 </div>
                               </div>
                               <Button onClick={() => markEmailSent(app.id)} className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 h-11 text-[11px] font-bold uppercase tracking-[0.15em]">
                                 <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
-                                Marquer comme envoyé
+                                Mark as sent
                               </Button>
                             </div>
                           )}
@@ -721,7 +721,7 @@ export default function CandidaturesPage() {
                           <div className="flex items-center justify-between">
                             <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
                               <FileText className="h-4 w-4 text-white" />
-                              Lettre de motivation Premium
+                              Premium Cover Letter
                             </h4>
                             <div className="flex gap-1.5 p-1 bg-zinc-950 border border-zinc-900 rounded-lg">
                               <button
@@ -751,18 +751,18 @@ export default function CandidaturesPage() {
                                     : "bg-black border-zinc-900 text-zinc-600 hover:border-zinc-800 hover:text-zinc-400"
                                 )}
                               >
-                                {tone === "harvard" ? "🎓 Harvard Style" : tone === "formal" ? "Corporate" : tone === "dynamic" ? "Moderne" : "Créatif"}
+                                {tone === "harvard" ? "🎓 Harvard Style" : tone === "formal" ? "Corporate" : tone === "dynamic" ? "Modern" : "Creative"}
                               </button>
                             ))}
                           </div>
                           
-                          <Button 
-                            onClick={() => generateCoverLetter(app)} 
+                          <Button
+                            onClick={() => generateCoverLetter(app)}
                             disabled={generating}
                             className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-full h-12 border border-zinc-800 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                           >
                             {generating ? <Loader size="sm" /> : <Sparkles className="h-4 w-4 mr-2 text-zinc-400" />}
-                            Rédiger avec l'IA
+                            Write with AI
                           </Button>
 
                           {generatedCoverLetter && (
@@ -775,14 +775,14 @@ export default function CandidaturesPage() {
                                   className="bg-zinc-950 border-zinc-900 text-[13px] leading-relaxed font-medium p-6 font-serif scrollbar-hide"
                                 />
                                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     className="h-9 border-zinc-800 bg-zinc-950/80 backdrop-blur"
                                     onClick={() => copyToClipboard(generatedCoverLetter)}
                                   >
                                     <Copy className="h-3.5 w-3.5 mr-2" />
-                                    Copier la lettre
+                                    Copy letter
                                   </Button>
                                 </div>
                               </div>
@@ -796,17 +796,17 @@ export default function CandidaturesPage() {
                         <div className="bg-black border border-zinc-900 rounded-2xl p-6 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                           <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
                             <MessageSquare className="h-4 w-4 text-white" />
-                            Consigner une réponse
+                            Log a Response
                           </h4>
-                          
+
                           <div className="space-y-3">
-                            <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Type de retour</label>
+                            <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Response Type</label>
                             <div className="flex flex-wrap gap-2">
                               {[
                                 { id: "positive", label: "Positive", icon: CheckCircle2 },
-                                { id: "interview", label: "Entretien", icon: Calendar },
-                                { id: "negative", label: "Négative", icon: XCircle },
-                                { id: "pending", label: "En attente", icon: Clock },
+                                { id: "interview", label: "Interview", icon: Calendar },
+                                { id: "negative", label: "Negative", icon: XCircle },
+                                { id: "pending", label: "Pending", icon: Clock },
                               ].map((type) => (
                                 <button
                                   key={type.id}
@@ -826,9 +826,9 @@ export default function CandidaturesPage() {
                           </div>
 
                           <div className="space-y-3">
-                            <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Commentaires / Notes</label>
+                            <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Comments / Notes</label>
                             <Textarea
-                              placeholder="Notes sur l'échange ou contenu de la réponse..."
+                              placeholder="Notes about the exchange or response content..."
                               value={responseData.content}
                               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setResponseData({ ...responseData, content: e.target.value })}
                               rows={4}
@@ -837,7 +837,7 @@ export default function CandidaturesPage() {
                           </div>
 
                           <div className="space-y-3">
-                            <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Screenshot (preuve)</label>
+                            <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Screenshot (proof)</label>
                             <div className="border-2 border-dashed border-zinc-900 hover:border-zinc-700 bg-zinc-950/50 rounded-2xl p-8 text-center transition-all cursor-pointer group">
                               <input
                                 type="file"
@@ -849,18 +849,18 @@ export default function CandidaturesPage() {
                               <label htmlFor={`screenshot-${app.id}`} className="cursor-pointer">
                                 <Image className="h-8 w-8 text-zinc-700 mx-auto mb-3 group-hover:text-zinc-500 transition-colors" />
                                 <p className="text-[12px] font-bold text-zinc-600 group-hover:text-zinc-400 transition-colors uppercase tracking-widest">
-                                  {responseData.screenshot ? responseData.screenshot.name : "Glissez-déposez un screenshot"}
+                                  {responseData.screenshot ? responseData.screenshot.name : "Drag and drop a screenshot"}
                                 </p>
                               </label>
                             </div>
                           </div>
 
-                          <Button 
-                            onClick={() => submitResponse(app.id)} 
+                          <Button
+                            onClick={() => submitResponse(app.id)}
                             className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-full h-12 border border-zinc-800 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                           >
                             <CheckCircle2 className="h-4 w-4 mr-2 text-zinc-400" />
-                            Enregistrer le retour
+                            Save response
                           </Button>
                         </div>
                       )}
@@ -868,7 +868,7 @@ export default function CandidaturesPage() {
                       {/* Timeline Monochrome */}
                       {app.timeline && app.timeline.length > 0 && (
                         <div className="bg-black/20 border border-zinc-900/50 rounded-2xl p-6">
-                          <h4 className="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-6">Historique complet</h4>
+                          <h4 className="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-6">Complete History</h4>
                           <div className="space-y-6">
                             {app.timeline.slice(0, 5).map((event) => (
                               <div key={event.id} className="flex items-start gap-4 text-sm relative">

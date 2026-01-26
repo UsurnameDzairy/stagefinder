@@ -78,11 +78,11 @@ export default function CVImproverPage() {
       if (data.success && data.text) {
         setCvText(data.text);
       } else {
-        alert(data.error || t("applications.cvUpload.errorReading") || "Erreur lors de la lecture du fichier");
+        alert(data.error || t("applications.cvUpload.errorReading") || "Error reading file");
       }
     } catch (error) {
       console.error("Upload error:", error);
-      alert(t("applications.cvUpload.errorUploading") || "Erreur lors de l'upload du fichier");
+      alert(t("applications.cvUpload.errorUploading") || "Error uploading file");
     } finally {
       setUploading(false);
     }
@@ -543,7 +543,7 @@ export default function CVImproverPage() {
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all z-10">
                     <Button variant="outline" size="sm" onClick={() => copyToClipboard(generatedCV)} className="h-9 border-zinc-800 bg-zinc-950/80 backdrop-blur text-zinc-400 hover:text-white">
                       <Copy className="h-3.5 w-3.5 mr-2" />
-                      Copier
+                      Copy
                     </Button>
                   </div>
                   <Textarea

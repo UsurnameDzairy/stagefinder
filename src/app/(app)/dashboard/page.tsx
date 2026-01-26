@@ -126,8 +126,7 @@ export default function DashboardPage() {
         {/* Status Distribution - REAL DATA */}
         <Card className="bg-black border-zinc-900 shadow-none">
           <CardHeader className="p-6">
-            <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-              <PieChart className="h-4 w-4" />
+            <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
               {t("dashboard.applicationStatus")}
             </CardTitle>
           </CardHeader>
@@ -177,8 +176,7 @@ export default function DashboardPage() {
         {/* Skills Coverage Analytics */}
         <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
           <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-              <Target className="h-3.5 w-3.5" />
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
               {t("dashboard.skillsCoverage")}
             </CardTitle>
           </CardHeader>
@@ -247,8 +245,7 @@ export default function DashboardPage() {
 
           <Card className="bg-zinc-950 border-zinc-900 shadow-none">
             <CardHeader className="p-6 pb-2">
-              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-zinc-400" />
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
                 {t("dashboard.proTip")}
               </CardTitle>
             </CardHeader>
@@ -267,8 +264,7 @@ export default function DashboardPage() {
       {/* Recent Activity Section */}
       <Card className="lg:col-span-3 bg-black border-zinc-900 shadow-none">
         <CardHeader className="p-6 pb-4 border-b border-zinc-900/50">
-          <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-            <ActivityIcon className="h-4 w-4" />
+          <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
             {t("dashboard.recentActivity")}
           </CardTitle>
         </CardHeader>
