@@ -13,6 +13,10 @@ import {
   Loader2,
   Copy,
   Settings,
+  MessageSquare,
+  Trash2,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -479,6 +483,142 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+interface Conversation {
+  id: string;
+  title: string;
+  summary?: string;
+  createdAt: string;
+  updatedAt: string;
+  _count: { messages: number };
+}
+
+// Sidebar Component
+const ConversationSidebar: React.FC<{
+  conversations: Conversation[];
+  currentConversationId: string | null;
+  onSelectConversation: (id: string) => void;
+  onNewConversation: () => void;
+  onDeleteConversation: (id: string) => void;
+  isOpen: boolean;
+  onToggle: () => void;
+}> = ({ conversations, currentConversationId, onSelectConversation, onNewConversation, onDeleteConversation, isOpen, onToggle }) => {
+  const { t } = useTranslation();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setDeletingId(id);
+    await onDeleteConversation(id);
+    setDeletingId(null);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}j`;
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  };
+
+  if (!isOpen) {
+    return (
+      <button
+        onClick={onToggle}
+        className="absolute left-4 top-4 z-20 p-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all"
+      >
+        <PanelLeft className="h-4 w-4" />
+      </button>
+    );
+  }
+
+  return (
+    <div className="w-64 h-full bg-zinc-900/95 border-r border-zinc-800 flex flex-col shrink-0">
+      {/* Header */}
+      <div className="p-3 border-b border-zinc-800 flex items-center justify-between">
+        <button
+          onClick={onNewConversation}
+          className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all flex-1"
+        >
+          <Plus className="h-4 w-4" />
+          {t("assistantPage.newSession") || "Nouvelle session"}
+        </button>
+        <button
+          onClick={onToggle}
+          className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+        >
+          <PanelLeftClose className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Sessions label */}
+      <div className="px-4 py-2 flex items-center justify-between">
+        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Sessions</span>
+        <SlidersHorizontal className="h-3 w-3 text-zinc-600" />
+      </div>
+
+      {/* Conversations list */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+        {conversations.length === 0 ? (
+          <div className="px-4 py-8 text-center">
+            <MessageSquare className="h-8 w-8 text-zinc-700 mx-auto mb-2" />
+            <p className="text-xs text-zinc-600">{t("assistantPage.noConversations") || "Aucune conversation"}</p>
+          </div>
+        ) : (
+          <div className="space-y-1 p-2">
+            {conversations.map((conv) => (
+              <div
+                key={conv.id}
+                onClick={() => onSelectConversation(conv.id)}
+                className={cn(
+                  "group relative px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                  currentConversationId === conv.id
+                    ? "bg-zinc-800 border border-zinc-700"
+                    : "hover:bg-zinc-800/50"
+                )}
+              >
+                <p className="text-sm text-zinc-200 truncate pr-6">{conv.title}</p>
+                <p className="text-[10px] text-zinc-500 mt-0.5">{formatDate(conv.updatedAt)}</p>
+
+                {/* Delete button */}
+                <button
+                  onClick={(e) => handleDelete(e, conv.id)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded opacity-0 group-hover:opacity-100 hover:bg-zinc-700 text-zinc-500 hover:text-red-400 transition-all"
+                  disabled={deletingId === conv.id}
+                >
+                  {deletingId === conv.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Footer with user info */}
+      <div className="p-3 border-t border-zinc-800">
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <div className="size-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-bold text-black">
+            M
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-zinc-300 truncate">MoneyPrinter</p>
+            <p className="text-[10px] text-zinc-500">Plan Max</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Simple markdown renderer
 function renderMarkdown(text: string) {
   // Split by lines and process
@@ -586,21 +726,84 @@ export default function AssistantPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch user name for personalized greeting
+  // Fetch conversations
+  const fetchConversations = useCallback(async () => {
+    try {
+      const res = await fetch("/api/assistant/conversation");
+      if (res.ok) {
+        const data = await res.json();
+        setConversations(data.conversations || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch conversations:", error);
+    }
+  }, []);
+
+  // Load conversation messages
+  const loadConversation = useCallback(async (convId: string) => {
+    try {
+      const res = await fetch(`/api/assistant/conversation?id=${convId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.conversation?.messages) {
+          const loadedMessages: ChatMessage[] = data.conversation.messages.map((msg: any) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.createdAt),
+          }));
+          setMessages(loadedMessages);
+          setConversationId(convId);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load conversation:", error);
+    }
+  }, []);
+
+  // Delete conversation
+  const deleteConversation = useCallback(async (convId: string) => {
+    try {
+      const res = await fetch(`/api/assistant/conversation?id=${convId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setConversations(prev => prev.filter(c => c.id !== convId));
+        if (conversationId === convId) {
+          setMessages([]);
+          setConversationId(null);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+    }
+  }, [conversationId]);
+
+  // New conversation
+  const startNewConversation = useCallback(() => {
+    setMessages([]);
+    setConversationId(null);
+  }, []);
+
+  // Fetch user name and conversations on mount
   useEffect(() => {
     fetch("/api/user/profile")
       .then(res => res.json())
       .then(data => {
         if (data.user?.name) {
-          setUserName(data.user.name.split(' ')[0]); // First name only
+          setUserName(data.user.name.split(' ')[0]);
         } else if (data.user?.email) {
           setUserName(data.user.email.split('@')[0]);
         }
       })
       .catch(() => { });
-  }, []);
+
+    fetchConversations();
+  }, [fetchConversations]);
 
   // Get time-based greeting
   const getGreeting = () => {
@@ -708,6 +911,8 @@ export default function AssistantPage() {
           const saveData = await saveRes.json();
           if (saveData.conversationId) {
             setConversationId(saveData.conversationId);
+            // Refresh conversations list
+            fetchConversations();
           }
         }
       } catch (saveError) {
@@ -728,36 +933,64 @@ export default function AssistantPage() {
     }
   };
 
+  // Refresh conversations after sending a message
+  const refreshConversationsAfterMessage = useCallback(() => {
+    setTimeout(() => fetchConversations(), 500);
+  }, [fetchConversations]);
+
   return (
-    <div className="h-[calc(100vh-80px)] w-full flex justify-center items-center px-4 overflow-hidden">
-      <div
-        className="w-full max-w-4xl relative"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <div className="relative overflow-hidden rounded-[48px] border border-border bg-card shadow-sm h-[600px] flex flex-col items-center justify-center">
-          <Suspense fallback={<div className="absolute inset-0 bg-muted/20" />}>
-            <div className="absolute inset-0 z-0 pointer-events-none opacity-20 mix-blend-screen grayscale contrast-125">
-              <Dithering
-                colorBack="#00000000"
-                colorFront="#ffffff"
-                shape="warp"
-                type="4x4"
-                speed={isHovered ? 0.4 : 0.15}
-                className="size-full"
-                minPixelRatio={1}
-              />
-            </div>
-          </Suspense>
+    <div className="h-[calc(100vh-80px)] w-full flex overflow-hidden">
+      {/* Sidebar */}
+      <ConversationSidebar
+        conversations={conversations}
+        currentConversationId={conversationId}
+        onSelectConversation={loadConversation}
+        onNewConversation={startNewConversation}
+        onDeleteConversation={deleteConversation}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
 
-          {/* Settings button */}
-          <Link href="/models" className="absolute top-4 right-4 z-20">
-            <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50">
-              <Settings className="h-4 w-4" />
-            </Button>
-          </Link>
+      {/* Main content */}
+      <div className="flex-1 flex justify-center items-center px-4 overflow-hidden">
+        <div
+          className="w-full max-w-4xl relative"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div className="relative overflow-hidden rounded-[48px] border border-border bg-card shadow-sm h-[600px] flex flex-col items-center justify-center">
+            <Suspense fallback={<div className="absolute inset-0 bg-muted/20" />}>
+              <div className="absolute inset-0 z-0 pointer-events-none opacity-20 mix-blend-screen grayscale contrast-125">
+                <Dithering
+                  colorBack="#00000000"
+                  colorFront="#ffffff"
+                  shape="warp"
+                  type="4x4"
+                  speed={isHovered ? 0.4 : 0.15}
+                  className="size-full"
+                  minPixelRatio={1}
+                />
+              </div>
+            </Suspense>
 
-          <div className="relative z-10 px-6 w-full max-w-2xl mx-auto flex flex-col items-center justify-center h-full">
+            {/* Settings button */}
+            <Link href="/models" className="absolute top-4 right-4 z-20">
+              <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </Link>
+
+            {/* Toggle sidebar button when closed */}
+            {!sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="absolute left-4 top-4 z-20 p-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all"
+              >
+                <PanelLeft className="h-4 w-4" />
+              </button>
+            )}
+
+            <div className="relative z-10 px-6 w-full max-w-2xl mx-auto flex flex-col items-center justify-center h-full">
             {messages.length === 0 ? (
               /* État initial - centré */
               <>
@@ -878,6 +1111,7 @@ export default function AssistantPage() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>

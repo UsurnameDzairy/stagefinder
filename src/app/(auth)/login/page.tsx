@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Sparkles, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signIn } from "@/lib/auth-client";
@@ -524,13 +523,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" className="border-zinc-800 bg-zinc-950 data-[state=checked]:bg-white data-[state=checked]:text-black" />
-                <Label htmlFor="remember" className="text-[11px] font-medium text-zinc-500 cursor-pointer">
-                  Remember for 30 days
-                </Label>
-              </div>
+            <div className="flex items-center justify-end">
               <a href="#" className="text-[11px] font-bold text-white uppercase tracking-widest hover:text-zinc-300 transition-all">
                 Forgot password?
               </a>

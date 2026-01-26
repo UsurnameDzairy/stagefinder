@@ -22,8 +22,8 @@ import Link from "next/link";
 import { LogOut, Settings, User as UserIcon, Menu, X } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import LanguageSwitcher from "./language-switcher";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useLanguage } from "@/lib/i18n";
+import { Globe, Check } from "lucide-react";
 
 interface SubmenuItem {
   href: string;
@@ -98,7 +98,7 @@ const appNavigationLinks: NavLink[] = [
   { href: "/assistant", label: "KAM" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/offres", label: "Offres" },
-  { href: "/entreprises", label: "Entreprises" },
+  { href: "/candidatures", label: "Candidatures" },
   {
     label: "Outils",
     submenu: true,
@@ -106,13 +106,13 @@ const appNavigationLinks: NavLink[] = [
     items: [
       { href: "/cv-improver", label: "CV Improver" },
       { href: "/lettres", label: "Lettres de motivation" },
-      { href: "/candidatures", label: "Mes Candidatures" },
     ],
   },
 ];
 
 export default function Navbar({ user }: NavbarProps) {
   const { t } = useTranslation();
+  const { language, setLanguage } = useLanguage();
   const links = user ? appNavigationLinks : landingNavigationLinks;
   const router = useRouter();
 
@@ -195,9 +195,8 @@ export default function Navbar({ user }: NavbarProps) {
           </div>
         </div>
 
-        {/* Right side: Language + Auth / Account */}
+        {/* Right side: Auth / Account */}
         <div className="flex items-center gap-4 shrink-0 z-20">
-          <LanguageSwitcher variant="minimal" />
           {user ? (
             <Popover>
               <PopoverTrigger asChild>
@@ -206,7 +205,7 @@ export default function Navbar({ user }: NavbarProps) {
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-200 group-hover:text-white transition-colors leading-none mb-1">
                       {user.firstName ? `${user.firstName} ${user.lastName || ""}` : user.email.split('@')[0]}
                     </span>
-                    <span className="text-[9px] text-zinc-500 uppercase tracking-[0.2em] group-hover:text-zinc-400 transition-colors font-medium leading-none">Compte</span>
+                    <span className="text-[9px] text-zinc-500 uppercase tracking-[0.2em] group-hover:text-zinc-400 transition-colors font-medium leading-none">{t("nav.account")}</span>
                   </div>
                   <div className="size-9 rounded-full border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden transition-all group-hover:border-white/20 shadow-lg group-hover:scale-105">
                     {user.image ? (
@@ -217,20 +216,98 @@ export default function Navbar({ user }: NavbarProps) {
                   </div>
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-60 p-2 bg-zinc-950/95 border border-zinc-900/50 backdrop-blur-3xl mt-4 rounded-2xl shadow-3xl">
-                <div className="flex flex-col gap-1">
-                  <Link href="/parametres" className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all">
-                    <Settings className="size-3.5" />
+              <PopoverContent align="end" className="w-64 p-3 bg-zinc-950/95 border border-zinc-800/50 backdrop-blur-3xl mt-4 rounded-2xl shadow-3xl">
+                <div className="flex flex-col">
+                  {/* Email header */}
+                  <div className="px-3 py-2 mb-1">
+                    <span className="text-[11px] text-zinc-400 font-medium">{user.email}</span>
+                  </div>
+
+                  {/* Settings */}
+                  <Link href="/parametres" className="flex items-center gap-3 px-3 py-2.5 text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all">
+                    <Settings className="size-4 text-zinc-500" />
                     {t("nav.settings")}
                   </Link>
-                  <div className="h-px bg-white/[0.05] mx-2 my-1" />
-                  <button 
+
+                  {/* Language submenu */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="w-full flex items-center justify-between px-3 py-2.5 text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all">
+                        <div className="flex items-center gap-3">
+                          <Globe className="size-4 text-zinc-500" />
+                          {t("nav.language")}
+                        </div>
+                        <span className="text-zinc-500">›</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent side="left" align="start" className="w-40 p-2 bg-zinc-950/95 border border-zinc-800/50 backdrop-blur-3xl rounded-xl shadow-3xl">
+                      <button
+                        onClick={() => setLanguage("fr")}
+                        className="w-full flex items-center justify-between px-3 py-2 text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all"
+                      >
+                        Français
+                        {language === "fr" && <Check className="size-4 text-white" />}
+                      </button>
+                      <button
+                        onClick={() => setLanguage("en")}
+                        className="w-full flex items-center justify-between px-3 py-2 text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all"
+                      >
+                        English
+                        {language === "en" && <Check className="size-4 text-white" />}
+                      </button>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Help */}
+                  <Link href="/aide" className="flex items-center gap-3 px-3 py-2.5 text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all">
+                    <svg className="size-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {t("nav.help")}
+                  </Link>
+
+                  {/* Pricing link */}
+                  <Link href="/pricing" className="flex items-center gap-3 px-3 py-2.5 text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all">
+                    <svg className="size-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4h18M3 8h18M3 12h18M3 16h9" />
+                    </svg>
+                    {t("nav.pricing")}
+                  </Link>
+
+                  {/* Learn more */}
+                  <Link href="/about" className="flex items-center justify-between px-3 py-2.5 text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all">
+                    <div className="flex items-center gap-3">
+                      <svg className="size-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {t("nav.learnMore")}
+                    </div>
+                    <span className="text-zinc-500">›</span>
+                  </Link>
+
+                  <div className="h-px bg-white/[0.05] mx-1 my-2" />
+
+                  {/* Sign out */}
+                  <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-red-400/80 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all cursor-pointer"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-[12px] font-medium text-zinc-400 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all cursor-pointer"
                   >
-                    <LogOut className="size-3.5" />
+                    <LogOut className="size-4 text-zinc-500" />
                     {t("nav.logout")}
                   </button>
+
+                  <div className="h-px bg-white/[0.05] mx-1 my-2" />
+
+                  {/* Plan info */}
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="size-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-bold text-black">
+                        {user.firstName ? user.firstName[0].toUpperCase() : user.email[0].toUpperCase()}
+                      </div>
+                      <span className="text-[11px] font-medium text-white">{user.firstName || user.email.split('@')[0]}</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-500 font-medium">Plan Free</span>
+                  </div>
                 </div>
               </PopoverContent>
             </Popover>

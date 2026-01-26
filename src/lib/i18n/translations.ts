@@ -12,8 +12,14 @@ export const translations = {
       letters: "Lettres",
       cvImprover: "CV Improver",
       settings: "Paramètres",
-      logout: "Déconnexion",
+      logout: "Se déconnecter",
       viewProfile: "Voir le profil",
+      account: "Compte",
+      language: "Langue",
+      help: "Obtenir de l'aide",
+      pricing: "Voir tous les forfaits",
+      learnMore: "En savoir plus",
+      giftClaude: "Offrir StageFinder",
     },
 
     // Dashboard
@@ -318,8 +324,14 @@ export const translations = {
       letters: "Cover Letters",
       cvImprover: "CV Improver",
       settings: "Settings",
-      logout: "Logout",
+      logout: "Log out",
       viewProfile: "View profile",
+      account: "Account",
+      language: "Language",
+      help: "Get help",
+      pricing: "See all plans",
+      learnMore: "Learn more",
+      giftClaude: "Gift StageFinder",
     },
 
     // Dashboard

@@ -74,6 +74,50 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// Supprimer une conversation
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const conversationId = searchParams.get("id");
+
+    if (!conversationId) {
+      return NextResponse.json({ error: "Conversation ID required" }, { status: 400 });
+    }
+
+    // Vérifier que la conversation appartient à l'utilisateur
+    const conversation = await prisma.aIConversation.findUnique({
+      where: { id: conversationId, userId: session.id },
+    });
+
+    if (!conversation) {
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
+    // Supprimer les messages et insights associés, puis la conversation
+    await prisma.aIMessage.deleteMany({
+      where: { conversationId },
+    });
+
+    await prisma.aIInsight.deleteMany({
+      where: { conversationId },
+    });
+
+    await prisma.aIConversation.delete({
+      where: { id: conversationId },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Conversation delete error:", error);
+    return NextResponse.json({ error: "Failed to delete conversation" }, { status: 500 });
+  }
+}
+
 // Récupérer les conversations de l'utilisateur
 export async function GET(req: NextRequest) {
   try {
