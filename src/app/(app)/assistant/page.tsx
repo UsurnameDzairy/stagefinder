@@ -530,62 +530,62 @@ const ConversationSidebar: React.FC<{
   }
 
   return (
-    <div className="w-72 h-full bg-black/40 backdrop-blur-xl border-r border-white/[0.05] flex flex-col shrink-0">
+    <div className="w-64 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
       {/* Header */}
-      <div className="p-4 flex items-center justify-between">
+      <div className="p-4">
         <button
           onClick={onNewConversation}
-          className="flex items-center gap-2.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all duration-300 flex-1 border border-white/[0.05]"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 font-serif text-[13px] text-zinc-400 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300 border border-white/[0.08]"
         >
           <Plus className="h-3.5 w-3.5" />
-          Nouvelle session
-        </button>
-        <button
-          onClick={onToggle}
-          className="ml-2 p-2.5 text-zinc-500 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all duration-300"
-        >
-          <PanelLeftClose className="h-4 w-4" />
+          <span className="italic">Nouvelle session</span>
         </button>
       </div>
 
       {/* Sessions label */}
-      <div className="px-5 py-3">
-        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Sessions</span>
+      <div className="px-4 py-2 flex items-center justify-between">
+        <span className="font-serif text-[11px] text-zinc-500 italic tracking-wide">Sessions</span>
+        <button
+          onClick={onToggle}
+          className="p-1.5 text-zinc-600 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300"
+        >
+          <PanelLeftClose className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* Conversations list */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide px-3">
+      <div className="flex-1 overflow-y-auto scrollbar-hide px-2">
         {conversations.length === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <MessageSquare className="h-6 w-6 text-zinc-700 mx-auto mb-3" />
-            <p className="text-[11px] text-zinc-600 font-medium">Aucune conversation</p>
+          <div className="px-4 py-8 text-center">
+            <MessageSquare className="h-5 w-5 text-zinc-700 mx-auto mb-2" />
+            <p className="font-serif text-[12px] text-zinc-600 italic">Aucune conversation</p>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {conversations.map((conv) => (
               <div
                 key={conv.id}
                 onClick={() => onSelectConversation(conv.id)}
                 className={cn(
-                  "group relative px-4 py-3 rounded-xl cursor-pointer transition-all duration-300",
+                  "group relative px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300",
                   currentConversationId === conv.id
-                    ? "bg-white/[0.05] border border-white/[0.08]"
-                    : "hover:bg-white/[0.03]"
+                    ? "bg-white/[0.08] border border-white/[0.1]"
+                    : "hover:bg-white/[0.04]"
                 )}
               >
-                <p className="text-[12px] text-zinc-300 truncate pr-8 font-medium">{conv.title}</p>
-                <p className="text-[10px] text-zinc-600 mt-1 font-medium">{formatDate(conv.updatedAt)}</p>
+                <p className="font-serif text-[13px] text-zinc-300 truncate pr-6">{conv.title}</p>
+                <p className="font-serif text-[10px] text-zinc-600 mt-0.5 italic">{formatDate(conv.updatedAt)}</p>
 
                 {/* Delete button */}
                 <button
                   onClick={(e) => handleDelete(e, conv.id)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/[0.05] text-zinc-600 hover:text-red-400/80 transition-all duration-300"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] text-zinc-600 hover:text-red-400/80 transition-all duration-300"
                   disabled={deletingId === conv.id}
                 >
                   {deletingId === conv.id ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-3 w-3" />
                   )}
                 </button>
               </div>
@@ -930,13 +930,13 @@ export default function AssistantPage() {
       />
 
       {/* Main content */}
-      <div className="flex-1 flex justify-center items-center px-4 overflow-hidden">
+      <div className="flex-1 flex justify-center items-center px-6 overflow-hidden">
         <div
-          className="w-full max-w-4xl relative"
+          className="w-full max-w-3xl relative"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="relative overflow-hidden rounded-[48px] border border-border bg-card shadow-sm h-[600px] flex flex-col items-center justify-center">
+          <div className="relative overflow-hidden rounded-[48px] border border-border bg-card shadow-sm h-[calc(100vh-120px)] max-h-[700px] flex flex-col">
             <Suspense fallback={<div className="absolute inset-0 bg-muted/20" />}>
               <div className="absolute inset-0 z-0 pointer-events-none opacity-20 mix-blend-screen grayscale contrast-125">
                 <Dithering
@@ -968,10 +968,10 @@ export default function AssistantPage() {
               </button>
             )}
 
-            <div className="relative z-10 px-6 w-full max-w-2xl mx-auto flex flex-col items-center justify-center h-full">
+            <div className="relative z-10 px-6 w-full max-w-2xl mx-auto flex flex-col h-full overflow-hidden">
             {messages.length === 0 ? (
               /* État initial - centré */
-              <>
+              <div className="flex-1 flex flex-col items-center justify-center">
                 <h1 className="text-3xl font-serif font-light text-[#C2C0B6] mb-8 text-center">
                   <TextType
                     text={[
@@ -999,24 +999,24 @@ export default function AssistantPage() {
                 <div className="w-full flex justify-center gap-2 mt-4">
                   <Button
                     variant="outline"
-                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-sm"
                     onClick={() => handleSendMessage("Analyse mon CV en détail et donne-moi des recommandations pour l'améliorer.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
                     {t("assistantPage.starters.cvAnalysis")}
                   </Button>
                   <Button
                     variant="outline"
-                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all"
+                    className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-sm"
                     onClick={() => handleSendMessage("Prépare mon entretien - Aide-moi à m'entraîner pour un entretien.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
                     {t("assistantPage.starters.interviewPrep")}
                   </Button>
                 </div>
-              </>
+              </div>
             ) : (
-              /* État conversation - layout chat */
-              <div className="flex flex-col h-full w-full py-4">
-                <div className="text-xl font-serif font-light text-[#C2C0B6] text-center mb-4 shrink-0">
+              /* État conversation - layout chat fixe sans scroll de page */
+              <div className="flex flex-col h-full py-4 overflow-hidden">
+                <div className="text-xl font-serif font-light text-[#C2C0B6] text-center mb-3 shrink-0">
                   <TextType
                     text={["KAM", "Votre Assistant", "Expert Carrière"]}
                     className="inline"
@@ -1027,8 +1027,8 @@ export default function AssistantPage() {
                   />
                 </div>
 
-                {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto space-y-4 scrollbar-hide min-h-0 mb-4">
+                {/* Messages Area - scroll interne seulement */}
+                <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide px-2 min-h-0">
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
@@ -1039,7 +1039,7 @@ export default function AssistantPage() {
                     >
                       <div
                         className={cn(
-                          "max-w-[85%] rounded-2xl px-4 py-3",
+                          "max-w-[85%] rounded-2xl px-4 py-2.5",
                           msg.role === "user"
                             ? "bg-zinc-700 text-white rounded-br-md border border-zinc-600"
                             : "bg-zinc-800/90 text-white rounded-bl-md border border-zinc-700"
@@ -1060,7 +1060,7 @@ export default function AssistantPage() {
                           <p className="text-sm">{msg.content}</p>
                         )}
                         <p className={cn(
-                          "text-[10px] mt-2 opacity-50",
+                          "text-[10px] mt-1.5 opacity-50",
                           msg.role === "user" ? "text-right" : "text-left"
                         )}>
                           {msg.timestamp.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
@@ -1079,8 +1079,8 @@ export default function AssistantPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
-                <div className="shrink-0">
+                {/* Input Area - fixe en bas */}
+                <div className="shrink-0 pt-3">
                   <ClaudeChatInput
                     onSendMessage={handleSendMessage}
                     placeholder={t("assistantPage.inputPlaceholderContinue")}

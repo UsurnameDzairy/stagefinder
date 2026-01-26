@@ -296,12 +296,12 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
         </div>
       )}
       <div className="flex-1 flex flex-col text-center">
-        <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
-        <p className="mt-2 text-sm text-zinc-300">
+        <h3 className="font-serif text-xl text-white">{plan.name}</h3>
+        <p className="mt-2 text-sm text-zinc-400 italic">
           {plan.description}
         </p>
         <div className="mt-6 flex items-baseline justify-center gap-x-1">
-          <span className="text-5xl font-bold tracking-tight text-white">
+          <span className="font-serif text-5xl font-light tracking-tight text-white">
             <NumberFlow
               value={
                 isMonthly ? Number(plan.price) : Number(plan.yearlyPrice)
@@ -311,25 +311,25 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
                 currency: "EUR",
                 minimumFractionDigits: 0,
               }}
-              className="font-variant-numeric: tabular-nums"
+              className="font-serif"
             />
           </span>
-          <span className="text-sm font-semibold leading-6 tracking-wide text-zinc-300">
+          <span className="font-serif text-sm leading-6 text-zinc-400 italic">
             / {plan.period}
           </span>
         </div>
-        <p className="text-xs text-zinc-400 mt-2">
+        <p className="font-serif text-xs text-zinc-500 mt-2 italic">
           {isMonthly ? "Facturation mensuelle" : "Facturation annuelle"}
         </p>
 
         <ul
           role="list"
-          className="mt-8 space-y-3 text-sm leading-6 text-left text-white"
+          className="mt-8 space-y-3 text-sm leading-6 text-left text-zinc-300"
         >
           {plan.features.map((feature) => (
-            <li key={feature} className="flex gap-x-3">
+            <li key={feature} className="flex gap-x-3 font-serif">
               <Check
-                className="h-6 w-5 flex-none text-white"
+                className="h-5 w-5 flex-none text-zinc-400"
                 aria-hidden="true"
               />
               {feature}
