@@ -164,14 +164,10 @@ const SKILLS_DATABASE = {
 // Fonction pour extraire les compétences d'un texte de CV
 export function extractSkills(text: string): string[] {
   const foundSkills = new Set<string>();
-  
-  // 1. D'abord, extraire les compétences depuis les sections dédiées du CV
-  const extractedFromSections = extractSkillsFromSections(text);
-  extractedFromSections.forEach(skill => foundSkills.add(skill));
-  
-  // 2. Ensuite, matcher avec la base de données (seulement les compétences de 3+ caractères)
+
+  // UNIQUEMENT matcher avec la base de données de compétences connues
   const allSkills = Object.values(SKILLS_DATABASE).flat();
-  
+
   for (const skill of allSkills) {
     // Ignorer les compétences trop courtes (C, R, etc.) sauf si elles sont dans un contexte clair
     if (skill.length <= 2) {
@@ -182,7 +178,7 @@ export function extractSkills(text: string): string[] {
         new RegExp(`\\b${skill}[,;]\\s*[A-Z]`, 'i'), // C, Python ou R, SQL
         new RegExp(`[A-Za-z],\\s*${skill}\\b`, 'i'), // Python, C ou SQL, R
       ];
-      
+
       if (contextPatterns.some(pattern => pattern.test(text))) {
         foundSkills.add(skill);
       }
@@ -199,80 +195,6 @@ export function extractSkills(text: string): string[] {
   return Array.from(foundSkills);
 }
 
-// Mots à exclure (métadonnées PDF, mots communs, etc.)
-const EXCLUDED_WORDS = new Set([
-  // Métadonnées PDF
-  'obj', 'endobj', 'stream', 'endstream', 'xref', 'trailer', 'startxref', 'eof',
-  'true', 'false', 'null', 'displaydoctitle',
-  // Mots trop courts ou communs
-  'et', 'and', 'or', 'ou', 'de', 'du', 'des', 'le', 'la', 'les', 'the', 'a', 'an',
-  'en', 'au', 'aux', 'un', 'une', 'pour', 'par', 'sur', 'avec', 'dans', 'que', 'qui',
-  // Dates et références
-  'createdate', 'modifydate', 'xmp', 'pdf', 'dc',
-]);
-
-// Vérifier si un texte ressemble à des données brutes PDF
-function isPdfGarbage(text: string): boolean {
-  if (!text || text.length < 2) return true;
-  
-  // Vérifier si c'est un mot exclu
-  if (EXCLUDED_WORDS.has(text.toLowerCase())) return true;
-  
-  // Vérifier si c'est principalement des chiffres ou caractères spéciaux
-  const alphaCount = (text.match(/[a-zA-ZÀ-ÿ]/g) || []).length;
-  if (alphaCount < text.length * 0.5) return true;
-  
-  // Vérifier si c'est un code hexadécimal
-  if (/^[0-9A-Fa-f]+$/.test(text)) return true;
-  
-  // Vérifier si c'est une référence PDF
-  if (/^\d+\s+\d+\s*[nfR]?$/.test(text)) return true;
-  
-  // Vérifier si c'est trop court et pas une compétence connue
-  if (text.length === 1 && !/^[RCJK]$/i.test(text)) return true;
-  
-  return false;
-}
-
-// Extraire les compétences directement depuis les sections du CV
-function extractSkillsFromSections(text: string): string[] {
-  const skills: string[] = [];
-  
-  // Patterns pour identifier les sections de compétences
-  const sectionPatterns = [
-    /(?:compétences?|skills?|technical skills?|hard skills?|soft skills?|outils?|tools?|technologies?|langages?|languages?|logiciels?|software)[\s:]*\n?([\s\S]*?)(?=\n\s*(?:expérience|experience|formation|education|projet|project|certification|langue|language|intérêt|interest|hobby|référence|reference|\n\n)|\n{2,}|$)/gi,
-    /(?:maîtrise|expertise|connaissance)[\s:]*\n?([\s\S]*?)(?=\n\s*(?:expérience|experience|formation|education)|\n{2,}|$)/gi,
-  ];
-  
-  for (const pattern of sectionPatterns) {
-    let match;
-    while ((match = pattern.exec(text)) !== null) {
-      const sectionContent = match[1];
-      
-      // Extraire les éléments de la section
-      const items = sectionContent.split(/[,;•·\-–—|\n]+/)
-        .map(item => item.trim())
-        .filter(item => item.length >= 2 && item.length <= 50)
-        .filter(item => !isPdfGarbage(item));
-      
-      skills.push(...items);
-    }
-  }
-  
-  // Pattern pour les listes avec deux-points (ex: "Langages: Python, Java, SQL")
-  const colonPattern = /(?:langages?|languages?|outils?|tools?|frameworks?|bases?\s*de\s*données?|databases?|cloud|devops)[\s]*:[\s]*([^\n]+)/gi;
-  let colonMatch;
-  while ((colonMatch = colonPattern.exec(text)) !== null) {
-    const items = colonMatch[1].split(/[,;•·|\-–—]+/)
-      .map(item => item.trim())
-      .filter(item => item.length >= 2 && item.length <= 50)
-      .filter(item => !isPdfGarbage(item));
-    skills.push(...items);
-  }
-  
-  // Nettoyer et dédupliquer
-  return [...new Set(skills.map(s => s.trim()).filter(s => s.length >= 2 && !isPdfGarbage(s)))];
-}
 
 // Fonction pour extraire les compétences par catégorie
 export function extractSkillsByCategory(text: string): Record<string, string[]> {
