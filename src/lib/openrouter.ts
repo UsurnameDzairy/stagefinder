@@ -146,7 +146,7 @@ export async function callOpenRouter(
         'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-        'X-Title': 'StageFinder',
+        'X-Title': 'KamForJob',
       },
       body: JSON.stringify(requestBody),
     });
@@ -343,24 +343,40 @@ export async function chatWithAssistant(
   },
   model?: string
 ): Promise<string> {
-  const systemMessage: OpenRouterMessage = {
-    role: 'system',
-    content: `You are an expert career advisor and job search assistant. Help users with:
+  // Check if a system message already exists in conversation history
+  const hasSystemMessage = conversationHistory.some(msg => msg.role === 'system');
+
+  const messages: OpenRouterMessage[] = [];
+
+  // Only add default system message if none provided (language is handled by the system prompt from assistant.ts)
+  if (!hasSystemMessage) {
+    messages.push({
+      role: 'system',
+      content: `You are an expert career advisor and job search assistant. Help users with:
 - Job search strategies
 - CV and cover letter advice
 - Interview preparation
 - Career development
 - Application tracking
 
-Always respond in French. Be helpful, encouraging, and provide actionable advice.
+Be helpful, encouraging, and provide actionable advice.
 ${userContext ? `\n\nUser context:\n- Skills: ${userContext.skills?.join(', ') || 'N/A'}\n- Target role: ${userContext.targetRole || 'N/A'}\n- Experience: ${userContext.experience || 'N/A'}` : ''}`,
-  };
+    });
+  }
 
-  const messages: OpenRouterMessage[] = [
-    systemMessage,
-    ...conversationHistory,
-    { role: 'user', content: userMessage },
-  ];
+  // Add conversation history (which may include the system message with language directive)
+  messages.push(...conversationHistory.filter(msg => msg.role !== 'system' || !hasSystemMessage));
+
+  // If there's a system message in history, add it first
+  const systemFromHistory = conversationHistory.find(msg => msg.role === 'system');
+  if (systemFromHistory && hasSystemMessage) {
+    // Replace default with the provided system message
+    messages.length = 0;
+    messages.push(systemFromHistory);
+    messages.push(...conversationHistory.filter(msg => msg.role !== 'system'));
+  }
+
+  messages.push({ role: 'user', content: userMessage });
 
   return await callOpenRouter(messages, model || MODELS.GPT4_TURBO, { temperature: 0.7, max_tokens: 1500 });
 }

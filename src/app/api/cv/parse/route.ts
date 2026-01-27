@@ -1,5 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractText } from "unpdf";
+
+// Primary PDF parser using pdf-parse (more robust)
+async function parsePDFWithPdfParse(buffer: Buffer): Promise<string> {
+  const { PDFParse } = await import('pdf-parse');
+  // Convert Buffer to Uint8Array for pdf-parse v2
+  const uint8Array = new Uint8Array(buffer);
+  const pdfParser = new PDFParse({ data: uint8Array });
+  // getText() returns TextResult with .text property containing all pages
+  const textResult = await pdfParser.getText();
+  const text = textResult?.text || "";
+  console.log(`[CV Parse] pdf-parse: ${text.length} chars from ${textResult?.total || 0} pages`);
+  return text;
+}
+
+// Fallback PDF parser using unpdf
+async function parsePDFWithUnpdf(buffer: Buffer): Promise<string> {
+  const { extractText } = await import('unpdf');
+  const uint8Array = new Uint8Array(buffer);
+  const { text, totalPages } = await extractText(uint8Array, { mergePages: true });
+  console.log(`[CV Parse] unpdf: ${text?.length || 0} chars from ${totalPages} pages`);
+  return text || "";
+}
+
+// Main PDF extraction with fallback
+async function parsePDF(buffer: Buffer): Promise<string> {
+  // Try pdf-parse first
+  try {
+    const text = await parsePDFWithPdfParse(buffer);
+    if (text && text.trim().length > 10) return text;
+  } catch (e) {
+    console.log('[CV Parse] pdf-parse failed, trying unpdf...');
+  }
+
+  // Fallback to unpdf
+  try {
+    const text = await parsePDFWithUnpdf(buffer);
+    if (text && text.trim().length > 10) return text;
+  } catch (e) {
+    console.log('[CV Parse] unpdf also failed');
+  }
+
+  throw new Error('PDF extraction failed');
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,18 +58,13 @@ export async function POST(req: NextRequest) {
     const fileName = file.name.toLowerCase();
     let text = "";
 
-    // Lire le contenu du fichier
+    // Read file content
     const buffer = Buffer.from(await file.arrayBuffer());
 
     if (fileName.endsWith(".pdf")) {
-      // Parser le PDF with unpdf (works in Node.js)
+      // Parse PDF with fallback
       try {
-        const uint8Array = new Uint8Array(buffer);
-        const { text: pdfText, totalPages } = await extractText(uint8Array, { mergePages: true });
-        console.log(`[CV Parse] Extracted ${pdfText?.length || 0} chars from ${totalPages} pages`);
-        text = pdfText || "";
-
-        // Nettoyer le texte extrait
+        text = await parsePDF(buffer);
         text = cleanExtractedText(text);
       } catch (pdfError) {
         console.error("PDF parsing error:", pdfError);

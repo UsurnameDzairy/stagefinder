@@ -226,6 +226,8 @@ model Application {
   responseReceivedAt DateTime?
   responseScreenshot String?
   responseType       String?
+  feedback           String?
+  finalOutcome       String?
   offer              JobOffer?          @relation(fields: [offerId], references: [id])
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   timeline           ApplicationEvent[]

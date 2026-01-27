@@ -197,7 +197,7 @@ export function SearchCompilationModal({
           </div>
         </div>
         <p className="text-[9px] font-bold text-zinc-800 uppercase tracking-[0.3em] text-center pb-6">
-          StageFinder Neural Core • Real-time Data Stream
+          KamForJob Neural Core • Real-time Data Stream
         </p>
       </Card>
     </div>

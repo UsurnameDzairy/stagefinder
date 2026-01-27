@@ -1,32 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { extractText } from "unpdf";
 
-// Use unpdf which works in Node.js server environment
-async function parsePDF(buffer: Buffer): Promise<string> {
+// Primary PDF parser using pdf-parse (more robust)
+async function parsePDFWithPdfParse(buffer: Buffer): Promise<string> {
   try {
-    console.log('[PDF Extract] Starting extraction with unpdf...');
-    console.log('[PDF Extract] Buffer size:', buffer.length, 'bytes');
-
-    // Convert Buffer to Uint8Array for unpdf
+    console.log('[PDF Extract] Trying pdf-parse...');
+    // Dynamic import to avoid build issues
+    const { PDFParse } = await import('pdf-parse');
+    // Convert Buffer to Uint8Array for pdf-parse v2
     const uint8Array = new Uint8Array(buffer);
-
-    // Extract text using unpdf
-    const { text, totalPages } = await extractText(uint8Array, { mergePages: true });
-
-    console.log(`[PDF Extract] Success! Extracted ${text?.length || 0} characters from ${totalPages} pages`);
-
-    if (!text) {
-      console.warn('[PDF Extract] No text extracted');
-      return "";
-    }
-
+    const pdfParser = new PDFParse({ data: uint8Array });
+    // getText() returns TextResult with .text property containing all pages
+    const textResult = await pdfParser.getText();
+    const text = textResult?.text || "";
+    console.log(`[PDF Extract] pdf-parse success: ${text.length} chars from ${textResult?.total || 0} pages`);
     return text;
+  } catch (error) {
+    console.error('[PDF Extract] pdf-parse failed:', error);
+    throw error;
+  }
+}
 
+// Fallback PDF parser using unpdf
+async function parsePDFWithUnpdf(buffer: Buffer): Promise<string> {
+  try {
+    console.log('[PDF Extract] Trying unpdf as fallback...');
+    const { extractText } = await import('unpdf');
+    const uint8Array = new Uint8Array(buffer);
+    const { text, totalPages } = await extractText(uint8Array, { mergePages: true });
+    console.log(`[PDF Extract] unpdf success: ${text?.length || 0} chars from ${totalPages} pages`);
+    return text || "";
   } catch (error) {
     console.error('[PDF Extract] unpdf failed:', error);
-    throw new Error(`PDF extraction failed: ${(error as Error).message}`);
+    throw error;
   }
+}
+
+// Main PDF extraction with fallback
+async function parsePDF(buffer: Buffer): Promise<string> {
+  console.log('[PDF Extract] Starting extraction, buffer size:', buffer.length, 'bytes');
+
+  // Try pdf-parse first (more robust)
+  try {
+    const text = await parsePDFWithPdfParse(buffer);
+    if (text && text.trim().length > 10) {
+      return text;
+    }
+    console.log('[PDF Extract] pdf-parse returned empty, trying fallback...');
+  } catch (e) {
+    console.log('[PDF Extract] pdf-parse failed, trying fallback...');
+  }
+
+  // Fallback to unpdf
+  try {
+    const text = await parsePDFWithUnpdf(buffer);
+    if (text && text.trim().length > 10) {
+      return text;
+    }
+  } catch (e) {
+    console.log('[PDF Extract] unpdf also failed');
+  }
+
+  throw new Error('All PDF extraction methods failed');
 }
 
 export async function POST(req: NextRequest) {

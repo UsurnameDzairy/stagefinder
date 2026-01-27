@@ -7,6 +7,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+  tArray: (key: string) => string[];
   translations: any;
 }
 
@@ -32,7 +33,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const t = (key: string): string => {
     const keys = key.split(".");
     let value: any = translations[language];
-    
+
     for (const k of keys) {
       if (value && typeof value === "object" && k in value) {
         value = value[k];
@@ -41,8 +42,25 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         return key;
       }
     }
-    
+
     return typeof value === "string" ? value : key;
+  };
+
+  // Fonction de traduction pour les tableaux de chaînes
+  const tArray = (key: string): string[] => {
+    const keys = key.split(".");
+    let value: any = translations[language];
+
+    for (const k of keys) {
+      if (value && typeof value === "object" && k in value) {
+        value = value[k];
+      } else {
+        console.warn(`Translation key not found: ${key}`);
+        return [];
+      }
+    }
+
+    return Array.isArray(value) ? value : [];
   };
 
   return (
@@ -51,6 +69,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         language,
         setLanguage,
         t,
+        tArray,
         translations: translations[language],
       }}
     >
@@ -69,6 +88,6 @@ export function useLanguage() {
 
 // Hook simplifié pour accéder aux traductions
 export function useTranslation() {
-  const { t, language, setLanguage, translations } = useLanguage();
-  return { t, language, setLanguage, translations };
+  const { t, tArray, language, setLanguage, translations } = useLanguage();
+  return { t, tArray, language, setLanguage, translations };
 }

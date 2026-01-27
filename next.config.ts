@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Required for unpdf to work properly
-  serverExternalPackages: ["unpdf"],
+  // Required for PDF libraries to work properly
+  serverExternalPackages: ["unpdf", "pdf-parse"],
 
   // Empty turbopack config to silence the warning
   turbopack: {},

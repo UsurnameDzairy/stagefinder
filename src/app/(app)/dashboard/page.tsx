@@ -6,12 +6,91 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
   Building2, Send, CheckCircle, Search, FileText,
-  ExternalLink, TrendingUp, BarChart3, PieChart, Target, Activity as ActivityIcon, Star
+  ExternalLink, TrendingUp, BarChart3, PieChart, Target, Activity as ActivityIcon, Star, ChevronDown, ChevronUp
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/i18n";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
+
+// Skills Coverage Card with "See More" functionality
+function SkillsCoverageCard({
+  skillsCoverage,
+  t
+}: {
+  skillsCoverage: Array<{ label: string; value: number; color: string }> | null;
+  t: (key: string) => string;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const INITIAL_LIMIT = 5;
+
+  const visibleSkills = skillsCoverage && showAll
+    ? skillsCoverage
+    : skillsCoverage?.slice(0, INITIAL_LIMIT);
+
+  const hasMore = skillsCoverage && skillsCoverage.length > INITIAL_LIMIT;
+
+  return (
+    <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
+      <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+          {t("dashboard.skillsCoverage")}
+        </CardTitle>
+        {hasMore && (
+          <span className="text-[10px] text-zinc-600">
+            {skillsCoverage.length} total
+          </span>
+        )}
+      </CardHeader>
+      <CardContent className="p-6 pt-4 space-y-6">
+        {visibleSkills && visibleSkills.length > 0 ? (
+          <>
+            <div className="space-y-5">
+              {visibleSkills.map((skill, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider truncate max-w-[70%]">{skill.label}</span>
+                    <span className="text-[11px] font-bold text-white">{skill.value}%</span>
+                  </div>
+                  <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${skill.value}%` }}
+                      transition={{ delay: 0.8 + (i * 0.1), duration: 1, ease: "easeOut" }}
+                      className={cn("h-full rounded-full", skill.color)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {hasMore && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-zinc-900 hover:border-zinc-700 bg-zinc-950/50 transition-all text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white"
+              >
+                {showAll ? (
+                  <>
+                    <ChevronUp className="h-4 w-4" />
+                    {t("dashboard.showLess") || "Show less"}
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4" />
+                    {t("dashboard.showMore") || "Show more"} ({skillsCoverage.length - INITIAL_LIMIT})
+                  </>
+                )}
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="h-40 flex items-center justify-center">
+            <p className="text-zinc-600 text-sm">{t("dashboard.addSkills")}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 interface Stats {
   savedOffers: number;
@@ -89,7 +168,7 @@ export default function DashboardPage() {
       >
         <h1 className="text-4xl font-serif font-normal tracking-tight text-white">{t("dashboard.title")}</h1>
         <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
-          {t("dashboard.welcome")} StageFinder
+          {t("dashboard.welcome")} KamForJob
         </p>
       </motion.div>
 
@@ -174,41 +253,10 @@ export default function DashboardPage() {
         </Card>
 
         {/* Skills Coverage Analytics */}
-        <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
-          <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
-              {t("dashboard.skillsCoverage")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 pt-4 space-y-6">
-            {stats?.skillsCoverage && stats.skillsCoverage.length > 0 ? (
-              <>
-                <div className="space-y-5">
-                  {stats.skillsCoverage.map((skill, i) => (
-                    <div key={i} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">{skill.label}</span>
-                        <span className="text-[11px] font-bold text-white">{skill.value}%</span>
-                      </div>
-                      <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${skill.value}%` }}
-                          transition={{ delay: 0.8 + (i * 0.1), duration: 1, ease: "easeOut" }}
-                          className={cn("h-full rounded-full", skill.color)}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="h-40 flex items-center justify-center">
-                <p className="text-zinc-600 text-sm">{t("dashboard.addSkills")}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SkillsCoverageCard
+          skillsCoverage={stats?.skillsCoverage || null}
+          t={t}
+        />
 
         {/* Quick Actions & Pro Tip */}
         <div className="md:col-span-2 grid gap-6 md:grid-cols-3">

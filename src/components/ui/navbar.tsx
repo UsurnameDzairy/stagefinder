@@ -48,32 +48,32 @@ interface NavbarProps {
   } | null;
 }
 
-const landingNavigationLinks: NavLink[] = [
-  { href: "/", label: "Home" },
+const getLandingNavigationLinks = (t: (key: string) => string): NavLink[] => [
+  { href: "/", label: t("nav.home") },
   {
-    label: "Features",
+    label: t("nav.features"),
     submenu: true,
     type: "description",
     items: [
       {
         href: "#features",
-        label: "AI Search",
-        description: "Intelligent matching for your career path.",
+        label: t("nav.aiSearch"),
+        description: t("nav.aiSearchDesc"),
       },
       {
         href: "#features",
-        label: "Auto-Search",
-        description: "Get the latest internships automatically.",
+        label: t("nav.autoSearch"),
+        description: t("nav.autoSearchDesc"),
       },
       {
         href: "#features",
-        label: "Strategy",
-        description: "Optimized application workflow.",
+        label: t("nav.strategy"),
+        description: t("nav.strategyDesc"),
       },
     ],
   },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/about", label: "About" },
+  { href: "/pricing", label: t("nav.pricingLink") },
+  { href: "/about", label: t("nav.about") },
 ];
 
 // Navigation links are now generated dynamically using translations
@@ -82,21 +82,13 @@ const getAppNavigationLinks = (t: (key: string) => string): NavLink[] => [
   { href: "/dashboard", label: t("nav.dashboard") },
   { href: "/offres", label: t("nav.jobs") },
   { href: "/candidatures", label: t("nav.applications") },
-  {
-    label: t("nav.tools"),
-    submenu: true,
-    type: "simple",
-    items: [
-      { href: "/cv-improver", label: t("nav.cvImprover") },
-      { href: "/lettres", label: t("nav.coverLetters") },
-    ],
-  },
+  { href: "/cv-improver", label: t("nav.cvImprover") },
 ];
 
 export default function Navbar({ user }: NavbarProps) {
   const { t } = useTranslation();
   const { language, setLanguage } = useLanguage();
-  const links = user ? getAppNavigationLinks(t) : landingNavigationLinks;
+  const links = user ? getAppNavigationLinks(t) : getLandingNavigationLinks(t);
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -297,10 +289,10 @@ export default function Navbar({ user }: NavbarProps) {
           ) : (
             <div className="flex items-center gap-3">
               <Button asChild variant="ghost" size="sm" className="text-white hover:text-white hover:bg-white/5 px-5 hidden md:flex h-10 rounded-full transition-all font-serif italic text-sm normal-case tracking-tight">
-                <Link href="/login">Sign In</Link>
+                <Link href="/login">{t("nav.signIn")}</Link>
               </Button>
               <Button asChild size="sm" className="rounded-full bg-black border border-zinc-800 text-white font-serif italic text-sm px-7 h-10 shadow-xl transition-all hover:scale-105 active:scale-95">
-                <Link href="/register">Join Now</Link>
+                <Link href="/register">{t("nav.joinNow")}</Link>
               </Button>
             </div>
           )}
@@ -324,8 +316,8 @@ export default function Navbar({ user }: NavbarProps) {
                   <div className="h-px bg-white/[0.05] mx-3 my-2" />
                   {!user ? (
                     <div className="flex flex-col gap-2 p-1">
-                      <Link href="/login" className="px-5 py-4 text-sm font-serif italic text-white text-center hover:text-white transition-colors">Sign In</Link>
-                      <Link href="/register" className="px-5 py-4 text-sm font-serif italic text-white bg-black border border-zinc-800 rounded-xl text-center active:scale-[0.98] transition-all shadow-xl">Join Now</Link>
+                      <Link href="/login" className="px-5 py-4 text-sm font-serif italic text-white text-center hover:text-white transition-colors">{t("nav.signIn")}</Link>
+                      <Link href="/register" className="px-5 py-4 text-sm font-serif italic text-white bg-black border border-zinc-800 rounded-xl text-center active:scale-[0.98] transition-all shadow-xl">{t("nav.joinNow")}</Link>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1">

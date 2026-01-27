@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, Plus, ArrowRight, Sparkles } from "lucide-react";
+import { Upload, X, Plus, ArrowRight, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { Loader } from "@/components/ui/loader";
 import { Logo } from "@/components/ui/logo";
 
@@ -20,7 +20,10 @@ export default function CompleteProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAllSkills, setShowAllSkills] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_VISIBLE_SKILLS = 5;
 
   useEffect(() => {
     fetch("/api/user/profile")
@@ -235,7 +238,7 @@ export default function CompleteProfilePage() {
               <div className="space-y-4">
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Detected Skills</label>
                 <div className="flex flex-wrap gap-2 min-h-[40px]">
-                  {skills.map((skill) => (
+                  {(showAllSkills ? skills : skills.slice(0, MAX_VISIBLE_SKILLS)).map((skill) => (
                     <span key={skill} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-bold text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-all group">
                       {skill}
                       <button onClick={() => removeSkill(skill)} className="text-zinc-700 hover:text-white transition-colors">
@@ -243,6 +246,24 @@ export default function CompleteProfilePage() {
                       </button>
                     </span>
                   ))}
+                  {skills.length > MAX_VISIBLE_SKILLS && (
+                    <button
+                      onClick={() => setShowAllSkills(!showAllSkills)}
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-zinc-800 border border-zinc-700 text-[11px] font-bold text-zinc-300 hover:text-white hover:border-zinc-600 transition-all"
+                    >
+                      {showAllSkills ? (
+                        <>
+                          Voir moins
+                          <ChevronUp className="h-3 w-3" />
+                        </>
+                      ) : (
+                        <>
+                          +{skills.length - MAX_VISIBLE_SKILLS} autres
+                          <ChevronDown className="h-3 w-3" />
+                        </>
+                      )}
+                    </button>
+                  )}
                   {skills.length === 0 && (
                     <span className="text-[11px] font-medium text-zinc-700 italic uppercase tracking-wider mt-2">No items</span>
                   )}

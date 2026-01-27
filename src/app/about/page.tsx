@@ -13,6 +13,7 @@ export default function AboutPage() {
   const { data: session } = useSession();
 
   const storyTexts = tArray("about.stories");
+  const kamStatesTexts = tArray("about.kamStates");
 
   const missions = [
     {
@@ -80,7 +81,16 @@ export default function AboutPage() {
               </div>
               <div>
                 <p className="text-white font-semibold">KAM</p>
-                <p className="text-zinc-600 text-sm">{t("about.kamTyping")}</p>
+                <TextType
+                  text={kamStatesTexts}
+                  className="text-zinc-600 text-sm"
+                  typingSpeed={40}
+                  deletingSpeed={20}
+                  pauseDuration={2500}
+                  initialDelay={300}
+                  loop={true}
+                  showCursor={false}
+                />
               </div>
             </motion.div>
 
@@ -100,7 +110,7 @@ export default function AboutPage() {
                 initialDelay={500}
                 loop={true}
                 showCursor={true}
-                cursorCharacter="▊"
+                cursorCharacter="|"
                 cursorClassName="text-zinc-500"
                 cursorBlinkDuration={0.6}
                 variableSpeed={{ min: 20, max: 50 }}

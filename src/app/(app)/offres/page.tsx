@@ -27,17 +27,17 @@ const CONTRACT_TYPES = [
   { id: "cdd", label: "CDD", icon: "", color: "bg-zinc-900" },
 ];
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string, t: (key: string) => string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 14) return "1 week ago";
-  return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays === 0) return t("common.today");
+  if (diffDays === 1) return t("common.yesterday");
+  if (diffDays < 7) return `${diffDays} ${t("common.daysAgo")}`;
+  if (diffDays < 14) return `1 ${t("common.weeksAgo")}`;
+  return `${Math.floor(diffDays / 7)} ${t("common.weeksAgo")}`;
 }
 
 function calculateMatchScore(offerSkills: string[], userSkills: string[]): number {
@@ -514,7 +514,7 @@ export default function OffresPage() {
                   ) : (
                     <>
                       <FileText className="h-3.5 w-3.5 mr-2 text-zinc-500" />
-                      CV Search
+                      {t("offers.cvSearch")}
                     </>
                   )}
                 </Button>
@@ -529,7 +529,7 @@ export default function OffresPage() {
                   ) : (
                     <>
                       <Zap className="h-3.5 w-3.5 mr-2" />
-                      Smart Search
+                      {t("offers.smartSearch")}
                     </>
                   )}
                 </Button>
@@ -636,7 +636,7 @@ export default function OffresPage() {
 
           {/* Plateformes */}
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-zinc-900">
-            <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">Sources:</span>
+            <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">{t("offers.sources")}:</span>
             <div className="flex gap-1.5">
               {PROVIDERS.map((provider) => (
                 <button
@@ -788,7 +788,7 @@ export default function OffresPage() {
                           {offer.publishedAt && (
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              {formatDate(offer.publishedAt)}
+                              {formatDate(offer.publishedAt, t)}
                             </span>
                           )}
                         </div>
@@ -798,7 +798,7 @@ export default function OffresPage() {
                       <div className="text-xl font-bold tracking-tighter text-white">
                         {offer.matchScore}%
                       </div>
-                      <div className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">score</div>
+                      <div className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">{t("offers.score")}</div>
                     </div>
                   </div>
 
@@ -886,7 +886,7 @@ export default function OffresPage() {
                         rel="noopener noreferrer"
                         className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 hover:text-white transition-colors flex items-center gap-1.5"
                       >
-                        Details <ExternalLink className="h-3 w-3" />
+                        {t("offers.details")} <ExternalLink className="h-3 w-3" />
                       </a>
                     )}
                   </div>

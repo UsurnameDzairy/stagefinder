@@ -170,8 +170,8 @@ export default function ParametresPage() {
       if (file.size <= 5 * 1024 * 1024) {
         setCvFile(file);
         setUploadingCv(true);
-        setCvStatus("Analyzing CV...");
-        
+        setCvStatus(t("settings.cv.analyzing"));
+
         // Upload le CV automatiquement
         const formData = new FormData();
         formData.append("file", file);
@@ -204,24 +204,24 @@ export default function ParametresPage() {
                 setDomains(extractedDomains.join(", "));
               }
               
-              setCvStatus(`✅ CV analyzed! ${extractedSkills.length} skills, ${extractedCities.length} cities, ${extractedDomains.length} domains detected.`);
+              setCvStatus(`✅ ${t("settings.cv.success").replace("{skills}", String(extractedSkills.length)).replace("{cities}", String(extractedCities.length)).replace("{domains}", String(extractedDomains.length))}`);
             } else {
-              setCvStatus("⚠️ CV uploaded but no data extracted. Check the file format.");
+              setCvStatus(`⚠️ ${t("settings.cv.warning")}`);
             }
           } else {
-            setCvStatus("❌ Error uploading CV");
+            setCvStatus(`❌ ${t("settings.cv.error")}`);
           }
         } catch (error) {
           console.error("CV upload error:", error);
-          setCvStatus("❌ Error uploading CV");
+          setCvStatus(`❌ ${t("settings.cv.error")}`);
         } finally {
           setUploadingCv(false);
         }
       } else {
-        alert("File must be less than 5MB");
+        alert(t("settings.cv.fileTooLarge"));
       }
     } else {
-      alert("Unsupported format. Use PDF or DOCX");
+      alert(t("settings.cv.unsupportedFormat"));
     }
   };
 
@@ -239,13 +239,13 @@ export default function ParametresPage() {
       });
 
       if (response.ok) {
-        alert("Settings saved successfully!");
+        alert(t("settings.saveSuccess"));
       } else {
-        alert("Error saving settings");
+        alert(t("settings.saveError"));
       }
     } catch (error) {
       console.error("Save settings error:", error);
-      alert("Error saving settings");
+      alert(t("settings.saveError"));
     }
   };
 
@@ -267,7 +267,7 @@ export default function ParametresPage() {
   };
 
   const handleDeleteAccount = () => {
-    if (confirm("Are you sure you want to delete your account? This action is irreversible.")) {
+    if (confirm(t("settings.account.delete.confirm"))) {
       alert("Account deletion feature to be implemented");
     }
   };
@@ -284,22 +284,22 @@ export default function ParametresPage() {
       });
 
       if (response.ok) {
-        alert("Avatar updated successfully! Refresh the page to see changes.");
+        alert(t("settings.avatar.updateSuccess"));
         setAvatarUrl("");
       } else {
-        alert("Error updating avatar");
+        alert(t("settings.avatar.updateError"));
       }
     } catch (error) {
       console.error("Avatar update error:", error);
-      alert("Error updating avatar");
+      alert(t("settings.avatar.updateError"));
     } finally {
       setUploadingAvatar(false);
     }
   };
 
   const handleRemoveAvatar = async () => {
-    if (!confirm("Remove your avatar?")) return;
-    
+    if (!confirm(t("settings.avatar.removeConfirm"))) return;
+
     setUploadingAvatar(true);
     try {
       const response = await fetch("/api/user/avatar", {
@@ -307,13 +307,13 @@ export default function ParametresPage() {
       });
 
       if (response.ok) {
-        alert("Avatar removed successfully! Refresh the page to see changes.");
+        alert(t("settings.avatar.removeSuccess"));
       } else {
-        alert("Error removing avatar");
+        alert(t("settings.avatar.removeError"));
       }
     } catch (error) {
       console.error("Avatar delete error:", error);
-      alert("Error removing avatar");
+      alert(t("settings.avatar.removeError"));
     } finally {
       setUploadingAvatar(false);
     }
@@ -327,7 +327,7 @@ export default function ParametresPage() {
           {t("settings.title")}
         </h1>
         <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em] mt-1">
-          Profile configuration and strategic preferences
+          {t("settings.subtitle")}
         </p>
       </div>
 
@@ -335,8 +335,8 @@ export default function ParametresPage() {
         {/* Avatar Section */}
         <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
           <CardHeader className="p-6 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Visual Identity</CardTitle>
-            <CardDescription className="text-[13px] text-zinc-600 font-medium">Customize your professional profile</CardDescription>
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("settings.avatar.title")}</CardTitle>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">{t("settings.avatar.description")}</CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-4 space-y-6">
             <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-zinc-950 border border-zinc-900 rounded-2xl">
@@ -353,7 +353,7 @@ export default function ParametresPage() {
                     type="url"
                     value={avatarUrl}
                     onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="Your image URL (e.g., LinkedIn, Gravatar...)"
+                    placeholder={t("settings.avatar.placeholder")}
                     disabled={uploadingAvatar}
                     className="h-10 bg-black border-zinc-900 focus:border-white transition-all text-sm"
                   />
@@ -362,7 +362,7 @@ export default function ParametresPage() {
                     disabled={uploadingAvatar || !avatarUrl.trim()}
                     className="bg-black hover:bg-zinc-900 text-white font-serif italic text-sm px-8 h-10 rounded-full border border-zinc-800 shadow-lg transition-all hover:scale-105 active:scale-95"
                   >
-                    {uploadingAvatar ? <Loader size="sm" /> : "Update"}
+                    {uploadingAvatar ? <Loader size="sm" /> : t("settings.avatar.update")}
                   </Button>
                 </div>
                 <div className="flex gap-3">
@@ -374,9 +374,9 @@ export default function ParametresPage() {
                     className="h-8 px-4 rounded-full text-[10px] font-bold uppercase tracking-widest border-zinc-900 text-zinc-500 hover:text-red-400 transition-all"
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-2" />
-                    Remove
+                    {t("settings.avatar.remove")}
                   </Button>
-                  <span className="text-[10px] font-medium text-zinc-700 self-center uppercase tracking-wider">Recommended: 200x200px</span>
+                  <span className="text-[10px] font-medium text-zinc-700 self-center uppercase tracking-wider">{t("settings.avatar.recommended")}</span>
                 </div>
               </div>
             </div>
@@ -386,8 +386,8 @@ export default function ParametresPage() {
         {/* CV Section */}
         <Card id="cv" className="bg-black border-zinc-900 shadow-none">
           <CardHeader className="p-6 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Document Base</CardTitle>
-            <CardDescription className="text-[13px] text-zinc-600 font-medium">Automatic AI extraction for precise matching</CardDescription>
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("settings.cv.title")}</CardTitle>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">{t("settings.cv.description")}</CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-4">
             <input
@@ -402,8 +402,8 @@ export default function ParametresPage() {
                 <div className="space-y-4">
                   <Loader size="lg" className="mx-auto" />
                   <div className="space-y-1">
-                    <p className="text-[11px] font-bold text-white uppercase tracking-[0.2em] animate-pulse">Intelligence Engine Processing...</p>
-                    <p className="text-[12px] text-zinc-600 font-medium italic">Semantic analysis of your background</p>
+                    <p className="text-[11px] font-bold text-white uppercase tracking-[0.2em] animate-pulse">{t("settings.cv.processing")}</p>
+                    <p className="text-[12px] text-zinc-600 font-medium italic">{t("settings.cv.processingDescription")}</p>
                   </div>
                 </div>
               ) : (
@@ -413,12 +413,12 @@ export default function ParametresPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[13px] font-bold text-zinc-300 group-hover:text-white transition-colors">
-                      {cvFile ? cvFile.name : "Click to import your CV"}
+                      {cvFile ? cvFile.name : t("settings.cv.clickToImport")}
                     </p>
-                    <p className="text-[11px] font-bold text-zinc-700 uppercase tracking-widest">PDF ou DOCX (Max 5MB)</p>
+                    <p className="text-[11px] font-bold text-zinc-700 uppercase tracking-widest">{t("settings.cv.format")}</p>
                   </div>
                   <Button variant="outline" size="sm" className="h-10 px-8 rounded-full border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-900 text-[11px] font-bold uppercase tracking-widest transition-all">
-                    {cvFile ? "Change file" : "Select file"}
+                    {cvFile ? t("settings.cv.changeFile") : t("settings.cv.selectFile")}
                   </Button>
                 </div>
               )}
@@ -440,7 +440,7 @@ export default function ParametresPage() {
           {/* Skills Section */}
           <Card className="bg-black border-zinc-900 shadow-none">
             <CardHeader className="p-6 pb-2">
-              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Hard & Soft Skills</CardTitle>
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("settings.skills.title")}</CardTitle>
             </CardHeader>
             <CardContent className="p-6 pt-4 space-y-6">
               <div className="flex flex-wrap gap-1.5 min-h-[40px]">
@@ -458,7 +458,7 @@ export default function ParametresPage() {
               </div>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Python, Finance, Leadership..."
+                  placeholder={t("settings.skills.placeholder")}
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addSkill()}
@@ -474,13 +474,13 @@ export default function ParametresPage() {
           {/* Preferences Section */}
           <Card className="bg-black border-zinc-900 shadow-none">
             <CardHeader className="p-6 pb-2">
-              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Search Preferences</CardTitle>
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("settings.searchPreferences.title")}</CardTitle>
             </CardHeader>
             <CardContent className="p-6 pt-4 space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Target cities</label>
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{t("settings.searchPreferences.cities")}</label>
                 <Input
-                  placeholder="Paris, London, Remote..."
+                  placeholder={t("settings.searchPreferences.citiesPlaceholder")}
                   value={preferredCities}
                   onChange={(e) => setPreferredCities(e.target.value)}
                   className="h-10 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm"
@@ -488,7 +488,7 @@ export default function ParametresPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Contract types</label>
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{t("settings.searchPreferences.contractTypes")}</label>
                 <div className="flex flex-wrap gap-2">
                   {["stage", "alternance", "cdi", "cdd"].map((type) => (
                     <button
@@ -508,9 +508,9 @@ export default function ParametresPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Expertise domains</label>
+                <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{t("settings.searchPreferences.domains")}</label>
                 <Input
-                  placeholder="Banking, AI, Web Dev..."
+                  placeholder={t("settings.searchPreferences.domainsPlaceholder")}
                   value={domains}
                   onChange={(e) => setDomains(e.target.value)}
                   className="h-10 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm"
@@ -528,9 +528,9 @@ export default function ParametresPage() {
           <CardHeader className="p-6 pb-2">
             <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
               <BellRing className="h-4 w-4 text-zinc-400" />
-              Strategic Alert System
+              {t("settings.alerts.title")}
             </CardTitle>
-            <CardDescription className="text-[13px] text-zinc-600 font-medium">Real-time monitoring of opportunity flows</CardDescription>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">{t("settings.alerts.description")}</CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-4 space-y-6">
             {alerts.length > 0 ? (
@@ -574,8 +574,8 @@ export default function ParametresPage() {
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-widest pt-4 border-t border-zinc-900/50">
-                      <span>{alert.locations || "Global"}</span>
-                      <span>Min Score: {alert.minMatchScore}%</span>
+                      <span>{alert.locations || t("settings.alerts.global")}</span>
+                      <span>{t("settings.alerts.minScore")}: {alert.minMatchScore}%</span>
                       <span>{alert.frequency}</span>
                     </div>
                   </div>
@@ -586,57 +586,57 @@ export default function ParametresPage() {
                 <div className="p-4 bg-black border border-zinc-900 rounded-full w-fit mx-auto">
                   <Bell className="h-6 w-6 text-zinc-800" />
                 </div>
-                <p className="text-[13px] font-medium text-zinc-600">No active monitoring configured.</p>
+                <p className="text-[13px] font-medium text-zinc-600">{t("settings.alerts.noAlerts")}</p>
               </div>
             )}
 
             {showAlertForm ? (
               <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 space-y-6 animate-in fade-in slide-in-from-top-4">
-                <h4 className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Alert Configuration</h4>
+                <h4 className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">{t("settings.alerts.configuration")}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Alert name *</label>
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{t("settings.alerts.name")}</label>
                     <Input
-                      placeholder="Ex: Banking London"
+                      placeholder={t("settings.alerts.namePlaceholder")}
                       value={newAlert.name}
                       onChange={(e) => setNewAlert({ ...newAlert, name: e.target.value })}
                       className="bg-black border-zinc-900 h-10"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Sectors *</label>
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{t("settings.alerts.sectors")}</label>
                     <Input
-                      placeholder="Tech, Luxury..."
+                      placeholder={t("settings.alerts.sectorsPlaceholder")}
                       value={newAlert.domains}
                       onChange={(e) => setNewAlert({ ...newAlert, domains: e.target.value })}
                       className="bg-black border-zinc-900 h-10"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Locations</label>
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{t("settings.alerts.locations")}</label>
                     <Input
-                      placeholder="Paris, New York..."
+                      placeholder={t("settings.alerts.locationsPlaceholder")}
                       value={newAlert.locations}
                       onChange={(e) => setNewAlert({ ...newAlert, locations: e.target.value })}
                       className="bg-black border-zinc-900 h-10"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Frequency</label>
+                    <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{t("settings.alerts.frequency")}</label>
                     <select
                       value={newAlert.frequency}
                       onChange={(e) => setNewAlert({ ...newAlert, frequency: e.target.value })}
                       className="w-full h-10 px-4 rounded-xl bg-black border border-zinc-900 text-sm font-medium"
                     >
-                      <option value="instant">Real-time</option>
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
+                      <option value="instant">{t("settings.alerts.realtime")}</option>
+                      <option value="daily">{t("settings.alerts.daily")}</option>
+                      <option value="weekly">{t("settings.alerts.weekly")}</option>
                     </select>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-4 border-t border-zinc-900">
-                  <Button onClick={() => setShowAlertForm(false)} variant="ghost" className="h-10 px-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white rounded-full">Cancel</Button>
-                  <Button onClick={createAlert} className="flex-1 bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-full border border-zinc-800 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">Enable monitoring</Button>
+                  <Button onClick={() => setShowAlertForm(false)} variant="ghost" className="h-10 px-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white rounded-full">{t("settings.alerts.cancel")}</Button>
+                  <Button onClick={createAlert} className="flex-1 bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-full border border-zinc-800 shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">{t("settings.alerts.enable")}</Button>
                 </div>
               </div>
             ) : (
@@ -646,7 +646,7 @@ export default function ParametresPage() {
                 className="w-full h-12 border-zinc-900 bg-black hover:bg-zinc-900 text-zinc-400 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add new alert rule
+                {t("settings.alerts.addNew")}
               </Button>
             )}
           </CardContent>
@@ -655,34 +655,34 @@ export default function ParametresPage() {
         {/* Account Controls Section Premium */}
         <Card className="bg-black border-zinc-900 shadow-none border-zinc-800/20">
           <CardHeader className="p-6 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">System Commands</CardTitle>
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("settings.account.title")}</CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-4 space-y-4">
             <div className="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-900 rounded-2xl transition-all hover:border-zinc-800 group">
               <div className="space-y-1">
-                <p className="text-[13px] font-bold text-zinc-200 group-hover:text-white">Data portability</p>
-                <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">GDPR archive download</p>
+                <p className="text-[13px] font-bold text-zinc-200 group-hover:text-white">{t("settings.account.export.title")}</p>
+                <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">{t("settings.account.export.description")}</p>
               </div>
-              <Button variant="outline" size="sm" onClick={handleExportData} className="h-9 px-8 rounded-full border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest">Export</Button>
+              <Button variant="outline" size="sm" onClick={handleExportData} className="h-9 px-8 rounded-full border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest">{t("settings.account.export.button")}</Button>
             </div>
-            
+
             <div className="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-900 rounded-2xl transition-all hover:border-zinc-800 group">
               <div className="space-y-1">
-                <p className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-200">Account deletion</p>
-                <p className="text-[11px] font-medium text-zinc-700 uppercase tracking-wider">This action is irreversible</p>
+                <p className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-200">{t("settings.account.delete.title")}</p>
+                <p className="text-[11px] font-medium text-zinc-700 uppercase tracking-wider">{t("settings.account.delete.description")}</p>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleDeleteAccount} className="h-9 px-8 rounded-full text-zinc-700 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest transition-all">Delete</Button>
+              <Button variant="ghost" size="sm" onClick={handleDeleteAccount} className="h-9 px-8 rounded-full text-zinc-700 hover:text-white hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest transition-all">{t("settings.account.delete.button")}</Button>
             </div>
           </CardContent>
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button 
-            onClick={handleSaveSettings} 
+          <Button
+            onClick={handleSaveSettings}
             className="bg-black hover:bg-zinc-900 text-white h-12 px-10 rounded-full border border-zinc-800 transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] font-serif italic text-base hover:scale-[1.02] active:scale-[0.98]"
           >
             <Save className="h-4 w-4 mr-3" />
-            Save configuration
+            {t("settings.saveConfig")}
           </Button>
         </div>
       </div>

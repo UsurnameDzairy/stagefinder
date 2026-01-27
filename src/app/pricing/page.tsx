@@ -30,8 +30,8 @@ const plansData: PricingPlan[] = [
   },
   {
     key: "student",
-    price: "8.99",
-    yearlyPrice: "7.19",
+    price: "10,79",
+    yearlyPrice: "8,99",
     href: "#",
     isPopular: false,
     stripePriceId: "price_1StIZXQD4Pt8cZCMR1QR2Rnt",
@@ -39,8 +39,8 @@ const plansData: PricingPlan[] = [
   },
   {
     key: "pro",
-    price: "19.99",
-    yearlyPrice: "15.99",
+    price: "23,99",
+    yearlyPrice: "19,99",
     href: "#",
     isPopular: true,
     stripePriceId: "price_1StIZYQD4Pt8cZCM0Xlrww0i",
@@ -193,8 +193,8 @@ export default function PricingPage() {
                   transition={{ duration: 0.5, delay: index * 0.15 }}
                 >
                   {plan.isPopular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-white" style={{ backgroundColor: '#ffffff' }}>
-                      <span className="text-sm font-semibold text-black" style={{ color: '#000000' }}>{t("pricing.popular")}</span>
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-zinc-700">
+                      <span className="text-sm font-semibold text-white">{t("pricing.popular")}</span>
                     </div>
                   )}
                   <h3 className="font-serif text-xl text-white mb-2">{planData.name}</h3>
@@ -206,7 +206,7 @@ export default function PricingPage() {
                   </p>
                   <div className="mb-6">
                     <span className="font-serif text-5xl font-light text-white">
-                      ${isMonthly ? plan.price : plan.yearlyPrice}
+                      {isMonthly ? plan.price : plan.yearlyPrice}€
                     </span>
                     <span className={cn(
                       "font-serif text-sm ml-2 italic",

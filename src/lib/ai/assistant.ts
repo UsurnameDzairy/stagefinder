@@ -247,7 +247,15 @@ Base your analysis EXCLUSIVELY on the CV content provided. Be specific and refer
 
 `;
   } else {
-    prompt += isFrench ? `PROFIL UTILISATEUR:\n` : `USER PROFILE:\n`;
+    prompt += isFrench
+      ? `TU AS ACCÈS AU PROFIL SUIVANT de l'utilisateur. Utilise ces données pour personnaliser tes conseils.
+Si l'utilisateur demande une analyse de CV mais ne fournit pas de CV entre les balises === MY CV CONTENT ===, analyse son PROFIL ci-dessous et donne des conseils basés sur ces informations.
+
+PROFIL UTILISATEUR:\n`
+      : `YOU HAVE ACCESS TO THE FOLLOWING USER PROFILE. Use this data to personalize your advice.
+If the user asks for CV analysis but doesn't provide a CV between === MY CV CONTENT === markers, analyze their PROFILE below and give advice based on this information.
+
+USER PROFILE:\n`;
   }
 
   if (profile) {
@@ -335,21 +343,27 @@ Base your analysis EXCLUSIVELY on the CV content provided. Be specific and refer
 
   prompt += isFrench
     ? `
-Si l'utilisateur fournit son CV (entre === MY CV CONTENT === et === END OF CV ===), priorise son analyse par rapport aux données de profil ci-dessus. Quand un CV est fourni, commence TOUJOURS par extraire et résumer les informations clés avant de donner des conseils.
+RÈGLES D'ANALYSE:
+1. Si l'utilisateur fournit son CV (entre === MY CV CONTENT === et === END OF CV ===), priorise son analyse par rapport aux données de profil ci-dessus.
+2. Si l'utilisateur demande une "analyse de CV" ou "analyse mon CV" MAIS qu'aucun CV n'est fourni entre les balises, alors UTILISE LES DONNÉES DE PROFIL ci-dessus pour donner une analyse basée sur ses compétences, expériences et objectifs connus. Ne dis JAMAIS "je ne vois pas ton CV" si tu as des données de profil.
+3. Quand un CV est fourni, commence TOUJOURS par extraire et résumer les informations clés avant de donner des conseils.
 
 Tu peux aider avec: analyse et amélioration de CV, évaluation de profil, recommandations d'entreprises et de postes, compétences à développer, stratégie de recherche, amélioration des candidatures, préparation aux entretiens, programmes (Graduate, VIE, stages, etc.).
 
-IMPORTANT: Lors de l'analyse d'un CV, sois minutieux et spécifique. Référence le contenu réel de leur CV. Ne donne pas de conseils génériques - personnalise-les selon leur expérience et compétences réelles.
+IMPORTANT: Sois minutieux et spécifique. Référence le contenu réel (CV ou profil). Ne donne pas de conseils génériques - personnalise-les selon leur expérience et compétences réelles.
 
 Réponds comme un coach carrière humain ayant une vraie conversation. Sois direct, perspicace et actionnable.
 
 RAPPEL FINAL: Tu réponds UNIQUEMENT en FRANÇAIS, quelle que soit la langue de la question.`
     : `
-If the user provides their CV (between === MY CV CONTENT === and === END OF CV ===), prioritize analyzing it over the profile data above. When a CV is provided, ALWAYS start by extracting and summarizing the key information before giving advice.
+ANALYSIS RULES:
+1. If the user provides their CV (between === MY CV CONTENT === and === END OF CV ===), prioritize analyzing it over the profile data above.
+2. If the user asks for "CV analysis" or "analyze my CV" BUT no CV is provided between the markers, then USE THE PROFILE DATA above to give an analysis based on their known skills, experiences, and objectives. NEVER say "I don't see your CV" if you have profile data available.
+3. When a CV is provided, ALWAYS start by extracting and summarizing the key information before giving advice.
 
 You can help with: CV analysis and improvement, profile assessment, company and position recommendations, skills to develop, search strategy, improving applications, interview preparation, programs (Graduate, VIE, internships, etc.).
 
-IMPORTANT: When analyzing a CV, be thorough and specific. Reference actual content from their CV. Don't give generic advice - make it personal to their actual experience and skills.
+IMPORTANT: Be thorough and specific. Reference actual content (CV or profile). Don't give generic advice - make it personal to their actual experience and skills.
 
 Respond like a human career coach having a real conversation. Be direct, insightful, and actionable.
 
@@ -381,10 +395,24 @@ export async function generateAssistantResponse(
 
   // Toutes les requêtes passent par GPT
   try {
-    const conversationHistory = messages
+    // Extract system message if present
+    const systemMessage = messages.find(m => m.role === 'system');
+
+    // Build conversation history including system message
+    const conversationHistory: { role: 'system' | 'user' | 'assistant', content: string }[] = [];
+
+    // Add system message first if present
+    if (systemMessage) {
+      conversationHistory.push({ role: 'system', content: systemMessage.content });
+    }
+
+    // Add recent user/assistant messages
+    const recentMessages = messages
       .filter(m => m.role !== 'system')
-      .slice(-5) // Garder les 5 derniers messages pour le contexte
+      .slice(-5)
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+
+    conversationHistory.push(...recentMessages);
 
     const userContextForAI = {
       skills: context.skills.map(s => s.name),

@@ -6,16 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useLanguage } from "@/lib/i18n";
 import { FileText, Copy, Download, Check, Sparkles } from "lucide-react";
 
 export default function LettresPage() {
   const { t } = useTranslation();
+  const { language: currentLanguage } = useLanguage();
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [contractType, setContractType] = useState("stage");
-  const [language, setLanguage] = useState("fr");
+  const [language, setLanguage] = useState(currentLanguage);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -89,7 +90,7 @@ export default function LettresPage() {
                 {t("applications.position")}
               </label>
               <Input
-                placeholder="Ex: Analyste Fusion-Acquisition, Product Manager..."
+                placeholder={t("letters.positionPlaceholder")}
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
                 className="h-11 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm"
@@ -119,9 +120,9 @@ export default function LettresPage() {
                   onChange={(e) => setContractType(e.target.value)}
                   className="flex h-11 w-full rounded-xl border border-zinc-900 bg-zinc-950 px-4 py-1 text-sm text-zinc-100 shadow-none focus:outline-none focus:border-zinc-500 transition-all font-medium"
                 >
-                  <option value="stage">Internship</option>
-                  <option value="alternance">Apprenticeship</option>
-                  <option value="cdi">Full-time</option>
+                  <option value="stage">{t("letters.contractTypes.internship")}</option>
+                  <option value="alternance">{t("letters.contractTypes.apprenticeship")}</option>
+                  <option value="cdi">{t("letters.contractTypes.fulltime")}</option>
                 </select>
               </div>
               <div className="space-y-2">
@@ -130,11 +131,11 @@ export default function LettresPage() {
                 </label>
                 <select
                   value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
+                  onChange={(e) => setLanguage(e.target.value as "fr" | "en")}
                   className="flex h-11 w-full rounded-xl border border-zinc-900 bg-zinc-950 px-4 py-1 text-sm text-zinc-100 shadow-none focus:outline-none focus:border-zinc-500 transition-all font-medium"
                 >
-                  <option value="fr">French</option>
-                  <option value="en">English</option>
+                  <option value="fr">{t("letters.languages.french")}</option>
+                  <option value="en">{t("letters.languages.english")}</option>
                 </select>
               </div>
             </div>

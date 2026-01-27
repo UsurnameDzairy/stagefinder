@@ -22,7 +22,7 @@ export const Logo = ({ className, size = 28 }: LogoProps) => {
         </div>
       </div>
       <span className="font-serif text-2xl tracking-tight text-white flex items-baseline">
-        Stage<span className="text-zinc-500 italic ml-1 font-normal">Finder</span>
+        Kam<span className="text-zinc-500 italic font-normal">ForJob</span>
       </span>
     </div>
   );

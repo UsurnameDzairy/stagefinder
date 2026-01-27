@@ -60,7 +60,7 @@ export function LanguageSelectorModal() {
 
               {/* Title */}
               <h2 className="text-2xl font-serif font-light text-center text-white mb-2">
-                Welcome to StageFinder
+                Welcome to <span className="font-normal">Kam</span><span className="text-zinc-500 italic">ForJob</span>
               </h2>
               <p className="text-sm text-zinc-500 text-center mb-8">
                 Choose your preferred language
