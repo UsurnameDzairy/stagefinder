@@ -98,11 +98,20 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
 
   // Get the subscription from Stripe
   const subscriptionId = session.subscription as string;
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId) as any;
 
   // Determine plan type from price ID
-  const priceId = subscription.items.data[0]?.price.id;
+  const priceId = subscription.items?.data?.[0]?.price?.id;
   const planType = PRICE_TO_PLAN[priceId] || (plan?.toUpperCase() as PlanType) || "STUDENT";
+
+  // Get period dates safely
+  const periodStart = subscription.current_period_start
+    ? new Date(subscription.current_period_start * 1000)
+    : new Date();
+  const periodEnd = subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000)
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   // Update or create subscription in database
   await prisma.subscription.upsert({
@@ -113,9 +122,9 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       stripePriceId: priceId,
       plan: planType,
       status: "ACTIVE",
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodStart: periodStart,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
     },
     create: {
       userId,
@@ -124,16 +133,17 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       stripePriceId: priceId,
       plan: planType,
       status: "ACTIVE",
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodStart: periodStart,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
     },
   });
 
   console.log(`[Stripe Webhook] User ${userId} upgraded to ${planType}`);
 }
 
-async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleSubscriptionUpdate(subscription: any) {
   const customerId = subscription.customer as string;
 
   // Find user by Stripe customer ID
@@ -156,22 +166,31 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   else if (subscription.status === "trialing") status = "TRIALING";
   else if (subscription.status === "incomplete") status = "INCOMPLETE";
 
+  // Get period dates
+  const periodStart = subscription.current_period_start
+    ? new Date(subscription.current_period_start * 1000)
+    : new Date();
+  const periodEnd = subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000)
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
   await prisma.subscription.update({
     where: { id: existingSubscription.id },
     data: {
       stripePriceId: priceId,
       plan: planType,
       status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodStart: periodStart,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
     },
   });
 
   console.log(`[Stripe Webhook] Subscription updated for user ${existingSubscription.userId}`);
 }
 
-async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleSubscriptionCanceled(subscription: any) {
   const customerId = subscription.customer as string;
 
   const existingSubscription = await prisma.subscription.findFirst({
