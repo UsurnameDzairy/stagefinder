@@ -78,7 +78,7 @@ const getLandingNavigationLinks = (t: (key: string) => string): NavLink[] => [
 
 // Navigation links are now generated dynamically using translations
 const getAppNavigationLinks = (t: (key: string) => string): NavLink[] => [
-  { href: "/assistant", label: "KAM" },
+  { href: "/assistant", label: "Kam" },
   { href: "/dashboard", label: t("nav.dashboard") },
   { href: "/offres", label: t("nav.jobs") },
   { href: "/candidatures", label: t("nav.applications") },

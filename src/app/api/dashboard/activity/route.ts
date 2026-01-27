@@ -16,11 +16,19 @@ export async function GET() {
       take: 5,
     });
 
-    // Fetch recent saved offers
+    // Fetch recent saved offers with offer details
     const recentSavedOffers = await prisma.savedOffer.findMany({
       where: { userId: session.id },
       orderBy: { createdAt: "desc" },
       take: 5,
+      include: {
+        offer: {
+          select: {
+            title: true,
+            companyName: true,
+          },
+        },
+      },
     });
 
     // Fetch recent saved companies (via SavedCompany junction table)
@@ -55,13 +63,13 @@ export async function GET() {
     });
 
     // Format saved offers
-    recentSavedOffers.forEach((offer) => {
+    recentSavedOffers.forEach((savedOffer) => {
       activity.push({
-        id: `offer-${offer.id}`,
+        id: `offer-${savedOffer.id}`,
         type: "saved_offer",
-        title: offer.offerId || "Saved offer",
-        subtitle: `Score: ${offer.matchScore || 0}%`,
-        date: formatRelativeDate(offer.createdAt),
+        title: savedOffer.offer?.title || "Saved offer",
+        subtitle: savedOffer.offer?.companyName || `Score: ${savedOffer.matchScore || 0}%`,
+        date: formatRelativeDate(savedOffer.createdAt),
       });
     });
 

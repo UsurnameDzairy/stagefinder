@@ -3,10 +3,11 @@
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useLanguage } from "@/lib/i18n";
 
 export default function AIThinkingBlock() {
-    const { tArray } = useTranslation();
+    const { tArray, t } = useTranslation();
+    const { language } = useLanguage();
     const [scrollPosition, setScrollPosition] = useState(0);
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -24,8 +25,22 @@ export default function AIThinkingBlock() {
             "Almost there..."
         ];
 
-    // Messages de pensée pour l'animation - style naturel et conversationnel
-    const ThinkingContent = `Hmm, let me take a moment to really understand what you're asking here...
+    // Thinking content based on language
+    const ThinkingContent = language === "fr"
+        ? `Hmm, laisse-moi prendre un moment pour bien comprendre ce que tu me demandes...
+
+Alors en regardant ton profil et ce que tu m'as partagé, je commence à voir des patterns intéressants.
+
+Je réfléchis à la meilleure façon d'aborder ça. Il y a plusieurs angles possibles, mais je veux m'assurer de te donner quelque chose de vraiment utile.
+
+Ton parcours est assez intéressant d'ailleurs. Laisse-moi voir comment ça s'articule avec ce que tu veux accomplir.
+
+Je rassemble quelques idées. Je veux être sûr qu'elles soient adaptées à ta situation, pas juste des conseils génériques.
+
+J'y suis presque. J'organise mes pensées pour que ce soit clair et actionnable.
+
+Bon, je pense avoir une bonne perspective maintenant. Laisse-moi te préparer ça.`
+        : `Hmm, let me take a moment to really understand what you're asking here...
 
 Ok so looking at your profile and what you've shared with me, I'm starting to see some interesting patterns.
 
