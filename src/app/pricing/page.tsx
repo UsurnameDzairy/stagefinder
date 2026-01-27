@@ -34,8 +34,8 @@ const plansData: PricingPlan[] = [
     yearlyPrice: "8,99",
     href: "#",
     isPopular: false,
-    stripePriceId: "price_1StIZXQD4Pt8cZCMR1QR2Rnt",
-    stripeYearlyPriceId: "price_1StIZXQD4Pt8cZCMJGBbUswp",
+    stripePriceId: "price_1Su4dcEZ2umRtYhgsugvViKb",
+    stripeYearlyPriceId: "price_1Su4eQEZ2umRtYhgP0jQr3p6",
   },
   {
     key: "pro",
@@ -43,8 +43,8 @@ const plansData: PricingPlan[] = [
     yearlyPrice: "19,99",
     href: "#",
     isPopular: true,
-    stripePriceId: "price_1StIZYQD4Pt8cZCM0Xlrww0i",
-    stripeYearlyPriceId: "price_1StIZYQD4Pt8cZCMVuwSXF3U",
+    stripePriceId: "price_1Su4b2EZ2umRtYhgqMjeLJXg",
+    stripeYearlyPriceId: "price_1Su4bmEZ2umRtYhgXp1UEBLq",
   },
 ];
 

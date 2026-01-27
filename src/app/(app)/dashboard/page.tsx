@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
   Building2, Send, CheckCircle, Search, FileText,
-  ExternalLink, TrendingUp, BarChart3, PieChart, Target, Activity as ActivityIcon, Star, ChevronDown, ChevronUp
+  ExternalLink, TrendingUp, BarChart3, PieChart, Target, Activity as ActivityIcon, Bookmark, ChevronDown, ChevronUp
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/i18n";
@@ -108,6 +108,12 @@ interface Stats {
   };
 }
 
+interface UsageStats {
+  plan: "FREE" | "STUDENT" | "PRO";
+  applications: { used: number; limit: number; remaining: number; resetsAt: string };
+  searches: { used: number; limit: number; remaining: number; resetsAt: string };
+}
+
 interface Activity {
   id: string;
   type: "application" | "saved_offer" | "saved_company" | "interview";
@@ -121,6 +127,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
+  const [usage, setUsage] = useState<UsageStats | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -139,6 +146,17 @@ export default function DashboardPage() {
         } catch (e) {
           // If activity API fails, leave empty
           setRecentActivity([]);
+        }
+
+        // Fetch usage stats
+        try {
+          const usageRes = await fetch("/api/usage");
+          if (usageRes.ok) {
+            const usageData = await usageRes.json();
+            setUsage(usageData);
+          }
+        } catch (e) {
+          console.error("Failed to fetch usage stats");
         }
 
         setLoading(false);
@@ -174,7 +192,7 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: t("offers.title"), value: stats?.savedOffers || 0, icon: Star, color: "text-blue-500" },
+          { label: t("offers.title"), value: stats?.savedOffers || 0, icon: Bookmark, color: "text-blue-500" },
           { label: t("companies.title"), value: stats?.savedCompanies || 0, icon: Building2, color: "text-purple-500" },
           { label: t("applications.title"), value: stats?.applications || 0, icon: Send, color: "text-green-500" },
           { label: t("dashboard.stats.interviews"), value: stats?.interviews || 0, icon: CheckCircle, color: "text-orange-500" },
@@ -307,6 +325,103 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Usage Limits Card */}
+        {usage && (
+          <Card className="md:col-span-2 bg-black border-zinc-900 shadow-none">
+            <CardHeader className="p-6 pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+                {t("dashboard.usageLimits") || "Usage Limits"}
+              </CardTitle>
+              <span className={cn(
+                "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                usage.plan === "PRO" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
+                usage.plan === "STUDENT" ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
+                "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              )}>
+                {usage.plan}
+              </span>
+            </CardHeader>
+            <CardContent className="p-6 pt-4">
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Applications Usage */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                      <Send className="h-3.5 w-3.5" />
+                      {t("dashboard.applicationsUsed") || "Applications"}
+                    </span>
+                    <span className="text-[12px] font-bold text-white">
+                      {usage.applications.used}/{usage.applications.limit}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-zinc-900 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, (usage.applications.used / usage.applications.limit) * 100)}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className={cn(
+                        "h-full rounded-full",
+                        usage.applications.remaining === 0 ? "bg-red-500" :
+                        usage.applications.remaining <= 1 ? "bg-amber-500" : "bg-green-500"
+                      )}
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-600">
+                    {usage.applications.remaining > 0
+                      ? `${usage.applications.remaining} ${t("dashboard.remaining") || "remaining"}`
+                      : t("dashboard.limitReached") || "Limit reached"}
+                    {" • "}
+                    {t("dashboard.resetsOn") || "Resets"} {new Date(usage.applications.resetsAt).toLocaleDateString()}
+                  </p>
+                </div>
+
+                {/* Searches Usage */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                      <Search className="h-3.5 w-3.5" />
+                      {t("dashboard.searchesUsed") || "Searches"}
+                    </span>
+                    <span className="text-[12px] font-bold text-white">
+                      {usage.searches.used}/{usage.searches.limit}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-zinc-900 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, (usage.searches.used / usage.searches.limit) * 100)}%` }}
+                      transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+                      className={cn(
+                        "h-full rounded-full",
+                        usage.searches.remaining === 0 ? "bg-red-500" :
+                        usage.searches.remaining <= 1 ? "bg-amber-500" : "bg-blue-500"
+                      )}
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-600">
+                    {usage.searches.remaining > 0
+                      ? `${usage.searches.remaining} ${t("dashboard.remaining") || "remaining"}`
+                      : t("dashboard.limitReached") || "Limit reached"}
+                    {" • "}
+                    {t("dashboard.resetsOn") || "Resets"} {new Date(usage.searches.resetsAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Upgrade CTA for free users */}
+              {usage.plan === "FREE" && (
+                <div className="mt-6 pt-4 border-t border-zinc-900">
+                  <Link href="/pricing">
+                    <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold text-[11px] uppercase tracking-widest h-10 rounded-xl transition-all hover:scale-[1.02]">
+                      {t("dashboard.upgradePlan") || "Upgrade for more"}
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Recent Activity Section */}
@@ -329,7 +444,7 @@ export default function DashboardPage() {
                           "bg-orange-500/10 border-orange-500/20 text-orange-500"
                   )}>
                     {activity.type === "application" ? <Send className="h-4 w-4" /> :
-                      activity.type === "saved_offer" ? <Star className="h-4 w-4" /> :
+                      activity.type === "saved_offer" ? <Bookmark className="h-4 w-4" /> :
                         activity.type === "saved_company" ? <Building2 className="h-4 w-4" /> :
                           <CheckCircle className="h-4 w-4" />}
                   </div>

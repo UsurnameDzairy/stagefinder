@@ -708,6 +708,8 @@ export default function AssistantPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Track which message is currently being typed (last assistant message)
+  const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
 
   // Fetch conversations
   const fetchConversations = useCallback(async () => {
@@ -801,9 +803,11 @@ export default function AssistantPage() {
   }, [messages]);
 
   const handleSendMessage = async (message: string, files: FileWithPreview[], pastedContent: PastedContent[], model: string) => {
+    // Stop any currently typing message
+    setTypingMessageId(null);
     setIsLoading(true);
 
-    // Ajouter le message utilisateur immédiatement
+    // Add user message immediately
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
@@ -862,14 +866,17 @@ export default function AssistantPage() {
       const data = await res.json();
       const assistantResponse = data.message?.content || "No response";
 
-      // Ajouter la réponse de l'assistant
+      // Add the assistant's response
+      const assistantMessageId = `assistant-${Date.now()}`;
       const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
+        id: assistantMessageId,
         role: "assistant",
         content: assistantResponse,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, assistantMessage]);
+      // Set this message as the one currently being typed
+      setTypingMessageId(assistantMessageId);
 
       // Sauvegarder la conversation dans la base de données
       try {
@@ -1083,6 +1090,13 @@ export default function AssistantPage() {
                               loop={false}
                               variableSpeed={{ min: 3, max: 10 }}
                               className="text-sm leading-relaxed text-white"
+                              stopped={typingMessageId !== msg.id}
+                              onComplete={() => {
+                                // When typing completes, clear the typing state
+                                if (typingMessageId === msg.id) {
+                                  setTypingMessageId(null);
+                                }
+                              }}
                             />
                           </div>
                         ) : (
