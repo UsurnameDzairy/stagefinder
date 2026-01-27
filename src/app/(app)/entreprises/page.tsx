@@ -61,9 +61,9 @@ export default function EntreprisesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           companyName: company.name,
-          jobTitle: `Candidature - ${company.name}`,
+          jobTitle: `Application - ${company.name}`,
           status: "draft",
-          source: "Entreprises favorites",
+          source: "Favorite companies",
           companyId: company.id,
         }),
       });
@@ -93,11 +93,11 @@ export default function EntreprisesPage() {
             {t("companies.title")}
           </h1>
           <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em] mt-1">
-            Entreprises favorites et suivi des candidatures stratégiques
+            Favorite companies and strategic application tracking
           </p>
         </div>
         <div className="px-4 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-bold text-zinc-400 uppercase tracking-widest">
-          {savedCompanies.length} {savedCompanies.length > 1 ? "entreprises" : "entreprise"}
+          {savedCompanies.length} {savedCompanies.length > 1 ? "companies" : "company"}
         </div>
       </div>
 
@@ -108,7 +108,7 @@ export default function EntreprisesPage() {
               <Building2 className="h-8 w-8 text-zinc-700" />
             </div>
             <p className="text-zinc-500 font-medium mb-8">
-              Aucune entreprise sauvegardée pour le moment
+              No saved companies yet
             </p>
           <Link href="/offres">
             <Button className="bg-black hover:bg-zinc-900 text-white h-11 px-10 font-serif italic text-sm rounded-full border border-zinc-800 transition-all hover:scale-105 active:scale-95 shadow-xl">
@@ -166,12 +166,12 @@ export default function EntreprisesPage() {
                 )}
 
                 <div className="flex gap-2 pt-4 border-t border-zinc-900">
-                  <Button 
+                  <Button
                     onClick={() => createApplication(saved.company)}
                     className="flex-1 bg-black hover:bg-zinc-900 text-white h-10 text-xs font-medium tracking-tight transition-all rounded-full border border-zinc-800 shadow-lg font-serif italic hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <Send className="h-4 w-4 mr-2" />
-                    Postuler
+                    Apply
                   </Button>
                   {saved.company.website && (
                     <a

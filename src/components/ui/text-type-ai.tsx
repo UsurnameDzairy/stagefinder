@@ -22,6 +22,8 @@ interface TextTypeProps {
     onSentenceComplete?: (sentence: string, index: number) => void;
     startOnVisible?: boolean;
     reverseMode?: boolean;
+    stopped?: boolean; // When true, immediately show full text and stop animation
+    onComplete?: () => void; // Called when typing is complete
     [key: string]: any;
 }
 
@@ -44,6 +46,8 @@ const TextType = ({
     onSentenceComplete,
     startOnVisible = false,
     reverseMode = false,
+    stopped = false,
+    onComplete,
     ...props
 }: TextTypeProps) => {
     const [displayedText, setDisplayedText] = useState('');
@@ -98,8 +102,18 @@ const TextType = ({
         }
     }, [showCursor, cursorBlinkDuration]);
 
+    // When stopped, immediately show full text
     useEffect(() => {
-        if (!isVisible) return;
+        if (stopped) {
+            const currentText = textArray[currentTextIndex];
+            setDisplayedText(currentText);
+            setCurrentCharIndex(currentText.length);
+        }
+    }, [stopped, textArray, currentTextIndex]);
+
+    useEffect(() => {
+        // Don't animate if stopped
+        if (!isVisible || stopped) return;
 
         let timeout: NodeJS.Timeout;
 
@@ -136,6 +150,10 @@ const TextType = ({
                         variableSpeed ? getRandomSpeed() : typingSpeed
                     );
                 } else if (textArray.length >= 1) {
+                    // Typing complete
+                    if (onComplete) {
+                        onComplete();
+                    }
                     if (!loop && currentTextIndex === textArray.length - 1) return;
                     timeout = setTimeout(() => {
                         setIsDeleting(true);
@@ -166,7 +184,9 @@ const TextType = ({
         isVisible,
         reverseMode,
         variableSpeed,
-        onSentenceComplete
+        onSentenceComplete,
+        stopped,
+        onComplete
     ]);
 
     const shouldHideCursor =

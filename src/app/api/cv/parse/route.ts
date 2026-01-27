@@ -1,5 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Primary PDF parser using pdf-parse (more robust)
+async function parsePDFWithPdfParse(buffer: Buffer): Promise<string> {
+  const { PDFParse } = await import('pdf-parse');
+  // Convert Buffer to Uint8Array for pdf-parse v2
+  const uint8Array = new Uint8Array(buffer);
+  const pdfParser = new PDFParse({ data: uint8Array });
+  // getText() returns TextResult with .text property containing all pages
+  const textResult = await pdfParser.getText();
+  const text = textResult?.text || "";
+  console.log(`[CV Parse] pdf-parse: ${text.length} chars from ${textResult?.total || 0} pages`);
+  return text;
+}
+
+// Fallback PDF parser using unpdf
+async function parsePDFWithUnpdf(buffer: Buffer): Promise<string> {
+  const { extractText } = await import('unpdf');
+  const uint8Array = new Uint8Array(buffer);
+  const { text, totalPages } = await extractText(uint8Array, { mergePages: true });
+  console.log(`[CV Parse] unpdf: ${text?.length || 0} chars from ${totalPages} pages`);
+  return text || "";
+}
+
+// Main PDF extraction with fallback
+async function parsePDF(buffer: Buffer): Promise<string> {
+  // Try pdf-parse first
+  try {
+    const text = await parsePDFWithPdfParse(buffer);
+    if (text && text.trim().length > 10) return text;
+  } catch (e) {
+    console.log('[CV Parse] pdf-parse failed, trying unpdf...');
+  }
+
+  // Fallback to unpdf
+  try {
+    const text = await parsePDFWithUnpdf(buffer);
+    if (text && text.trim().length > 10) return text;
+  } catch (e) {
+    console.log('[CV Parse] unpdf also failed');
+  }
+
+  throw new Error('PDF extraction failed');
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -15,23 +58,18 @@ export async function POST(req: NextRequest) {
     const fileName = file.name.toLowerCase();
     let text = "";
 
-    // Lire le contenu du fichier
+    // Read file content
     const buffer = Buffer.from(await file.arrayBuffer());
 
     if (fileName.endsWith(".pdf")) {
-      // Parser le PDF with require to avoid ESM issues
+      // Parse PDF with fallback
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const pdfParse = require("pdf-parse");
-        const pdfData = await pdfParse(buffer);
-        text = pdfData.text;
-
-        // Nettoyer le texte extrait
+        text = await parsePDF(buffer);
         text = cleanExtractedText(text);
       } catch (pdfError) {
         console.error("PDF parsing error:", pdfError);
         return NextResponse.json(
-          { success: false, error: "Erreur lors de la lecture du PDF. Essayez de copier-coller le texte." },
+          { success: false, error: "Error reading PDF. Try copy-pasting the text instead." },
           { status: 400 }
         );
       }
@@ -52,14 +90,14 @@ export async function POST(req: NextRequest) {
       }
     } else {
       return NextResponse.json(
-        { success: false, error: "Format de fichier non supporté" },
+        { success: false, error: "Unsupported file format" },
         { status: 400 }
       );
     }
 
     if (!text || text.trim().length < 50) {
       return NextResponse.json(
-        { success: false, error: "Le fichier semble vide ou illisible. Essayez de copier-coller le texte." },
+        { success: false, error: "The file appears to be empty or unreadable. Try copy-pasting the text instead." },
         { status: 400 }
       );
     }
@@ -73,7 +111,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("CV parse error:", error);
     return NextResponse.json(
-      { success: false, error: "Erreur lors du traitement du fichier" },
+      { success: false, error: "Error processing file" },
       { status: 500 }
     );
   }

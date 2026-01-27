@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { scrapeAllJobSites } from "@/lib/scrapers/real-scraper";
 import { checkJobAlertsForUser } from "@/lib/notifications";
+import { canPerformAction, incrementUsage } from "@/lib/usage-limits";
 
 const searchSchema = z.object({
   query: z.string().min(1),
@@ -18,8 +19,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check usage limits before starting search
+    const usageCheck = await canPerformAction(session.id, "search");
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: "Usage limit reached",
+          message: usageCheck.reason,
+          usage: usageCheck.usage,
+          limitReached: true,
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { query, location, providers } = searchSchema.parse(body);
+
+    // Increment usage counter before starting search
+    await incrementUsage(session.id, "search");
 
     const searchJob = await prisma.searchJob.create({
       data: {

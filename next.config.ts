@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Required for PDF libraries to work properly
+  serverExternalPackages: ["unpdf", "pdf-parse"],
+
+  // Empty turbopack config to silence the warning
+  turbopack: {},
 };
 
 export default nextConfig;

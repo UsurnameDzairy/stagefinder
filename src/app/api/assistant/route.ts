@@ -71,20 +71,20 @@ export async function POST(req: NextRequest) {
       response = await generateAssistantResponse(messagesWithSystem, context, model);
     } catch (aiError) {
       console.error("AI generation error:", aiError);
-      // Fallback response si l'API échoue
-      response = `Je suis désolé, je rencontre des difficultés techniques pour le moment. 
+      // Fallback response if the API fails
+      response = `I'm sorry, I'm experiencing technical difficulties at the moment.
 
-Voici ce que je peux vous dire basé sur votre profil :
-- Vous avez ${context.skills.length} compétences enregistrées
-- ${context.applications.length} candidatures en cours
-- ${context.savedOffers} offres sauvegardées
+Here's what I can tell you based on your profile:
+- You have ${context.skills.length} registered skills
+- ${context.applications.length} applications in progress
+- ${context.savedOffers} saved offers
 
-En attendant, vous pouvez :
-1. Explorer les offres sur la page "Offres"
-2. Améliorer votre CV sur la page "CV Improver"
-3. Générer des lettres de motivation
+In the meantime, you can:
+1. Explore jobs on the "Jobs" page
+2. Improve your CV on the "CV Improver" page
+3. Generate cover letters
 
-Réessayez dans quelques instants ! 🙏`;
+Please try again in a few moments!`;
     }
 
     return NextResponse.json({

@@ -16,11 +16,19 @@ export async function GET() {
       take: 5,
     });
 
-    // Fetch recent saved offers
+    // Fetch recent saved offers with offer details
     const recentSavedOffers = await prisma.savedOffer.findMany({
       where: { userId: session.id },
       orderBy: { createdAt: "desc" },
       take: 5,
+      include: {
+        offer: {
+          select: {
+            title: true,
+            companyName: true,
+          },
+        },
+      },
     });
 
     // Fetch recent saved companies (via SavedCompany junction table)
@@ -48,20 +56,20 @@ export async function GET() {
       activity.push({
         id: `app-${app.id}`,
         type: isInterview ? "interview" : "application",
-        title: app.jobTitle || "Candidature",
-        subtitle: app.companyName || "Entreprise",
+        title: app.jobTitle || "Application",
+        subtitle: app.companyName || "Company",
         date: formatRelativeDate(app.createdAt),
       });
     });
 
     // Format saved offers
-    recentSavedOffers.forEach((offer) => {
+    recentSavedOffers.forEach((savedOffer) => {
       activity.push({
-        id: `offer-${offer.id}`,
+        id: `offer-${savedOffer.id}`,
         type: "saved_offer",
-        title: offer.offerId || "Offre sauvegardée",
-        subtitle: `Score: ${offer.matchScore || 0}%`,
-        date: formatRelativeDate(offer.createdAt),
+        title: savedOffer.offer?.title || "Saved offer",
+        subtitle: savedOffer.offer?.companyName || `Score: ${savedOffer.matchScore || 0}%`,
+        date: formatRelativeDate(savedOffer.createdAt),
       });
     });
 
@@ -71,7 +79,7 @@ export async function GET() {
         id: `company-${savedCompany.id}`,
         type: "saved_company",
         title: savedCompany.company.name,
-        subtitle: savedCompany.company.sector || "Entreprise",
+        subtitle: savedCompany.company.sector || "Company",
         date: formatRelativeDate(savedCompany.createdAt),
       });
     });
@@ -97,16 +105,16 @@ function formatRelativeDate(date: Date): string {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffMins < 60) {
-    return diffMins <= 1 ? "À l'instant" : `Il y a ${diffMins} min`;
+    return diffMins <= 1 ? "Just now" : `${diffMins} min ago`;
   }
   if (diffHours < 24) {
-    return `Il y a ${diffHours}h`;
+    return `${diffHours}h ago`;
   }
   if (diffDays === 1) {
-    return "Hier";
+    return "Yesterday";
   }
   if (diffDays < 7) {
-    return `Il y a ${diffDays} jours`;
+    return `${diffDays} days ago`;
   }
-  return date.toLocaleDateString("fr-FR");
+  return date.toLocaleDateString("en-US");
 }

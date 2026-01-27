@@ -58,34 +58,34 @@ const MAX_FILES = 10;
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const PASTE_THRESHOLD = 200;
 
-// Modèles IA disponibles
+// Available AI Models
 const DEFAULT_MODELS: ModelOption[] = [
   {
     id: "llama-3.3-70b",
     name: "Llama 3.3",
-    description: "Modèle puissant et rapide",
-    badge: "Gratuit",
+    description: "Powerful and fast model",
+    badge: "Free",
     apiModel: "llama-3.3-70b-versatile"
   },
   {
     id: "llama-3.1-8b",
     name: "Llama 3.1 Fast",
-    description: "Ultra rapide pour les réponses simples",
-    badge: "Gratuit",
+    description: "Ultra fast for simple responses",
+    badge: "Free",
     apiModel: "llama-3.1-8b-instant"
   },
   {
     id: "mixtral-8x7b",
     name: "Mixtral 8x7B",
-    description: "Excellent pour l'analyse de documents",
-    badge: "Gratuit",
+    description: "Excellent for document analysis",
+    badge: "Free",
     apiModel: "mixtral-8x7b-32768"
   },
   {
     id: "gemma2-9b",
     name: "Gemma 2",
-    description: "Modèle Google compact et efficace",
-    badge: "Gratuit",
+    description: "Compact and efficient Google model",
+    badge: "Free",
     apiModel: "gemma2-9b-it"
   },
 ];
@@ -306,7 +306,7 @@ const ClaudeChatInput: React.FC<{
           // If in CV analysis mode, auto-send message once text is extracted
           if (cvAnalysisMode && text && text.length > 50) {
             setTimeout(() => {
-              const cvMessage = "Analyse mon CV en détail et donne-moi des recommandations pour l'améliorer.";
+              const cvMessage = "Analyze my CV in detail and give me recommendations to improve it.";
               setMessage(cvMessage);
               setCvAnalysisMode(false);
               // Trigger send after a short delay to ensure file is ready
@@ -364,13 +364,13 @@ const ClaudeChatInput: React.FC<{
           const data = await response.json();
           const interviews = data.applications?.filter((app: any) => app.status === 'interview') || [];
 
-          let prompt = "Je voudrais préparer un entretien. ";
+          let prompt = "I would like to prepare for an interview. ";
           if (interviews.length > 0) {
-            prompt += `\n\nVoici mes entretiens programmés :\n${interviews.map((app: any, idx: number) =>
-              `${idx + 1}. ${app.position} chez ${app.company}`
-            ).join('\n')}\n\nAide-moi à me préparer pour ces entretiens.`;
+            prompt += `\n\nHere are my scheduled interviews:\n${interviews.map((app: any, idx: number) =>
+              `${idx + 1}. ${app.position} at ${app.company}`
+            ).join('\n')}\n\nHelp me prepare for these interviews.`;
           } else {
-            prompt += "Je n'ai pas encore d'entretien programmé, mais j'aimerais m'entraîner pour des entretiens en général.";
+            prompt += "I don't have any scheduled interviews yet, but I would like to practice for interviews in general.";
           }
 
           if (onSendMessage) {
@@ -380,7 +380,7 @@ const ClaudeChatInput: React.FC<{
       } catch (error) {
         console.error('Failed to fetch interviews:', error);
         // Fallback if API fails
-        const prompt = "Je voudrais préparer un entretien. Aide-moi à m'entraîner.";
+        const prompt = "I would like to prepare for an interview. Help me practice.";
         if (onSendMessage) {
           onSendMessage(prompt, [], [], DEFAULT_MODELS[0].apiModel);
         }
@@ -388,7 +388,7 @@ const ClaudeChatInput: React.FC<{
     }
   };
 
-  const suggestions = (t("assistantPage.suggestions") as unknown as string[]) || ["Analysez mon CV...", "Aidez-moi à rédiger une lettre..."];
+  const suggestions = (t("assistantPage.suggestions") as unknown as string[]) || ["Analyze my CV...", "Help me write a cover letter..."];
 
   const handleDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); }, []);
   const handleDragLeave = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); }, []);
@@ -502,6 +502,7 @@ const ConversationSidebar: React.FC<{
   isOpen: boolean;
   onToggle: () => void;
 }> = ({ conversations, currentConversationId, onSelectConversation, onNewConversation, onDeleteConversation, isOpen, onToggle }) => {
+  const { t } = useTranslation();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
@@ -521,8 +522,8 @@ const ConversationSidebar: React.FC<{
 
     if (diffMins < 60) return `${diffMins}m`;
     if (diffHours < 24) return `${diffHours}h`;
-    if (diffDays < 7) return `${diffDays}j`;
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    if (diffDays < 7) return `${diffDays}d`;
+    return date.toLocaleDateString(t("common.locale") === "fr" ? "fr-FR" : "en-US", { day: 'numeric', month: 'short' });
   };
 
   if (!isOpen) {
@@ -530,7 +531,7 @@ const ConversationSidebar: React.FC<{
   }
 
   return (
-    <div className="w-80 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
+    <div className="w-96 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
       {/* Header */}
       <div className="p-4">
         <button
@@ -538,16 +539,16 @@ const ConversationSidebar: React.FC<{
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 font-serif text-[13px] text-zinc-400 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300 border border-white/[0.08]"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span className="italic">Nouvelle session</span>
+          <span className="italic">{t("assistantPage.newSession")}</span>
         </button>
       </div>
 
       {/* Sessions label */}
       <div className="px-4 py-2 flex items-center justify-between">
-        <span className="font-serif text-[11px] text-zinc-500 italic tracking-wide">Sessions</span>
+        <span className="font-serif text-[11px] text-zinc-500 italic tracking-wide">{t("assistantPage.sessions")}</span>
         <button
           onClick={onToggle}
-          className="p-1.5 text-zinc-600 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300"
+          className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all duration-300"
         >
           <PanelLeftClose className="h-3.5 w-3.5" />
         </button>
@@ -558,7 +559,7 @@ const ConversationSidebar: React.FC<{
         {conversations.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <MessageSquare className="h-5 w-5 text-zinc-700 mx-auto mb-2" />
-            <p className="font-serif text-[12px] text-zinc-600 italic">Aucune conversation</p>
+            <p className="font-serif text-[12px] text-zinc-400 italic">{t("assistantPage.noConversations")}</p>
           </div>
         ) : (
           <div className="space-y-0.5">
@@ -574,12 +575,12 @@ const ConversationSidebar: React.FC<{
                 )}
               >
                 <p className="font-serif text-[13px] text-zinc-300 truncate pr-6">{conv.title}</p>
-                <p className="font-serif text-[10px] text-zinc-600 mt-0.5 italic">{formatDate(conv.updatedAt)}</p>
+                <p className="font-serif text-[10px] text-zinc-400 mt-0.5 italic">{formatDate(conv.updatedAt)}</p>
 
                 {/* Delete button */}
                 <button
                   onClick={(e) => handleDelete(e, conv.id)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] text-zinc-600 hover:text-red-400/80 transition-all duration-300"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] text-zinc-400 hover:text-red-400/80 transition-all duration-300"
                   disabled={deletingId === conv.id}
                 >
                   {deletingId === conv.id ? (
@@ -707,6 +708,8 @@ export default function AssistantPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Track which message is currently being typed (last assistant message)
+  const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
 
   // Fetch conversations
   const fetchConversations = useCallback(async () => {
@@ -800,9 +803,11 @@ export default function AssistantPage() {
   }, [messages]);
 
   const handleSendMessage = async (message: string, files: FileWithPreview[], pastedContent: PastedContent[], model: string) => {
+    // Stop any currently typing message
+    setTypingMessageId(null);
     setIsLoading(true);
 
-    // Ajouter le message utilisateur immédiatement
+    // Add user message immediately
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
@@ -815,21 +820,21 @@ export default function AssistantPage() {
       // Construire le contenu avec les fichiers et texte collé
       let fullContent = message;
 
-      // Ajouter le contenu collé (souvent un CV copié-collé)
+      // Add pasted content (often a copy-pasted CV)
       if (pastedContent.length > 0) {
         const pastedTexts = pastedContent.map(p => p.content).join("\n\n");
-        fullContent += "\n\n=== CONTENU DE MON CV (copié-collé) ===\n" + pastedTexts + "\n=== FIN DU CV ===";
+        fullContent += "\n\n=== MY CV CONTENT (copy-pasted) ===\n" + pastedTexts + "\n=== END OF CV ===";
       }
 
-      // Ajouter le contenu des fichiers uploadés
+      // Add uploaded file content
       let hasCVContent = pastedContent.length > 0;
       if (files.length > 0) {
         const fileContents = files.filter(f => f.textContent && f.textContent.length > 50).map(f => {
           const isPdf = f.file.name.toLowerCase().endsWith('.pdf');
           const isDoc = f.file.name.toLowerCase().endsWith('.doc') || f.file.name.toLowerCase().endsWith('.docx');
-          const fileType = isPdf ? 'PDF' : isDoc ? 'Word' : 'Fichier';
-          console.log(`[CV Upload] Fichier: ${f.file.name}, Contenu extrait: ${f.textContent?.length || 0} caractères`);
-          return `=== CONTENU DE MON CV (${fileType}: ${f.file.name}) ===\n${f.textContent}\n=== FIN DU CV ===`;
+          const fileType = isPdf ? 'PDF' : isDoc ? 'Word' : 'File';
+          console.log(`[CV Upload] File: ${f.file.name}, Extracted content: ${f.textContent?.length || 0} characters`);
+          return `=== MY CV CONTENT (${fileType}: ${f.file.name}) ===\n${f.textContent}\n=== END OF CV ===`;
         });
         if (fileContents.length > 0) {
           fullContent += "\n\n" + fileContents.join("\n\n");
@@ -837,9 +842,9 @@ export default function AssistantPage() {
         }
       }
 
-      // Si un CV est fourni, ajouter une instruction explicite
+      // If a CV is provided, add explicit instruction
       if (hasCVContent) {
-        fullContent = "INSTRUCTION IMPORTANTE: Analyse UNIQUEMENT le CV fourni ci-dessous. IGNORE complètement les données du profil stocké (école, compétences, candidatures). Base ton analyse EXCLUSIVEMENT sur le contenu du CV que je te fournis.\n\n" + fullContent;
+        fullContent = "IMPORTANT INSTRUCTION: Analyze ONLY the CV provided below. COMPLETELY IGNORE the stored profile data (school, skills, applications). Base your analysis EXCLUSIVELY on the CV content I provide.\n\n" + fullContent;
       }
 
       console.log("[Assistant] Message envoyé:", fullContent.substring(0, 500) + "...");
@@ -856,19 +861,22 @@ export default function AssistantPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Erreur API");
+      if (!res.ok) throw new Error("API Error");
 
       const data = await res.json();
-      const assistantResponse = data.message?.content || "Pas de réponse";
+      const assistantResponse = data.message?.content || "No response";
 
-      // Ajouter la réponse de l'assistant
+      // Add the assistant's response
+      const assistantMessageId = `assistant-${Date.now()}`;
       const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
+        id: assistantMessageId,
         role: "assistant",
         content: assistantResponse,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, assistantMessage]);
+      // Set this message as the one currently being typed
+      setTypingMessageId(assistantMessageId);
 
       // Sauvegarder la conversation dans la base de données
       try {
@@ -894,11 +902,11 @@ export default function AssistantPage() {
           }
         }
       } catch (saveError) {
-        console.error("Erreur sauvegarde conversation:", saveError);
+        console.error("Conversation save error:", saveError);
         // Ne pas bloquer l'utilisateur si la sauvegarde échoue
       }
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error("Error:", error);
       const errorMessage: ChatMessage = {
         id: `error-${Date.now()}`,
         role: "assistant",
@@ -975,9 +983,9 @@ export default function AssistantPage() {
                 <h1 className="text-3xl font-serif font-light text-[#C2C0B6] mb-8 text-center">
                   <TextType
                     text={[
-                      userName ? `${getGreeting()} ${userName} !` : `${getGreeting()} !`,
-                      "Comment puis-je vous aider ?",
-                      "Prêt à travailler ?"
+                      userName ? `${getGreeting()} ${userName}!` : `${getGreeting()}!`,
+                      t("assistantPage.greetings.howCanIHelp"),
+                      t("assistantPage.greetings.readyToWork")
                     ]}
                     typingSpeed={60}
                     deletingSpeed={30}
@@ -1000,44 +1008,44 @@ export default function AssistantPage() {
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
-                    onClick={() => handleSendMessage("Analyse mon CV en détail et donne-moi des recommandations pour l'améliorer.", [], [], DEFAULT_MODELS[0].apiModel)}
+                    onClick={() => handleSendMessage("Analyze my CV in detail and give me recommendations to improve it.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
                     {t("assistantPage.starters.cvAnalysis")}
                   </Button>
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
-                    onClick={() => handleSendMessage("Prépare mon entretien - Aide-moi à m'entraîner pour un entretien.", [], [], DEFAULT_MODELS[0].apiModel)}
+                    onClick={() => handleSendMessage("Prepare me for an interview - Help me practice for an interview.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
                     {t("assistantPage.starters.interviewPrep")}
                   </Button>
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
-                    onClick={() => handleSendMessage("Quelles entreprises correspondent à mon profil ?", [], [], DEFAULT_MODELS[0].apiModel)}
+                    onClick={() => handleSendMessage("Which companies match my profile?", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
-                    Entreprises pour moi
+                    {t("assistantPage.starters.companiesForMe")}
                   </Button>
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
-                    onClick={() => handleSendMessage("Rédige-moi une lettre de motivation personnalisée.", [], [], DEFAULT_MODELS[0].apiModel)}
+                    onClick={() => handleSendMessage("Write me a personalized cover letter.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
-                    Lettre de motivation
+                    {t("assistantPage.starters.coverLetter")}
                   </Button>
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
-                    onClick={() => handleSendMessage("Quelles compétences devrais-je développer pour mon domaine ?", [], [], DEFAULT_MODELS[0].apiModel)}
+                    onClick={() => handleSendMessage("What skills should I develop for my field?", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
-                    Compétences à développer
+                    {t("assistantPage.starters.skillsToImprove")}
                   </Button>
                   <Button
                     variant="outline"
                     className="bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 transition-all font-serif text-xs px-3 py-1.5"
-                    onClick={() => handleSendMessage("Aide-moi à définir ma stratégie de recherche de stage.", [], [], DEFAULT_MODELS[0].apiModel)}
+                    onClick={() => handleSendMessage("Help me define my internship search strategy.", [], [], DEFAULT_MODELS[0].apiModel)}
                   >
-                    Stratégie de recherche
+                    {t("assistantPage.starters.searchStrategy")}
                   </Button>
                 </div>
               </div>
@@ -1046,7 +1054,7 @@ export default function AssistantPage() {
               <div className="flex flex-col h-full py-4 overflow-hidden">
                 <div className="text-xl font-serif font-light text-[#C2C0B6] text-center mb-3 shrink-0">
                   <TextType
-                    text={["KAM", "Votre Assistant", "Expert Carrière"]}
+                    text={["KAM", t("assistantPage.greetings.yourAssistant"), t("assistantPage.greetings.careerExpert")]}
                     className="inline"
                     typingSpeed={100}
                     deletingSpeed={50}
@@ -1082,6 +1090,13 @@ export default function AssistantPage() {
                               loop={false}
                               variableSpeed={{ min: 3, max: 10 }}
                               className="text-sm leading-relaxed text-white"
+                              stopped={typingMessageId !== msg.id}
+                              onComplete={() => {
+                                // When typing completes, clear the typing state
+                                if (typingMessageId === msg.id) {
+                                  setTypingMessageId(null);
+                                }
+                              }}
                             />
                           </div>
                         ) : (
@@ -1091,7 +1106,7 @@ export default function AssistantPage() {
                           "text-[10px] mt-1.5 opacity-50",
                           msg.role === "user" ? "text-right" : "text-left"
                         )}>
-                          {msg.timestamp.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          {msg.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>

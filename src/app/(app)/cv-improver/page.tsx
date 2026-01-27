@@ -10,11 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
 import {
   FileText, Upload, Sparkles, CheckCircle2, AlertTriangle,
-  Copy, Download, RefreshCw, TrendingUp, Lightbulb, GraduationCap,
-  Globe, Zap, MapPin
+  Copy, Download, RefreshCw, TrendingUp, Lightbulb,
+  Zap
 } from "lucide-react";
 
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useLanguage } from "@/lib/i18n";
 
 interface CVAnalysis {
   score: number;
@@ -39,8 +39,8 @@ interface ActionVerbs {
 
 export default function CVImproverPage() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
   const [cvText, setCvText] = useState("");
-  const [language, setLanguage] = useState<"fr" | "en">("fr");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
@@ -50,14 +50,14 @@ export default function CVImproverPage() {
   const [actionVerbs, setActionVerbs] = useState<ActionVerbs | null>(null);
   const [activeTab, setActiveTab] = useState<"analyze" | "improve" | "generate" | "verbs">("analyze");
 
-  // Upload CV file (PDF)
+  // Upload CV file (PDF) - also saves to database so Kam can access it
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Vérifier le type de fichier
+    // Check file type
     if (!file.name.endsWith('.pdf') && !file.name.endsWith('.txt') && !file.name.endsWith('.docx')) {
-      alert(t("applications.cvUpload.unsupportedFormat") || "Format non supporté. Utilisez PDF, TXT ou DOCX.");
+      alert(t("applications.cvUpload.unsupportedFormat") || "Unsupported format. Use PDF, TXT or DOCX.");
       return;
     }
 
@@ -68,21 +68,39 @@ export default function CVImproverPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/cv/parse', {
+      // First, extract the text for display
+      const parseRes = await fetch('/api/cv/parse', {
         method: 'POST',
         body: formData,
       });
 
-      const data = await res.json();
-      
-      if (data.success && data.text) {
-        setCvText(data.text);
+      const parseData = await parseRes.json();
+
+      if (parseData.success && parseData.text) {
+        setCvText(parseData.text);
+
+        // Also save to database so Kam can access it later
+        // Create a new FormData for the user CV endpoint
+        const saveFormData = new FormData();
+        saveFormData.append('file', file);
+
+        try {
+          await fetch('/api/user/cv', {
+            method: 'POST',
+            body: saveFormData,
+          });
+          // Silent save - don't block the user experience if save fails
+          console.log("CV saved to database for Kam access");
+        } catch (saveError) {
+          console.error("Failed to save CV to database:", saveError);
+          // Continue anyway - the main functionality (text extraction) worked
+        }
       } else {
-        alert(data.error || t("applications.cvUpload.errorReading") || "Erreur lors de la lecture du fichier");
+        alert(parseData.error || t("applications.cvUpload.errorReading") || "Error reading file");
       }
     } catch (error) {
       console.error("Upload error:", error);
-      alert(t("applications.cvUpload.errorUploading") || "Erreur lors de l'upload du fichier");
+      alert(t("applications.cvUpload.errorUploading") || "Error uploading file");
     } finally {
       setUploading(false);
     }
@@ -187,45 +205,22 @@ export default function CVImproverPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="text-4xl font-serif font-normal tracking-tight text-white flex items-center gap-3">
-            <GraduationCap className="h-6 w-6 text-zinc-400" />
-            CV Improver
+          <h1 className="text-4xl font-serif font-normal tracking-tight text-white">
+            {t("cvImprover.title")}
           </h1>
           <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
-            {language === "fr" 
-              ? "Analysez et améliorez votre CV avec le vocabulaire Harvard"
-              : "Analyze and improve your CV with Harvard-style vocabulary"}
+            {t("cvImprover.subtitle")}
           </p>
-        </div>
-        
-        {/* Language Toggle Premium */}
-        <div className="flex items-center gap-1 p-1 bg-zinc-950 border border-zinc-900 rounded-xl">
-          <button
-            onClick={() => setLanguage("fr")}
-            className={`px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
-              language === "fr" ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-600 hover:text-zinc-400"
-            }`}
-          >
-            FR
-          </button>
-          <button
-            onClick={() => setLanguage("en")}
-            className={`px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
-              language === "en" ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-600 hover:text-zinc-400"
-            }`}
-          >
-            EN
-          </button>
         </div>
       </div>
 
       {/* Tabs Premium */}
       <div className="flex gap-1 p-1 bg-zinc-950/50 border border-zinc-900 rounded-2xl w-fit">
         {[
-          { id: "analyze", icon: TrendingUp, label: language === "fr" ? "Analyser" : "Analyze" },
-          { id: "improve", icon: Sparkles, label: language === "fr" ? "Améliorer" : "Improve" },
-          { id: "generate", icon: FileText, label: language === "fr" ? "Générer" : "Generate" },
-          { id: "verbs", icon: Lightbulb, label: language === "fr" ? "Verbes d'action" : "Action Verbs" },
+          { id: "analyze", icon: TrendingUp, label: t("cvImprover.tabs.analyze") },
+          { id: "improve", icon: Sparkles, label: t("cvImprover.tabs.improve") },
+          { id: "generate", icon: FileText, label: t("cvImprover.tabs.generate") },
+          { id: "verbs", icon: Lightbulb, label: t("cvImprover.tabs.verbs") },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -249,12 +244,10 @@ export default function CVImproverPage() {
             <CardHeader className="p-6">
               <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
                 <Upload className="h-4 w-4 text-zinc-400" />
-                {language === "fr" ? "Votre CV" : "Your CV"}
+                {t("cvImprover.yourCv")}
               </CardTitle>
               <CardDescription className="text-[13px] text-zinc-600 font-medium">
-                {language === "fr" 
-                  ? "Uploadez votre CV ou collez le contenu textuel"
-                  : "Upload your CV or paste the raw content"}
+                {t("cvImprover.uploadOrPaste")}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-6 pb-6 space-y-6">
@@ -271,7 +264,7 @@ export default function CVImproverPage() {
                   <div className="flex flex-col items-center gap-3">
                     <Loader size="sm" />
                     <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest animate-pulse">
-                      {language === "fr" ? "Lecture en cours..." : "Reading file..."}
+                      {t("cvImprover.reading")}
                     </span>
                   </div>
                 ) : uploadedFileName ? (
@@ -281,7 +274,7 @@ export default function CVImproverPage() {
                     </div>
                     <span className="text-[13px] font-bold text-zinc-200 tracking-tight">{uploadedFileName}</span>
                     <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest group-hover:text-zinc-400 transition-colors">
-                      {language === "fr" ? "Changer le fichier" : "Change file"}
+                      {t("cvImprover.changeFile")}
                     </span>
                   </div>
                 ) : (
@@ -290,9 +283,7 @@ export default function CVImproverPage() {
                       <Upload className="h-6 w-6 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
                     </div>
                     <span className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-300 transition-colors">
-                      {language === "fr" 
-                        ? "Sélectionner un fichier"
-                        : "Select a file"}
+                      {t("cvImprover.selectFile")}
                     </span>
                     <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.2em]">PDF, TXT, DOCX</span>
                   </div>
@@ -302,27 +293,25 @@ export default function CVImproverPage() {
               <div className="flex items-center gap-4">
                 <div className="flex-1 h-px bg-zinc-900" />
                 <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.2em]">
-                  {language === "fr" ? "OU TEXTE BRUT" : "OR RAW TEXT"}
+                  {t("cvImprover.orRawText")}
                 </span>
                 <div className="flex-1 h-px bg-zinc-900" />
               </div>
 
               <Textarea
-                placeholder={language === "fr" 
-                  ? "Collez le contenu de votre CV ici..."
-                  : "Paste your CV content here..."}
+                placeholder={t("cvImprover.pastePlaceholder")}
                 value={cvText}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCvText(e.target.value)}
                 rows={10}
                 className="bg-zinc-950 border-zinc-900 text-[13px] font-medium leading-relaxed p-4 focus:border-zinc-700 transition-all scrollbar-hide"
               />
-              <Button 
-                onClick={analyzeCV} 
-                disabled={loading || !cvText.trim()} 
+              <Button
+                onClick={analyzeCV}
+                disabled={loading || !cvText.trim()}
                 className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-base h-12 rounded-full border border-zinc-800 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
                 {loading ? <Loader size="sm" /> : <TrendingUp className="h-4 w-4 mr-3 text-zinc-400" />}
-                {language === "fr" ? "Lancer l'analyse" : "Start analysis"}
+                {t("cvImprover.startAnalysis")}
               </Button>
             </CardContent>
           </Card>
@@ -332,7 +321,7 @@ export default function CVImproverPage() {
             <CardHeader className="p-6">
               <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
                 <CheckCircle2 className="h-4 w-4 text-zinc-400" />
-                {language === "fr" ? "Intelligence Report" : "Analysis Intelligence"}
+                {t("cvImprover.intelligenceReport")}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-6 pb-6">
@@ -345,7 +334,7 @@ export default function CVImproverPage() {
                     </div>
                     <div className="text-center relative z-10">
                       <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] mb-4">
-                        Harvard Compatibility Score
+                        {t("cvImprover.harvardScore")}
                       </p>
                       <div className="flex items-baseline justify-center gap-1">
                         <span className={cn("text-7xl font-bold tracking-tighter", getScoreColor(analysis.score))}>
@@ -371,7 +360,7 @@ export default function CVImproverPage() {
                       <div className="space-y-4">
                         <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-                          {language === "fr" ? "Points forts identifiés" : "Identified Strengths"}
+                          {t("cvImprover.strengths")}
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {analysis.strengths.map((s, i) => (
@@ -388,7 +377,7 @@ export default function CVImproverPage() {
                       <div className="space-y-4">
                         <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-                          {language === "fr" ? "Axe d'optimisation" : "Optimization Axis"}
+                          {t("cvImprover.weaknesses")}
                         </h4>
                         <div className="space-y-2">
                           {analysis.weaknesses.map((w, i) => (
@@ -405,7 +394,7 @@ export default function CVImproverPage() {
                   {/* Suggestions Premium */}
                   {analysis.suggestions.length > 0 && (
                     <div className="space-y-4 pt-4 border-t border-zinc-900">
-                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Harvard Recommendations</h4>
+                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("cvImprover.harvardRecommendations")}</h4>
                       <div className="space-y-3">
                         {analysis.suggestions.map((s, i) => (
                           <div key={i} className="group p-4 bg-zinc-950 border border-zinc-900 rounded-2xl hover:border-zinc-700 transition-all">
@@ -434,9 +423,7 @@ export default function CVImproverPage() {
                     <TrendingUp className="h-12 w-12 text-white" />
                   </div>
                   <p className="text-[13px] font-medium text-zinc-600 max-w-[240px] mx-auto leading-relaxed">
-                    {language === "fr" 
-                      ? "En attente de données pour générer votre rapport d'analyse Harvard." 
-                      : "Awaiting data to generate your Harvard analysis report."}
+                    {t("cvImprover.awaitingData")}
                   </p>
                 </div>
               )}
@@ -451,26 +438,24 @@ export default function CVImproverPage() {
           <Card className="bg-black border-zinc-900 shadow-none">
             <CardHeader className="p-6">
               <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
-                {language === "fr" ? "CV ORIGINAL" : "ORIGINAL CV"}
+                {t("cvImprover.originalCv")}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-6 pb-6 space-y-6">
               <Textarea
-                placeholder={language === "fr" 
-                  ? "Collez votre CV ici..."
-                  : "Paste your CV here..."}
+                placeholder={t("cvImprover.pastePlaceholder")}
                 value={cvText}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCvText(e.target.value)}
                 rows={18}
                 className="bg-zinc-950 border-zinc-900 text-[13px] font-mono leading-relaxed p-4 focus:border-zinc-700 transition-all scrollbar-hide"
               />
-              <Button 
-                onClick={improveCV} 
-                disabled={loading || !cvText.trim()} 
+              <Button
+                onClick={improveCV}
+                disabled={loading || !cvText.trim()}
                 className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-base h-12 rounded-full border border-zinc-800 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
                 {loading ? <Loader size="sm" /> : <Sparkles className="h-4 w-4 mr-3 text-zinc-400" />}
-                {language === "fr" ? "Améliorer avec l'IA" : "Improve with AI"}
+                {t("cvImprover.improveWithAi")}
               </Button>
             </CardContent>
           </Card>
@@ -478,8 +463,8 @@ export default function CVImproverPage() {
           <Card className="bg-black border-zinc-900 shadow-none border-zinc-800/50">
             <CardHeader className="p-6 flex flex-row items-center justify-between">
               <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
-                <GraduationCap className="h-4 w-4 text-zinc-400" />
-                {language === "fr" ? "RÉSULTAT OPTIMISÉ" : "OPTIMIZED RESULT"}
+                <Sparkles className="h-4 w-4 text-zinc-400" />
+                {t("cvImprover.optimizedResult")}
               </CardTitle>
               {improvedCV && (
                 <Button variant="ghost" size="sm" onClick={() => copyToClipboard(improvedCV)} className="h-8 text-zinc-500 hover:text-white hover:bg-zinc-900">
@@ -502,7 +487,7 @@ export default function CVImproverPage() {
                     <Sparkles className="h-12 w-12 text-white" />
                   </div>
                   <p className="text-[13px] font-medium text-zinc-600 max-w-[240px] mx-auto leading-relaxed">
-                    {language === "fr" ? "Votre CV optimisé avec le vocabulaire Harvard apparaîtra ici." : "Your optimized CV with Harvard vocabulary will appear here."}
+                    {t("cvImprover.optimizedWillAppear")}
                   </p>
                 </div>
               )}
@@ -517,25 +502,23 @@ export default function CVImproverPage() {
           <Card className="bg-black border-zinc-900 shadow-none">
             <CardHeader className="p-8 text-center">
               <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-full w-fit mx-auto mb-6">
-                <GraduationCap className="h-8 w-8 text-zinc-400" />
+                <FileText className="h-8 w-8 text-zinc-400" />
               </div>
               <CardTitle className="text-xl font-bold tracking-tight text-white mb-2">
-                {language === "fr" ? "Générer un CV Harvard" : "Generate Harvard CV"}
+                {t("cvImprover.generateHarvardCv")}
               </CardTitle>
               <CardDescription className="text-[13px] text-zinc-500 font-medium max-w-sm mx-auto">
-                {language === "fr"
-                  ? "Créez un CV professionnel complet basé sur votre profil et les standards académiques Harvard."
-                  : "Create a complete professional CV based on your profile and Harvard academic standards."}
+                {t("cvImprover.generateDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 pb-8 space-y-8">
-              <Button 
-                onClick={generateCV} 
-                disabled={loading} 
+              <Button
+                onClick={generateCV}
+                disabled={loading}
                 className="w-full bg-black hover:bg-zinc-900 text-white font-serif italic text-base h-12 rounded-full border border-zinc-800 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
                 {loading ? <Loader size="sm" /> : <FileText className="h-4 w-4 mr-3 text-zinc-400" />}
-                {language === "fr" ? "Générer mon CV Premium" : "Generate my Premium CV"}
+                {t("cvImprover.generatePremiumCv")}
               </Button>
 
               {generatedCV && (
@@ -543,7 +526,7 @@ export default function CVImproverPage() {
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all z-10">
                     <Button variant="outline" size="sm" onClick={() => copyToClipboard(generatedCV)} className="h-9 border-zinc-800 bg-zinc-950/80 backdrop-blur text-zinc-400 hover:text-white">
                       <Copy className="h-3.5 w-3.5 mr-2" />
-                      Copier
+                      Copy
                     </Button>
                   </div>
                   <Textarea
@@ -567,12 +550,7 @@ export default function CVImproverPage() {
               <CardHeader className="p-5 pb-2">
                 <CardTitle className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
                   <Zap className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
-                  {category === "leadership" ? (language === "fr" ? "Leadership" : "Leadership") :
-                   category === "achievement" ? (language === "fr" ? "Impact" : "Achievement") :
-                   category === "analysis" ? (language === "fr" ? "Analyse" : "Analysis") :
-                   category === "communication" ? (language === "fr" ? "Communication" : "Communication") :
-                   category === "creation" ? (language === "fr" ? "Innovation" : "Creation") :
-                   (language === "fr" ? "Optimisation" : "Improvement")}
+                  {t(`cvImprover.verbCategories.${category}`)}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 pt-4">

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Sparkles, ArrowRight } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signIn } from "@/lib/auth-client";
 import { Loader } from "@/components/ui/loader";
@@ -544,12 +544,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6">
-            <Button variant="outline" className="w-full h-12 bg-black border-zinc-900 text-white hover:text-white hover:bg-zinc-950 font-serif italic text-sm rounded-xl transition-all" type="button">
-              <Mail className="mr-3 size-4" />
-              Sign in with Google
-            </Button>
-          </div>
 
           <div className="text-center mt-10">
             <p className="text-[12px] font-medium text-zinc-600">

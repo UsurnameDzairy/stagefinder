@@ -421,20 +421,97 @@ export function extractLanguages(text: string): Array<{ language: string; level:
 // Fonction pour extraire les villes d'un texte de CV
 export function extractCities(text: string): string[] {
   const frenchCities = [
-    "Paris", "Lyon", "Marseille", "Toulouse", "Nice", "Nantes", "Strasbourg",
-    "Montpellier", "Bordeaux", "Lille", "Rennes", "Reims", "Le Havre", "Saint-Étienne",
-    "Toulon", "Grenoble", "Dijon", "Angers", "Nîmes", "Villeurbanne", "Clermont-Ferrand",
-    "Le Mans", "Aix-en-Provence", "Brest", "Tours", "Amiens", "Limoges", "Annecy",
-    "Perpignan", "Metz", "Besançon", "Orléans", "Rouen", "Mulhouse", "Caen",
+    // Île-de-France
+    "Paris", "La Défense", "Versailles", "Boulogne-Billancourt", "Saint-Denis",
+    "Montreuil", "Argenteuil", "Nanterre", "Créteil", "Neuilly-sur-Seine",
+    "Courbevoie", "Levallois-Perret", "Issy-les-Moulineaux", "Vincennes",
+    "Saint-Germain-en-Laye", "Massy", "Évry", "Cergy", "Pontoise",
+
+    // Côte d'Azur / PACA
+    "Nice", "Cannes", "Antibes", "Monaco", "Monte-Carlo", "Menton", "Saint-Tropez",
+    "Fréjus", "Saint-Raphaël", "Grasse", "Mandelieu", "Mougins", "Valbonne",
+    "Sophia Antipolis", "Villefranche-sur-Mer", "Beaulieu-sur-Mer", "Cap d'Ail",
+    "Roquebrune-Cap-Martin", "Èze", "Juan-les-Pins", "Cagnes-sur-Mer", "Vence",
+    "Marseille", "Aix-en-Provence", "Toulon", "Avignon", "Hyères", "La Ciotat",
+    "Cassis", "Bandol", "Sanary-sur-Mer", "Six-Fours-les-Plages", "Arles",
+    "Salon-de-Provence", "Martigues", "Istres", "Gap", "Briançon", "Digne-les-Bains",
+
+    // Occitanie
+    "Toulouse", "Montpellier", "Nîmes", "Perpignan", "Béziers", "Narbonne",
+    "Carcassonne", "Albi", "Tarbes", "Rodez", "Cahors", "Montauban", "Castres",
+    "Sète", "Agde", "La Grande-Motte", "Palavas-les-Flots", "Lourdes",
+
+    // Nouvelle-Aquitaine
+    "Bordeaux", "Limoges", "Poitiers", "La Rochelle", "Pau", "Angoulême",
+    "Bayonne", "Biarritz", "Arcachon", "Agen", "Périgueux", "Niort",
+    "Cognac", "Rochefort", "Royan", "Saint-Jean-de-Luz", "Hossegor", "Dax",
+
+    // Auvergne-Rhône-Alpes
+    "Lyon", "Grenoble", "Saint-Étienne", "Clermont-Ferrand", "Annecy", "Chambéry",
+    "Valence", "Villeurbanne", "Vénissieux", "Saint-Priest", "Villefranche-sur-Saône",
+    "Bourg-en-Bresse", "Roanne", "Montélimar", "Romans-sur-Isère", "Annemasse",
+    "Chamonix", "Megève", "Courchevel", "Méribel", "Val d'Isère", "Tignes",
+    "Les Deux Alpes", "L'Alpe d'Huez", "Albertville", "Aix-les-Bains", "Évian",
+
+    // Grand Est
+    "Strasbourg", "Reims", "Metz", "Mulhouse", "Nancy", "Colmar", "Troyes",
+    "Charleville-Mézières", "Épinal", "Thionville", "Haguenau", "Châlons-en-Champagne",
+
+    // Hauts-de-France
+    "Lille", "Amiens", "Roubaix", "Tourcoing", "Dunkerque", "Calais",
+    "Valenciennes", "Douai", "Lens", "Béthune", "Boulogne-sur-Mer", "Arras",
+    "Compiègne", "Beauvais", "Saint-Quentin", "Laon",
+
+    // Normandie
+    "Rouen", "Le Havre", "Caen", "Cherbourg", "Évreux", "Dieppe", "Fécamp",
+    "Honfleur", "Deauville", "Trouville", "Cabourg", "Lisieux", "Alençon",
+
+    // Bretagne
+    "Rennes", "Brest", "Lorient", "Vannes", "Quimper", "Saint-Malo", "Saint-Brieuc",
+    "Lannion", "Morlaix", "Concarneau", "Dinard", "Dinan", "Perros-Guirec",
+
+    // Pays de la Loire
+    "Nantes", "Angers", "Le Mans", "Saint-Nazaire", "Laval", "La Baule",
+    "Les Sables-d'Olonne", "Cholet", "La Roche-sur-Yon", "Pornic",
+
+    // Centre-Val de Loire
+    "Orléans", "Tours", "Bourges", "Blois", "Chartres", "Châteauroux",
+    "Amboise", "Chinon", "Vendôme", "Montargis",
+
+    // Bourgogne-Franche-Comté
+    "Dijon", "Besançon", "Belfort", "Auxerre", "Nevers", "Chalon-sur-Saône",
+    "Mâcon", "Sens", "Beaune", "Dole", "Montbéliard",
+
+    // Corse
+    "Ajaccio", "Bastia", "Porto-Vecchio", "Calvi", "Bonifacio", "Corte",
+
+    // DOM-TOM
+    "Fort-de-France", "Pointe-à-Pitre", "Saint-Denis", "Cayenne", "Nouméa", "Papeete",
   ];
 
   const internationalCities = [
+    // Major financial hubs
     "London", "New York", "Hong Kong", "Singapore", "Tokyo", "Dubai", "Frankfurt",
     "Zurich", "Geneva", "Luxembourg", "Brussels", "Amsterdam", "Milan", "Madrid",
+    "Monaco", "Abu Dhabi", "Bahrain", "Doha", "Riyadh", "Jeddah",
+    // Europe
     "Barcelona", "Berlin", "Munich", "Stockholm", "Copenhagen", "Oslo", "Helsinki",
     "Vienna", "Prague", "Warsaw", "Budapest", "Lisbon", "Dublin", "Edinburgh",
-    "Montreal", "Toronto", "Vancouver", "Sydney", "Melbourne", "Shanghai", "Beijing",
-    "Seoul", "Mumbai", "Delhi", "Bangalore", "São Paulo", "Mexico City", "Buenos Aires",
+    "Rome", "Naples", "Florence", "Venice", "Turin", "Bologna",
+    "Athens", "Bucharest", "Sofia", "Zagreb", "Ljubljana", "Bratislava",
+    "Manchester", "Birmingham", "Leeds", "Glasgow", "Bristol", "Cambridge", "Oxford",
+    // North America
+    "Montreal", "Toronto", "Vancouver", "Calgary", "Ottawa",
+    "Los Angeles", "San Francisco", "Chicago", "Boston", "Washington", "Miami",
+    "Seattle", "Denver", "Atlanta", "Dallas", "Houston", "Philadelphia",
+    // Asia Pacific
+    "Sydney", "Melbourne", "Brisbane", "Perth", "Auckland", "Wellington",
+    "Shanghai", "Beijing", "Shenzhen", "Guangzhou", "Hangzhou", "Chengdu",
+    "Seoul", "Busan", "Taipei", "Bangkok", "Jakarta", "Kuala Lumpur", "Manila",
+    "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Pune",
+    // Latin America & Middle East
+    "São Paulo", "Rio de Janeiro", "Mexico City", "Buenos Aires", "Santiago", "Bogota", "Lima",
+    "Tel Aviv", "Jerusalem", "Cairo", "Casablanca", "Lagos", "Johannesburg", "Cape Town",
   ];
 
   const allCities = [...frenchCities, ...internationalCities];

@@ -48,72 +48,47 @@ interface NavbarProps {
   } | null;
 }
 
-const landingNavigationLinks: NavLink[] = [
-  { href: "/", label: "Home" },
+const getLandingNavigationLinks = (t: (key: string) => string): NavLink[] => [
+  { href: "/", label: t("nav.home") },
   {
-    label: "Features",
+    label: t("nav.features"),
     submenu: true,
     type: "description",
     items: [
       {
         href: "#features",
-        label: "AI Search",
-        description: "Intelligent matching for your career path.",
+        label: t("nav.aiSearch"),
+        description: t("nav.aiSearchDesc"),
       },
       {
         href: "#features",
-        label: "Auto-Search",
-        description: "Get the latest internships automatically.",
+        label: t("nav.autoSearch"),
+        description: t("nav.autoSearchDesc"),
       },
       {
         href: "#features",
-        label: "Strategy",
-        description: "Optimized application workflow.",
+        label: t("nav.strategy"),
+        description: t("nav.strategyDesc"),
       },
     ],
   },
-  {
-    label: "Pricing",
-    submenu: true,
-    type: "simple",
-    items: [
-      { href: "#pricing", label: "Pro Plan" },
-      { href: "#pricing", label: "Student Plan" },
-      { href: "#pricing", label: "Free" },
-    ],
-  },
-  {
-    label: "About",
-    submenu: true,
-    type: "simple",
-    items: [
-      { href: "#about", label: "Our Mission" },
-      { href: "#about", label: "Team" },
-      { href: "#about", label: "Careers" },
-    ],
-  },
+  { href: "/pricing", label: t("nav.pricingLink") },
+  { href: "/about", label: t("nav.about") },
 ];
 
-const appNavigationLinks: NavLink[] = [
-  { href: "/assistant", label: "KAM" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/offres", label: "Offres" },
-  { href: "/candidatures", label: "Candidatures" },
-  {
-    label: "Outils",
-    submenu: true,
-    type: "simple",
-    items: [
-      { href: "/cv-improver", label: "CV Improver" },
-      { href: "/lettres", label: "Lettres de motivation" },
-    ],
-  },
+// Navigation links are now generated dynamically using translations
+const getAppNavigationLinks = (t: (key: string) => string): NavLink[] => [
+  { href: "/assistant", label: "Kam" },
+  { href: "/dashboard", label: t("nav.dashboard") },
+  { href: "/offres", label: t("nav.jobs") },
+  { href: "/candidatures", label: t("nav.applications") },
+  { href: "/cv-improver", label: t("nav.cvImprover") },
 ];
 
 export default function Navbar({ user }: NavbarProps) {
   const { t } = useTranslation();
   const { language, setLanguage } = useLanguage();
-  const links = user ? appNavigationLinks : landingNavigationLinks;
+  const links = user ? getAppNavigationLinks(t) : getLandingNavigationLinks(t);
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -314,10 +289,10 @@ export default function Navbar({ user }: NavbarProps) {
           ) : (
             <div className="flex items-center gap-3">
               <Button asChild variant="ghost" size="sm" className="text-white hover:text-white hover:bg-white/5 px-5 hidden md:flex h-10 rounded-full transition-all font-serif italic text-sm normal-case tracking-tight">
-                <Link href="/login">Sign In</Link>
+                <Link href="/login">{t("nav.signIn")}</Link>
               </Button>
               <Button asChild size="sm" className="rounded-full bg-black border border-zinc-800 text-white font-serif italic text-sm px-7 h-10 shadow-xl transition-all hover:scale-105 active:scale-95">
-                <Link href="/register">Join Now</Link>
+                <Link href="/register">{t("nav.joinNow")}</Link>
               </Button>
             </div>
           )}
@@ -341,19 +316,19 @@ export default function Navbar({ user }: NavbarProps) {
                   <div className="h-px bg-white/[0.05] mx-3 my-2" />
                   {!user ? (
                     <div className="flex flex-col gap-2 p-1">
-                      <Link href="/login" className="px-5 py-4 text-sm font-serif italic text-white text-center hover:text-white transition-colors">Sign In</Link>
-                      <Link href="/register" className="px-5 py-4 text-sm font-serif italic text-white bg-black border border-zinc-800 rounded-xl text-center active:scale-[0.98] transition-all shadow-xl">Join Now</Link>
+                      <Link href="/login" className="px-5 py-4 text-sm font-serif italic text-white text-center hover:text-white transition-colors">{t("nav.signIn")}</Link>
+                      <Link href="/register" className="px-5 py-4 text-sm font-serif italic text-white bg-black border border-zinc-800 rounded-xl text-center active:scale-[0.98] transition-all shadow-xl">{t("nav.joinNow")}</Link>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1">
                       <Link href="/parametres" className="px-5 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-3 hover:text-white hover:bg-white/[0.03] rounded-xl transition-all">
-                        <Settings className="size-3.5" /> Paramètres
+                        <Settings className="size-3.5" /> {t("nav.settings")}
                       </Link>
-                      <button 
+                      <button
                         onClick={handleSignOut}
                         className="w-full px-5 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-red-400/80 flex items-center gap-3 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all cursor-pointer"
                       >
-                        <LogOut className="size-3.5" /> Déconnexion
+                        <LogOut className="size-3.5" /> {t("nav.logout")}
                       </button>
                     </div>
                   )}

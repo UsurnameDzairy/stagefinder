@@ -6,12 +6,91 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
   Building2, Send, CheckCircle, Search, FileText,
-  ExternalLink, TrendingUp, BarChart3, PieChart, Target, Activity as ActivityIcon, Star
+  ExternalLink, TrendingUp, BarChart3, PieChart, Target, Activity as ActivityIcon, Bookmark, ChevronDown, ChevronUp
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/i18n";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
+
+// Skills Coverage Card with "See More" functionality
+function SkillsCoverageCard({
+  skillsCoverage,
+  t
+}: {
+  skillsCoverage: Array<{ label: string; value: number; color: string }> | null;
+  t: (key: string) => string;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const INITIAL_LIMIT = 5;
+
+  const visibleSkills = skillsCoverage && showAll
+    ? skillsCoverage
+    : skillsCoverage?.slice(0, INITIAL_LIMIT);
+
+  const hasMore = skillsCoverage && skillsCoverage.length > INITIAL_LIMIT;
+
+  return (
+    <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
+      <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+          {t("dashboard.skillsCoverage")}
+        </CardTitle>
+        {hasMore && (
+          <span className="text-[10px] text-zinc-600">
+            {skillsCoverage.length} total
+          </span>
+        )}
+      </CardHeader>
+      <CardContent className="p-6 pt-4 space-y-6">
+        {visibleSkills && visibleSkills.length > 0 ? (
+          <>
+            <div className="space-y-5">
+              {visibleSkills.map((skill, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider truncate max-w-[70%]">{skill.label}</span>
+                    <span className="text-[11px] font-bold text-white">{skill.value}%</span>
+                  </div>
+                  <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${skill.value}%` }}
+                      transition={{ delay: 0.8 + (i * 0.1), duration: 1, ease: "easeOut" }}
+                      className={cn("h-full rounded-full", skill.color)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {hasMore && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-zinc-900 hover:border-zinc-700 bg-zinc-950/50 transition-all text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white"
+              >
+                {showAll ? (
+                  <>
+                    <ChevronUp className="h-4 w-4" />
+                    {t("dashboard.showLess") || "Show less"}
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4" />
+                    {t("dashboard.showMore") || "Show more"} ({skillsCoverage.length - INITIAL_LIMIT})
+                  </>
+                )}
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="h-40 flex items-center justify-center">
+            <p className="text-zinc-600 text-sm">{t("dashboard.addSkills")}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 interface Stats {
   savedOffers: number;
@@ -29,6 +108,12 @@ interface Stats {
   };
 }
 
+interface UsageStats {
+  plan: "FREE" | "STUDENT" | "PRO";
+  applications: { used: number; limit: number; remaining: number; resetsAt: string };
+  searches: { used: number; limit: number; remaining: number; resetsAt: string };
+}
+
 interface Activity {
   id: string;
   type: "application" | "saved_offer" | "saved_company" | "interview";
@@ -42,6 +127,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
+  const [usage, setUsage] = useState<UsageStats | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +146,17 @@ export default function DashboardPage() {
         } catch (e) {
           // If activity API fails, leave empty
           setRecentActivity([]);
+        }
+
+        // Fetch usage stats
+        try {
+          const usageRes = await fetch("/api/usage");
+          if (usageRes.ok) {
+            const usageData = await usageRes.json();
+            setUsage(usageData);
+          }
+        } catch (e) {
+          console.error("Failed to fetch usage stats");
         }
 
         setLoading(false);
@@ -89,13 +186,13 @@ export default function DashboardPage() {
       >
         <h1 className="text-4xl font-serif font-normal tracking-tight text-white">{t("dashboard.title")}</h1>
         <p className="text-[13px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
-          {t("dashboard.welcome")} StageFinder
+          {t("dashboard.welcome")} KamForJob
         </p>
       </motion.div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: t("offers.title"), value: stats?.savedOffers || 0, icon: Star, color: "text-blue-500" },
+          { label: t("offers.title"), value: stats?.savedOffers || 0, icon: Bookmark, color: "text-blue-500" },
           { label: t("companies.title"), value: stats?.savedCompanies || 0, icon: Building2, color: "text-purple-500" },
           { label: t("applications.title"), value: stats?.applications || 0, icon: Send, color: "text-green-500" },
           { label: t("dashboard.stats.interviews"), value: stats?.interviews || 0, icon: CheckCircle, color: "text-orange-500" },
@@ -126,9 +223,8 @@ export default function DashboardPage() {
         {/* Status Distribution - REAL DATA */}
         <Card className="bg-black border-zinc-900 shadow-none">
           <CardHeader className="p-6">
-            <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-              <PieChart className="h-4 w-4" />
-              Statut des Candidatures
+            <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
+              {t("dashboard.applicationStatus")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-6">
@@ -147,14 +243,14 @@ export default function DashboardPage() {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-2xl font-bold tracking-tighter">{stats.applicationStatus.responseRate || 0}%</span>
-                    <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">Réponses</span>
+                    <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{t("dashboard.responses")}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   {[
-                    { label: "En attente", value: `${stats.applicationStatus.pending || 0}%`, color: "bg-zinc-800" },
-                    { label: "Entretiens", value: `${stats.applicationStatus.interview || 0}%`, color: "bg-white" },
-                    { label: "Refusé", value: `${stats.applicationStatus.rejected || 0}%`, color: "bg-zinc-900" },
+                    { label: t("dashboard.statuses.pending"), value: `${stats.applicationStatus.pending || 0}%`, color: "bg-zinc-800" },
+                    { label: t("dashboard.statuses.interview"), value: `${stats.applicationStatus.interview || 0}%`, color: "bg-white" },
+                    { label: t("dashboard.statuses.rejected"), value: `${stats.applicationStatus.rejected || 0}%`, color: "bg-zinc-900" },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
                       <div className="flex items-center gap-2">
@@ -168,49 +264,17 @@ export default function DashboardPage() {
               </>
             ) : (
               <div className="h-40 flex items-center justify-center">
-                <p className="text-zinc-600 text-sm">Aucune candidature</p>
+                <p className="text-zinc-600 text-sm">{t("dashboard.noApplications")}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
         {/* Skills Coverage Analytics */}
-        <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
-          <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-              <Target className="h-3.5 w-3.5" />
-              Couverture des Compétences
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 pt-4 space-y-6">
-            {stats?.skillsCoverage && stats.skillsCoverage.length > 0 ? (
-              <>
-                <div className="space-y-5">
-                  {stats.skillsCoverage.map((skill, i) => (
-                    <div key={i} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">{skill.label}</span>
-                        <span className="text-[11px] font-bold text-white">{skill.value}%</span>
-                      </div>
-                      <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${skill.value}%` }}
-                          transition={{ delay: 0.8 + (i * 0.1), duration: 1, ease: "easeOut" }}
-                          className={cn("h-full rounded-full", skill.color)}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="h-40 flex items-center justify-center">
-                <p className="text-zinc-600 text-sm">Ajoutez des compétences à votre profil</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SkillsCoverageCard
+          skillsCoverage={stats?.skillsCoverage || null}
+          t={t}
+        />
 
         {/* Quick Actions & Pro Tip */}
         <div className="md:col-span-2 grid gap-6 md:grid-cols-3">
@@ -220,10 +284,10 @@ export default function DashboardPage() {
             </CardHeader>
             <div className="grid gap-6 md:grid-cols-2">
               {[
-                { label: "Postuler", icon: Send, action: "/offres", primary: true },
-                { label: "Ma Carrière", icon: TrendingUp, action: "/candidatures" },
-                { label: "Lettres IA", icon: FileText, action: "/lettres" },
-                { label: "Mon Profil", icon: Target, action: "/parametres" },
+                { label: t("dashboard.actions.apply"), icon: Send, action: "/offres", primary: true },
+                { label: t("dashboard.actions.career"), icon: TrendingUp, action: "/candidatures" },
+                { label: t("dashboard.actions.lettersAI"), icon: FileText, action: "/lettres" },
+                { label: t("dashboard.actions.myProfile"), icon: Target, action: "/parametres" },
               ].map((action, i) => (
                 <Link href={action.action} key={i}>
                   <Button
@@ -247,29 +311,124 @@ export default function DashboardPage() {
 
           <Card className="bg-zinc-950 border-zinc-900 shadow-none">
             <CardHeader className="p-6 pb-2">
-              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-zinc-400" />
-                Conseil Pro
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+                {t("dashboard.proTip")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 pt-2">
               <p className="text-[13px] text-zinc-400 leading-relaxed font-medium">
-                Utilisez le <span className="text-white">CV Improver</span> pour augmenter vos chances de réponse de 40%. Harvard recommande d'utiliser des verbes d'action puissants.
+                {t("dashboard.proTipText")}
               </p>
               <Link href="/cv-improver" className="inline-flex items-center gap-2 mt-4 text-[11px] font-bold text-white uppercase tracking-widest hover:gap-3 transition-all">
-                Améliorer mon CV <ExternalLink className="h-3 w-3" />
+                {t("dashboard.improveCV")} <ExternalLink className="h-3 w-3" />
               </Link>
             </CardContent>
           </Card>
         </div>
+
+        {/* Usage Limits Card */}
+        {usage && (
+          <Card className="md:col-span-2 bg-black border-zinc-900 shadow-none">
+            <CardHeader className="p-6 pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+                {t("dashboard.usageLimits") || "Usage Limits"}
+              </CardTitle>
+              <span className={cn(
+                "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                usage.plan === "PRO" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
+                usage.plan === "STUDENT" ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
+                "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              )}>
+                {usage.plan}
+              </span>
+            </CardHeader>
+            <CardContent className="p-6 pt-4">
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Applications Usage */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                      <Send className="h-3.5 w-3.5" />
+                      {t("dashboard.applicationsUsed") || "Applications"}
+                    </span>
+                    <span className="text-[12px] font-bold text-white">
+                      {usage.applications.used}/{usage.applications.limit}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-zinc-900 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, (usage.applications.used / usage.applications.limit) * 100)}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className={cn(
+                        "h-full rounded-full",
+                        usage.applications.remaining === 0 ? "bg-red-500" :
+                        usage.applications.remaining <= 1 ? "bg-amber-500" : "bg-green-500"
+                      )}
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-600">
+                    {usage.applications.remaining > 0
+                      ? `${usage.applications.remaining} ${t("dashboard.remaining") || "remaining"}`
+                      : t("dashboard.limitReached") || "Limit reached"}
+                    {" • "}
+                    {t("dashboard.resetsOn") || "Resets"} {new Date(usage.applications.resetsAt).toLocaleDateString()}
+                  </p>
+                </div>
+
+                {/* Searches Usage */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                      <Search className="h-3.5 w-3.5" />
+                      {t("dashboard.searchesUsed") || "Searches"}
+                    </span>
+                    <span className="text-[12px] font-bold text-white">
+                      {usage.searches.used}/{usage.searches.limit}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-zinc-900 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, (usage.searches.used / usage.searches.limit) * 100)}%` }}
+                      transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+                      className={cn(
+                        "h-full rounded-full",
+                        usage.searches.remaining === 0 ? "bg-red-500" :
+                        usage.searches.remaining <= 1 ? "bg-amber-500" : "bg-blue-500"
+                      )}
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-600">
+                    {usage.searches.remaining > 0
+                      ? `${usage.searches.remaining} ${t("dashboard.remaining") || "remaining"}`
+                      : t("dashboard.limitReached") || "Limit reached"}
+                    {" • "}
+                    {t("dashboard.resetsOn") || "Resets"} {new Date(usage.searches.resetsAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Upgrade CTA for free users */}
+              {usage.plan === "FREE" && (
+                <div className="mt-6 pt-4 border-t border-zinc-900">
+                  <Link href="/pricing">
+                    <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold text-[11px] uppercase tracking-widest h-10 rounded-xl transition-all hover:scale-[1.02]">
+                      {t("dashboard.upgradePlan") || "Upgrade for more"}
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Recent Activity Section */}
       <Card className="lg:col-span-3 bg-black border-zinc-900 shadow-none">
         <CardHeader className="p-6 pb-4 border-b border-zinc-900/50">
-          <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-            <ActivityIcon className="h-4 w-4" />
-            Activité Récente
+          <CardTitle className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
+            {t("dashboard.recentActivity")}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -285,7 +444,7 @@ export default function DashboardPage() {
                           "bg-orange-500/10 border-orange-500/20 text-orange-500"
                   )}>
                     {activity.type === "application" ? <Send className="h-4 w-4" /> :
-                      activity.type === "saved_offer" ? <Star className="h-4 w-4" /> :
+                      activity.type === "saved_offer" ? <Bookmark className="h-4 w-4" /> :
                         activity.type === "saved_company" ? <Building2 className="h-4 w-4" /> :
                           <CheckCircle className="h-4 w-4" />}
                   </div>

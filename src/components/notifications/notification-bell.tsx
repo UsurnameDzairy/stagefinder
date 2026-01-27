@@ -105,11 +105,11 @@ export function NotificationBell() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "À l'instant";
-    if (diffMins < 60) return `Il y a ${diffMins} min`;
-    if (diffHours < 24) return `Il y a ${diffHours}h`;
-    if (diffDays < 7) return `Il y a ${diffDays}j`;
-    return date.toLocaleDateString("fr-FR");
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString("en-US");
   };
 
   return (
@@ -150,7 +150,7 @@ export function NotificationBell() {
                 </h3>
                 {unreadCount > 0 && (
                   <p className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest">
-                    {unreadCount} signal{unreadCount > 1 ? "eux" : "ement"} non lu{unreadCount > 1 ? "s" : ""}
+                    {unreadCount} unread notification{unreadCount > 1 ? "s" : ""}
                   </p>
                 )}
               </div>

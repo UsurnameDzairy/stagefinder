@@ -58,9 +58,9 @@ export function Sidebar({ user }: SidebarProps) {
         <div className="flex h-16 items-center justify-between px-6">
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="size-6 rounded bg-white flex items-center justify-center">
-              <span className="text-black font-black text-[10px] tracking-tighter italic">SF</span>
+              <span className="text-black font-black text-[10px] tracking-tighter italic">KJ</span>
             </div>
-            <span className="text-lg font-serif tracking-tight text-white">StageFinder</span>
+            <span className="text-lg font-serif tracking-tight text-white">Kam<span className="text-zinc-500 italic">ForJob</span></span>
           </Link>
           <div className="flex items-center gap-3">
             <LanguageSelector compact />

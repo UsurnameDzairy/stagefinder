@@ -27,17 +27,17 @@ const CONTRACT_TYPES = [
   { id: "cdd", label: "CDD", icon: "", color: "bg-zinc-900" },
 ];
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string, t: (key: string) => string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) return "Aujourd'hui";
-  if (diffDays === 1) return "Hier";
-  if (diffDays < 7) return `Il y a ${diffDays} jours`;
-  if (diffDays < 14) return "Il y a 1 semaine";
-  return `Il y a ${Math.floor(diffDays / 7)} semaines`;
+
+  if (diffDays === 0) return t("common.today");
+  if (diffDays === 1) return t("common.yesterday");
+  if (diffDays < 7) return `${diffDays} ${t("common.daysAgo")}`;
+  if (diffDays < 14) return `1 ${t("common.weeksAgo")}`;
+  return `${Math.floor(diffDays / 7)} ${t("common.weeksAgo")}`;
 }
 
 function calculateMatchScore(offerSkills: string[], userSkills: string[]): number {
@@ -402,7 +402,7 @@ export default function OffresPage() {
           companyName: offer.companyName,
           jobTitle: offer.title,
           companyUrl: offer.sourceUrl,
-          notes: `Postulé via ${offer.sourceProvider} le ${new Date().toLocaleDateString("fr-FR")}`,
+          notes: `Applied via ${offer.sourceProvider} on ${new Date().toLocaleDateString("en-US")}`,
         }),
       });
       
@@ -416,7 +416,7 @@ export default function OffresPage() {
           body: JSON.stringify({
             offerId: offer.id,
             matchScore: offer.matchScore,
-            notes: "Postulé le " + new Date().toLocaleDateString("fr-FR"),
+            notes: "Applied on " + new Date().toLocaleDateString("en-US"),
           }),
         });
         setSavedOffers(prev => new Set([...prev, offer.id]));
@@ -441,7 +441,7 @@ export default function OffresPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader size="lg" className="mx-auto mb-4" />
-          <p className="text-zinc-400">Chargement de votre profil...</p>
+          <p className="text-zinc-400">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -514,7 +514,7 @@ export default function OffresPage() {
                   ) : (
                     <>
                       <FileText className="h-3.5 w-3.5 mr-2 text-zinc-500" />
-                      CV Search
+                      {t("offers.cvSearch")}
                     </>
                   )}
                 </Button>
@@ -529,7 +529,7 @@ export default function OffresPage() {
                   ) : (
                     <>
                       <Zap className="h-3.5 w-3.5 mr-2" />
-                      Smart Search
+                      {t("offers.smartSearch")}
                     </>
                   )}
                 </Button>
@@ -636,7 +636,7 @@ export default function OffresPage() {
 
           {/* Plateformes */}
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-zinc-900">
-            <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">Sources:</span>
+            <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">{t("offers.sources")}:</span>
             <div className="flex gap-1.5">
               {PROVIDERS.map((provider) => (
                 <button
@@ -664,7 +664,7 @@ export default function OffresPage() {
               <div className="p-1 bg-zinc-900 rounded-md border border-zinc-800">
                 <Target className="h-3 w-3 text-zinc-500" />
               </div>
-              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">Vos skills:</span>
+              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest whitespace-nowrap">{t("common.yourSkills")}:</span>
             </div>
             
             <div className="flex flex-wrap gap-1.5 flex-1">
@@ -680,15 +680,15 @@ export default function OffresPage() {
               ))}
               
               {userSkills.length > 8 && (
-                <button 
+                <button
                   onClick={() => setShowAllSkills(!showAllSkills)}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-950 border border-zinc-900 text-[10px] font-bold text-zinc-500 hover:text-white hover:border-zinc-700 transition-all group"
                 >
                   {showAllSkills ? (
-                    <>Voir moins</>
+                    <>{t("common.showLess")}</>
                   ) : (
                     <>
-                      Voir plus 
+                      {t("common.showMore")}
                       <span className="text-zinc-700 group-hover:text-zinc-500">({userSkills.length - 8})</span>
                     </>
                   )}
@@ -699,45 +699,45 @@ export default function OffresPage() {
         </div>
       )}
 
-      {/* Message si pas de recherche */}
+      {/* Message if no search */}
       {!hasSearched && !isSearching && (
         <Card className="border-dashed border-zinc-700 bg-zinc-900/50">
           <CardContent className="p-8 text-center">
             <Sparkles className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-zinc-300 mb-2">
-              Recherche personnalisée
+              {t("common.personalizedSearch")}
             </h3>
             <p className="text-sm text-zinc-500 mb-4">
-              {userSkills.length > 0 
-                ? "Cliquez sur vos skills ou lancez une recherche pour trouver des offres adaptées à votre profil"
-                : "Ajoutez des compétences dans votre profil pour des recommandations personnalisées"
+              {userSkills.length > 0
+                ? t("offers.sortedBy")
+                : t("dashboard.addSkills")
               }
             </p>
             {userSkills.length === 0 && (
               <a href="/parametres#cv">
-                <Button variant="outline">Importer mon CV</Button>
+                <Button variant="outline">{t("common.importMyCv")}</Button>
               </a>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Aucun résultat */}
+      {/* No results */}
       {hasSearched && !isSearching && results.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-zinc-500">Aucune offre trouvée. Essayez d'autres critères.</p>
+          <p className="text-zinc-500">{t("offers.noResults")}</p>
         </div>
       )}
 
-      {/* Résultats */}
+      {/* Results */}
       {results.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-zinc-400">
-              <span className="font-medium text-zinc-200">{results.length}</span> offres trouvées
+              <span className="font-medium text-zinc-200">{results.length}</span> {t("offers.results")}
             </p>
             <p className="text-xs text-zinc-500">
-              Triées par compatibilité avec votre profil
+              {t("offers.sortedBy")}
             </p>
           </div>
 
@@ -755,7 +755,7 @@ export default function OffresPage() {
               >
                 {offer.matchScore >= 80 && (
                   <div className="absolute top-0 right-0 px-2 py-0.5 bg-zinc-800 text-white text-[9px] font-bold uppercase tracking-wider border-l border-b border-zinc-700">
-                    High Match
+                    {t("common.highMatch")}
                   </div>
                 )}
                 <CardContent className="p-5">
@@ -788,7 +788,7 @@ export default function OffresPage() {
                           {offer.publishedAt && (
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              {formatDate(offer.publishedAt)}
+                              {formatDate(offer.publishedAt, t)}
                             </span>
                           )}
                         </div>
@@ -798,7 +798,7 @@ export default function OffresPage() {
                       <div className="text-xl font-bold tracking-tighter text-white">
                         {offer.matchScore}%
                       </div>
-                      <div className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">score</div>
+                      <div className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">{t("offers.score")}</div>
                     </div>
                   </div>
 
@@ -886,7 +886,7 @@ export default function OffresPage() {
                         rel="noopener noreferrer"
                         className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 hover:text-white transition-colors flex items-center gap-1.5"
                       >
-                        Details <ExternalLink className="h-3 w-3" />
+                        {t("offers.details")} <ExternalLink className="h-3 w-3" />
                       </a>
                     )}
                   </div>
@@ -974,14 +974,14 @@ function InlineScraperStatus({
         // Ajouter des logs
         if (data.step === "PROVIDER_FETCH") {
           setLogs(prev => {
-            const newLog = `[${new Date().toLocaleTimeString()}] Recherche en cours...`;
+            const newLog = `[${new Date().toLocaleTimeString()}] ${t("offers.searchInProgress")}`;
             if (!prev.includes(newLog)) return [...prev.slice(-4), newLog];
             return prev;
           });
         }
 
         if (data.status === "DONE") {
-          setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ✅ Recherche terminée!`]);
+          setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${t("offers.searchComplete")}`]);
           const resultsRes = await fetch(`/api/search-jobs/${jobId}/results`);
           const results = await resultsRes.json();
           setTimeout(() => onComplete(results.offers || []), 500);
@@ -1004,16 +1004,13 @@ function InlineScraperStatus({
   }, []);
 
   useEffect(() => {
-    // Logs initiaux
-    const startMsg = language === "fr" ? "Démarrage de la recherche..." : "Starting search...";
-    const criteriaMsg = language === "fr" ? "Critères" : "Criteria";
-    const connectMsg = language === "fr" ? "Connexion aux plateformes..." : "Connecting to platforms...";
+    // Logs initiaux - using i18n keys
     setLogs([
-      `[${new Date().toLocaleTimeString()}] 🚀 ${startMsg}`,
-      `[${new Date().toLocaleTimeString()}] 📍 ${criteriaMsg}: "${searchQuery}" - ${location || "France"}`,
-      `[${new Date().toLocaleTimeString()}] 🔗 ${connectMsg}`,
+      `[${new Date().toLocaleTimeString()}] 🚀 ${t("offers.startingSearch")}`,
+      `[${new Date().toLocaleTimeString()}] 📍 ${t("offers.criteria")}: "${searchQuery}" - ${location || "France"}`,
+      `[${new Date().toLocaleTimeString()}] 🔗 ${t("offers.connectingPlatforms")}`,
     ]);
-  }, [searchQuery, location, language]);
+  }, [searchQuery, location, t]);
 
   const progress = status?.progress || 0;
   
@@ -1091,7 +1088,7 @@ function InlineScraperStatus({
                 </div>
                 <div className="text-[11px] font-medium">
                   {isDone ? (
-                    <span className="text-white">✓ {count} {language === "fr" ? "offres" : "jobs"}</span>
+                    <span className="text-white">✓ {count} {t("offers.results")}</span>
                   ) : isRunning ? (
                     <span className="text-zinc-500">{t("offers.searchInProgress")}</span>
                   ) : (
@@ -1107,17 +1104,17 @@ function InlineScraperStatus({
         <div className="bg-[#050505] border border-zinc-900 rounded-xl p-5 font-mono">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-900">
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
-              <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
-              <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
             </div>
-            <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.2em]">system.log</span>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">system.log</span>
           </div>
           <div className="space-y-1.5 max-h-40 overflow-y-auto scrollbar-hide">
             {logs.map((log, i) => (
               <div key={i} className="text-[11px] leading-relaxed">
-                <span className="text-zinc-700 mr-3">[{log.split(']')[0].split('[')[1]}]</span>
-                <span className="text-zinc-300">{log.split(']')[1]}</span>
+                <span className="text-emerald-500/80 mr-3">[{log.split(']')[0].split('[')[1]}]</span>
+                <span className="text-zinc-200">{log.split(']')[1]}</span>
               </div>
             ))}
             <div className="text-white animate-pulse text-[11px]">{'>'} _</div>
@@ -1126,7 +1123,7 @@ function InlineScraperStatus({
 
         {/* Infos et bouton annuler épuré */}
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-zinc-900">
-          <div className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider flex gap-4">
+          <div className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider flex gap-4">
             <span className="flex items-center gap-1.5"><Search className="h-3 w-3" /> {searchQuery}</span>
             <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {location || "France"}</span>
           </div>

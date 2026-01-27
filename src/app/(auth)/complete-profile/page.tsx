@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, Plus, ArrowRight, Sparkles } from "lucide-react";
+import { Upload, X, Plus, ArrowRight, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { Loader } from "@/components/ui/loader";
 import { Logo } from "@/components/ui/logo";
 
@@ -20,7 +20,10 @@ export default function CompleteProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAllSkills, setShowAllSkills] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_VISIBLE_SKILLS = 5;
 
   useEffect(() => {
     fetch("/api/user/profile")
@@ -80,12 +83,12 @@ export default function CompleteProfilePage() {
       file.type !== "application/pdf" &&
       file.type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ) {
-      alert("Format non supporté. Utilisez PDF ou DOCX");
+      alert("Unsupported format. Use PDF or DOCX");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Le fichier doit faire moins de 5MB");
+      alert("File must be less than 5MB");
       return;
     }
 
@@ -122,11 +125,11 @@ export default function CompleteProfilePage() {
           });
         }
       } else {
-        alert("Erreur lors de l'upload du CV");
+        alert("Error uploading CV");
       }
     } catch (error) {
       console.error("CV upload error:", error);
-      alert("Erreur lors de l'upload du CV");
+      alert("Error uploading CV");
     } finally {
       setUploading(false);
     }
@@ -148,12 +151,12 @@ export default function CompleteProfilePage() {
       if (response.ok) {
         router.push("/dashboard");
       } else {
-        alert("Erreur lors de l'enregistrement du profil");
+        alert("Error saving profile");
         setSaving(false);
       }
     } catch (error) {
       console.error("Save profile error:", error);
-      alert("Erreur lors de l'enregistrement du profil");
+      alert("Error saving profile");
       setSaving(false);
     }
   };
@@ -184,14 +187,14 @@ export default function CompleteProfilePage() {
 
         <Card className="bg-black border-zinc-900 shadow-2xl rounded-3xl overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <CardHeader className="pt-12 pb-8 text-center space-y-2">
-            <h1 className="font-serif text-4xl font-normal tracking-tight text-white">Profil Stratégique</h1>
-            <p className="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em]">Initialisation des paramètres de matching</p>
+            <h1 className="font-serif text-4xl font-normal tracking-tight text-white">Strategic Profile</h1>
+            <p className="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em]">Initializing matching parameters</p>
           </CardHeader>
           <CardContent className="px-8 pb-12 space-y-10">
             {/* CV Upload Premium */}
             <div className="space-y-4">
               <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">
-                Importation de trajectoire (CV)
+                Trajectory Import (CV)
               </label>
               <input
                 ref={fileInputRef}
@@ -222,7 +225,7 @@ export default function CompleteProfilePage() {
                       <Upload className="h-6 w-6 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-300 transition-colors">Déposez votre CV pour une extraction IA</p>
+                      <p className="text-[13px] font-bold text-zinc-500 group-hover:text-zinc-300 transition-colors">Drop your CV for AI extraction</p>
                       <p className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.2em]">PDF ou DOCX (Max 5MB)</p>
                     </div>
                   </div>
@@ -233,9 +236,9 @@ export default function CompleteProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-4 border-t border-zinc-900/50">
               {/* Skills Premium */}
               <div className="space-y-4">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Compétences Détectées</label>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Detected Skills</label>
                 <div className="flex flex-wrap gap-2 min-h-[40px]">
-                  {skills.map((skill) => (
+                  {(showAllSkills ? skills : skills.slice(0, MAX_VISIBLE_SKILLS)).map((skill) => (
                     <span key={skill} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-bold text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-all group">
                       {skill}
                       <button onClick={() => removeSkill(skill)} className="text-zinc-700 hover:text-white transition-colors">
@@ -243,8 +246,26 @@ export default function CompleteProfilePage() {
                       </button>
                     </span>
                   ))}
+                  {skills.length > MAX_VISIBLE_SKILLS && (
+                    <button
+                      onClick={() => setShowAllSkills(!showAllSkills)}
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-zinc-800 border border-zinc-700 text-[11px] font-bold text-zinc-300 hover:text-white hover:border-zinc-600 transition-all"
+                    >
+                      {showAllSkills ? (
+                        <>
+                          Voir moins
+                          <ChevronUp className="h-3 w-3" />
+                        </>
+                      ) : (
+                        <>
+                          +{skills.length - MAX_VISIBLE_SKILLS} autres
+                          <ChevronDown className="h-3 w-3" />
+                        </>
+                      )}
+                    </button>
+                  )}
                   {skills.length === 0 && (
-                    <span className="text-[11px] font-medium text-zinc-700 italic uppercase tracking-wider mt-2">Aucun élément</span>
+                    <span className="text-[11px] font-medium text-zinc-700 italic uppercase tracking-wider mt-2">No items</span>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -263,7 +284,7 @@ export default function CompleteProfilePage() {
 
               {/* Cities Premium */}
               <div className="space-y-4">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Villes de Référence</label>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Reference Cities</label>
                 <div className="flex flex-wrap gap-2 min-h-[40px]">
                   {preferredCities.map((city) => (
                     <span key={city} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-bold text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-all group">
@@ -299,7 +320,7 @@ export default function CompleteProfilePage() {
                 onClick={handleSkip} 
                 className="flex-1 h-12 text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] hover:text-white hover:bg-white/[0.03] rounded-xl transition-all"
               >
-                Passer l'étape
+                Skip this step
               </Button>
               <Button 
                 onClick={handleContinue} 
@@ -309,7 +330,7 @@ export default function CompleteProfilePage() {
                 {saving ? <Loader size="sm" /> : (
                   <>
                     <ArrowRight className="h-4 w-4 mr-3 text-zinc-400" />
-                    Initialiser le Dashboard
+                    Initialize Dashboard
                   </>
                 )}
               </Button>

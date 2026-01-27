@@ -20,7 +20,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "StageFinder - Trouvez votre stage idéal",
+  title: "KamForJob - Trouvez votre stage idéal",
   description: "Plateforme de recherche de stages et d'alternances avec IA",
 };
 

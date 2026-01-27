@@ -3,42 +3,56 @@
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useLanguage } from "@/lib/i18n";
 
 export default function AIThinkingBlock() {
-    const { t } = useTranslation();
+    const { tArray, t } = useTranslation();
+    const { language } = useLanguage();
     const [scrollPosition, setScrollPosition] = useState(0);
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
     const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Get thinking phrases from translations
-    const thinkingPhrases = (t("assistantPage.thinking") as unknown as string[]) || [
-        "KAM analyse votre demande",
-        "KAM réfléchit",
-        "KAM élabore une réponse"
-    ];
+    const rawThinkingPhrases = tArray("assistantPage.thinking");
+    const thinkingPhrases = rawThinkingPhrases.length > 0
+        ? rawThinkingPhrases
+        : [
+            "Taking a closer look...",
+            "Let me think about this...",
+            "Considering your profile...",
+            "Working on it...",
+            "Almost there..."
+        ];
 
-    // Messages de pensée pour l'animation
-    const ThinkingContent = `Je commence par analyser votre demande en détail. Il est important de bien comprendre le contexte et vos besoins spécifiques avant de formuler une réponse appropriée.
+    // Thinking content based on language
+    const ThinkingContent = language === "fr"
+        ? `Hmm, laisse-moi prendre un moment pour bien comprendre ce que tu me demandes...
 
-Je consulte maintenant mes connaissances sur le sujet. Je cherche les informations les plus pertinentes et actualisées pour vous fournir une réponse de qualité.
+Alors en regardant ton profil et ce que tu m'as partagé, je commence à voir des patterns intéressants.
 
-Je prends en compte votre profil et votre parcours. Chaque situation est unique, et il est essentiel d'adapter mes conseils à votre contexte particulier.
+Je réfléchis à la meilleure façon d'aborder ça. Il y a plusieurs angles possibles, mais je veux m'assurer de te donner quelque chose de vraiment utile.
 
-J'évalue différentes approches possibles. Il existe souvent plusieurs façons d'aborder une problématique, et je veux vous présenter celle qui vous conviendra le mieux.
+Ton parcours est assez intéressant d'ailleurs. Laisse-moi voir comment ça s'articule avec ce que tu veux accomplir.
 
-Je structure ma réponse pour qu'elle soit claire et actionnable. L'objectif est de vous fournir des conseils concrets que vous pourrez mettre en pratique immédiatement.
+Je rassemble quelques idées. Je veux être sûr qu'elles soient adaptées à ta situation, pas juste des conseils génériques.
 
-Je vérifie la cohérence de mon analyse. Il est important que tous les éléments de ma réponse s'articulent logiquement entre eux.
+J'y suis presque. J'organise mes pensées pour que ce soit clair et actionnable.
 
-Je m'assure que ma réponse est personnalisée. Les conseils génériques ne sont pas suffisants - vous méritez une analyse qui tient compte de votre situation spécifique.
+Bon, je pense avoir une bonne perspective maintenant. Laisse-moi te préparer ça.`
+        : `Hmm, let me take a moment to really understand what you're asking here...
 
-Je finalise la formulation pour qu'elle soit naturelle et humaine. Je veux que vous ayez l'impression de discuter avec un conseiller expérimenté, pas avec une machine.
+Ok so looking at your profile and what you've shared with me, I'm starting to see some interesting patterns.
 
-Presque terminé - je révise une dernière fois pour m'assurer que je n'ai rien oublié. Votre question mérite une réponse complète et bien pensée.
+I'm thinking about the best way to approach this. There are a few angles I could take, but I want to make sure I give you something actually useful.
 
-C'est parfait, je suis prêt à vous partager mon analyse et mes recommandations. J'espère qu'elles vous seront utiles pour avancer dans votre projet professionnel.`;
+Your background is quite interesting actually. Let me consider how that plays into what you're trying to achieve.
+
+I'm pulling together a few ideas here. Want to make sure they're tailored to your specific situation, not just generic advice.
+
+Almost got it. Just organizing my thoughts so this makes sense and you can actually act on it.
+
+Right, I think I've got a good perspective on this now. Let me put it together for you.`;
 
     const [timer, setTimer] = useState(0);
 

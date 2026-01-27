@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canPerformAction, incrementUsage } from "@/lib/usage-limits";
 
 export async function GET(req: NextRequest) {
   try {
@@ -45,6 +46,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check usage limits before creating application
+    const usageCheck = await canPerformAction(session.id, "application");
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: "Usage limit reached",
+          message: usageCheck.reason,
+          usage: usageCheck.usage,
+          limitReached: true,
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const {
       offerId,
@@ -56,7 +71,7 @@ export async function POST(req: NextRequest) {
       notes,
     } = body;
 
-    // Créer la candidature
+    // Create the application
     const application = await prisma.application.create({
       data: {
         userId: session.id,
@@ -72,17 +87,24 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Créer l'événement initial
+    // Create the initial event
     await prisma.applicationEvent.create({
       data: {
         applicationId: application.id,
         type: "applied",
-        title: "Candidature créée",
-        description: `Candidature pour ${jobTitle} chez ${companyName}`,
+        title: "Application created",
+        description: `Applied for ${jobTitle} at ${companyName}`,
       },
     });
 
-    return NextResponse.json({ success: true, application });
+    // Increment usage counter after successful creation
+    const usageResult = await incrementUsage(session.id, "application");
+
+    return NextResponse.json({
+      success: true,
+      application,
+      usage: usageResult.usage,
+    });
   } catch (error) {
     console.error("Application create error:", error);
     return NextResponse.json({ error: "Failed to create application" }, { status: 500 });
