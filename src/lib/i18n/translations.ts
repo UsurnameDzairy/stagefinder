@@ -56,6 +56,8 @@ export const translations = {
         interview: "Entretiens",
         rejected: "Refusé",
       },
+      showMore: "Voir plus",
+      showLess: "Voir moins",
     },
 
     // Offres
@@ -75,6 +77,10 @@ export const translations = {
       apply: "Postuler",
       save: "Sauvegarder",
       viewDetails: "Voir détails",
+      details: "Détails",
+      score: "score",
+      cvSearch: "Recherche CV",
+      smartSearch: "Recherche intelligente",
       noResults: "Aucune offre trouvée. Essayez d'autres critères.",
       searching: "Recherche en cours",
       analyzingOffers: "Analyse des offres sur 4 plateformes",
@@ -137,6 +143,67 @@ export const translations = {
       generateLetter: "Générer lettre",
       markAsSent: "Marquer comme envoyé",
       addNote: "Ajouter une note",
+      confirmDelete: "Êtes-vous sûr de vouloir supprimer cette candidature ?",
+      noApplications: "Aucune candidature pour le moment",
+      addManually: "Ajouter manuellement",
+      searchOffers: "Rechercher des offres",
+      progress: "Progression de la candidature",
+      emailGenerator: {
+        title: "Générateur d'emails intelligent",
+        generate: "Générer l'email parfait",
+        subject: "Objet de l'email",
+        content: "Contenu généré",
+        copy: "Copier",
+        markSent: "Marquer comme envoyé",
+      },
+      coverLetter: {
+        title: "Lettre de motivation Premium",
+        generate: "Rédiger avec l'IA",
+        copyLetter: "Copier la lettre",
+        styles: {
+          harvard: "🎓 Style Harvard",
+          corporate: "Corporate",
+          modern: "Moderne",
+          creative: "Créatif",
+        },
+      },
+      response: {
+        title: "Enregistrer une réponse",
+        type: "Type de réponse",
+        positive: "Positive",
+        interview: "Entretien",
+        negative: "Négative",
+        pending: "En attente",
+        notes: "Commentaires / Notes",
+        notesPlaceholder: "Notes sur l'échange ou contenu de la réponse...",
+        screenshot: "Capture d'écran (preuve)",
+        dragDrop: "Glissez-déposez une capture d'écran",
+        save: "Sauvegarder la réponse",
+      },
+      history: "Historique complet",
+      form: {
+        company: "Entreprise *",
+        companyPlaceholder: "Nom de l'entreprise",
+        position: "Poste *",
+        positionPlaceholder: "Titre du poste",
+        contactEmail: "Email de contact",
+        emailPlaceholder: "recrutement@entreprise.com",
+        careerSite: "Site carrière",
+        cancel: "Annuler",
+        create: "Créer",
+      },
+      emailTypes: {
+        application: "Candidature",
+        followUp: "Relance",
+        thankYou: "Remerciement",
+      },
+      actions: {
+        email: "Email",
+        letter: "Lettre",
+        response: "Réponse",
+        site: "Site",
+        delete: "Supprimer",
+      },
     },
 
     // CV Improver
@@ -171,6 +238,7 @@ export const translations = {
       jobDescription: "Description de l'offre (Optionnel)",
       jobDescriptionPlaceholder: "Collez les points clés de l'offre pour une personnalisation chirurgicale...",
       placeholder: "Votre lettre de motivation optimisée par IA apparaîtra ici après traitement.",
+      positionPlaceholder: "Ex: Analyste Fusion-Acquisition, Product Manager...",
       tone: {
         formal: "Formel",
         dynamic: "Dynamique",
@@ -179,6 +247,15 @@ export const translations = {
       },
       copy: "Copier",
       download: "Télécharger",
+      contractTypes: {
+        internship: "Stage",
+        apprenticeship: "Alternance",
+        fulltime: "CDI",
+      },
+      languages: {
+        french: "Français",
+        english: "Anglais",
+      },
     },
 
     // Assistant Page
@@ -270,6 +347,86 @@ export const translations = {
       theme: "Thème",
       save: "Enregistrer",
       saved: "Enregistré",
+      subtitle: "Configuration du profil et préférences stratégiques",
+      avatar: {
+        title: "Identité visuelle",
+        description: "Personnalisez votre profil professionnel",
+        placeholder: "URL de votre image (ex: LinkedIn, Gravatar...)",
+        update: "Mettre à jour",
+        remove: "Supprimer",
+        recommended: "Recommandé: 200x200px",
+        updateSuccess: "Avatar mis à jour avec succès ! Actualisez la page pour voir les changements.",
+        updateError: "Erreur lors de la mise à jour de l'avatar",
+        removeSuccess: "Avatar supprimé avec succès ! Actualisez la page pour voir les changements.",
+        removeError: "Erreur lors de la suppression de l'avatar",
+        removeConfirm: "Supprimer votre avatar ?",
+      },
+      cv: {
+        title: "Base documentaire",
+        description: "Extraction IA automatique pour un matching précis",
+        processing: "Moteur d'intelligence en cours...",
+        processingDescription: "Analyse sémantique de votre parcours",
+        clickToImport: "Cliquez pour importer votre CV",
+        format: "PDF ou DOCX (Max 5MB)",
+        changeFile: "Changer de fichier",
+        selectFile: "Sélectionner un fichier",
+        analyzing: "Analyse du CV...",
+        success: "CV analysé ! {skills} compétences, {cities} villes, {domains} domaines détectés.",
+        warning: "CV uploadé mais aucune donnée extraite. Vérifiez le format du fichier.",
+        error: "Erreur lors de l'upload du CV",
+        fileTooLarge: "Le fichier doit faire moins de 5MB",
+        unsupportedFormat: "Format non supporté. Utilisez PDF ou DOCX",
+      },
+      skills: {
+        title: "Hard & Soft Skills",
+        placeholder: "Python, Finance, Leadership...",
+      },
+      searchPreferences: {
+        title: "Préférences de recherche",
+        cities: "Villes cibles",
+        citiesPlaceholder: "Paris, Londres, Remote...",
+        contractTypes: "Types de contrat",
+        domains: "Domaines d'expertise",
+        domainsPlaceholder: "Banque, IA, Web Dev...",
+      },
+      alerts: {
+        title: "Système d'alertes stratégiques",
+        description: "Monitoring en temps réel des flux d'opportunités",
+        noAlerts: "Aucun monitoring actif configuré.",
+        configuration: "Configuration d'alerte",
+        name: "Nom de l'alerte *",
+        namePlaceholder: "Ex: Banque Londres",
+        sectors: "Secteurs *",
+        sectorsPlaceholder: "Tech, Luxe...",
+        locations: "Localisations",
+        locationsPlaceholder: "Paris, New York...",
+        frequency: "Fréquence",
+        realtime: "Temps réel",
+        daily: "Quotidien",
+        weekly: "Hebdomadaire",
+        cancel: "Annuler",
+        enable: "Activer le monitoring",
+        addNew: "Ajouter une règle d'alerte",
+        minScore: "Score min",
+        global: "Global",
+      },
+      account: {
+        title: "Commandes système",
+        export: {
+          title: "Portabilité des données",
+          description: "Téléchargement archive RGPD",
+          button: "Exporter",
+        },
+        delete: {
+          title: "Suppression du compte",
+          description: "Cette action est irréversible",
+          button: "Supprimer",
+          confirm: "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+        },
+      },
+      saveConfig: "Sauvegarder la configuration",
+      saveSuccess: "Paramètres sauvegardés avec succès !",
+      saveError: "Erreur lors de la sauvegarde des paramètres",
     },
 
     // Common
@@ -344,6 +501,94 @@ export const translations = {
         mixtral: "Excellent pour l'analyse de documents",
         gemma: "Modèle Google compact et efficace",
       },
+    },
+
+    // About Page
+    about: {
+      title: "Notre",
+      titleHighlight: "Histoire",
+      subtitle: "Comment une simple idée est devenue une mission pour accompagner la prochaine génération.",
+      kamTyping: "KAM écrit...",
+      kamAssistant: "Votre Assistant IA",
+      stories: [
+        "Nous avons commencé avec une simple observation : les étudiants méritent de meilleurs outils pour trouver des stages. Le processus de recherche d'emploi est cassé, chronophage et souvent décourageant. Nous avons cru que la technologie pouvait changer cela.",
+        "StageFinder est né d'un rêve : créer une plateforme qui aide vraiment les étudiants à naviguer leur parcours professionnel. Chaque fonctionnalité, chaque algorithme, chaque choix de design est fait avec un seul objectif en tête — votre réussite.",
+        "Mais ce n'est que le début. StageFinder fait partie d'une vision plus grande. Chaque abonnement nous aide à construire quelque chose de plus grand — THEFINEXIA, notre prochain projet. Nous ne construisons pas seulement un produit ; nous construisons un futur.",
+        "Aujourd'hui, la seule barrière entre nous et notre vision est le financement. En choisissant StageFinder, vous n'investissez pas seulement dans votre carrière — vous investissez dans un futur où l'ambition n'a pas de limites. Ensemble, nous ferons exploser THEFINEXIA."
+      ],
+      missionTitle: "Notre",
+      missionHighlight: "Mission",
+      missions: {
+        empowering: {
+          title: "Accompagner les Étudiants",
+          description: "Nous croyons que chaque étudiant mérite d'accéder aux meilleures opportunités, peu importe son background ou son réseau."
+        },
+        funding: {
+          title: "Financer l'Innovation",
+          description: "Votre soutien alimente directement nos projets ambitieux. Chaque abonnement nous rapproche de THEFINEXIA."
+        },
+        community: {
+          title: "Construire une Communauté",
+          description: "Nous créons plus qu'un outil — nous construisons une communauté de personnes déterminées à changer le monde."
+        },
+        barriers: {
+          title: "Briser les Barrières",
+          description: "La seule barrière que nous affrontons est le financement. Ensemble, nous pouvons la supprimer et débloquer un potentiel illimité."
+        }
+      },
+      ctaTitle: "Rejoignez le",
+      ctaHighlight: "Mouvement",
+      ctaSubtitle: "Faites partie de quelque chose de plus grand qu'une plateforme de recherche d'emploi.",
+      ctaButton: "Commencer",
+      footer: "Construit avec passion pour la prochaine génération de fondateurs"
+    },
+
+    // Pricing Page
+    pricing: {
+      title: "Nos",
+      titleHighlight: "Forfaits",
+      subtitle: "Choisissez la stratégie qui correspond à vos objectifs de carrière.",
+      monthly: "Mensuel",
+      annual: "Annuel (-20%)",
+      popular: "Populaire",
+      billedMonthly: "Facturé mensuellement",
+      billedAnnually: "Facturé annuellement",
+      perMonth: "/ mois",
+      plans: {
+        free: {
+          name: "Gratuit",
+          description: "Pour découvrir la plateforme",
+          features: [
+            "5 candidatures tous les 3 jours",
+            "Accès limité aux offres",
+            "Recherche basique"
+          ],
+          button: "Commencer gratuitement"
+        },
+        student: {
+          name: "Étudiant",
+          description: "Pour les étudiants qui débutent",
+          features: [
+            "10 candidatures par jour",
+            "700 requêtes IA au total",
+            "Rédaction IA (lettres, relances)",
+            "Suivi des candidatures"
+          ],
+          button: "Commencer"
+        },
+        pro: {
+          name: "Pro",
+          description: "Pour les chercheurs d'emploi actifs",
+          features: [
+            "10 candidatures par jour",
+            "1500 requêtes IA au total",
+            "Accès illimité aux offres",
+            "Génération de lettres de motivation",
+            "Alertes en temps réel"
+          ],
+          button: "Essayer gratuitement"
+        }
+      }
     },
 
     // Vocabulaire Harvard pour les candidatures
@@ -433,6 +678,8 @@ export const translations = {
         interview: "Interviews",
         rejected: "Rejected",
       },
+      showMore: "Show more",
+      showLess: "Show less",
     },
 
     // Offers
@@ -452,6 +699,10 @@ export const translations = {
       apply: "Apply",
       save: "Save",
       viewDetails: "View details",
+      details: "Details",
+      score: "score",
+      cvSearch: "CV Search",
+      smartSearch: "Smart Search",
       noResults: "No jobs found. Try different criteria.",
       searching: "Searching",
       analyzingOffers: "Analyzing offers on 4 platforms",
@@ -514,6 +765,67 @@ export const translations = {
       generateLetter: "Generate letter",
       markAsSent: "Mark as sent",
       addNote: "Add note",
+      confirmDelete: "Are you sure you want to delete this application?",
+      noApplications: "No applications yet",
+      addManually: "Add manually",
+      searchOffers: "Search for offers",
+      progress: "Application Progress",
+      emailGenerator: {
+        title: "Smart Email Generator",
+        generate: "Generate perfect email",
+        subject: "Email Subject",
+        content: "Generated Content",
+        copy: "Copy",
+        markSent: "Mark as sent",
+      },
+      coverLetter: {
+        title: "Premium Cover Letter",
+        generate: "Write with AI",
+        copyLetter: "Copy letter",
+        styles: {
+          harvard: "🎓 Harvard Style",
+          corporate: "Corporate",
+          modern: "Modern",
+          creative: "Creative",
+        },
+      },
+      response: {
+        title: "Log a Response",
+        type: "Response Type",
+        positive: "Positive",
+        interview: "Interview",
+        negative: "Negative",
+        pending: "Pending",
+        notes: "Comments / Notes",
+        notesPlaceholder: "Notes about the exchange or response content...",
+        screenshot: "Screenshot (proof)",
+        dragDrop: "Drag and drop a screenshot",
+        save: "Save response",
+      },
+      history: "Complete History",
+      form: {
+        company: "Company *",
+        companyPlaceholder: "Company name",
+        position: "Position *",
+        positionPlaceholder: "Job title",
+        contactEmail: "Contact Email",
+        emailPlaceholder: "recruiting@company.com",
+        careerSite: "Career Site",
+        cancel: "Cancel",
+        create: "Create",
+      },
+      emailTypes: {
+        application: "Application",
+        followUp: "Follow-up",
+        thankYou: "Thank you",
+      },
+      actions: {
+        email: "Email",
+        letter: "Letter",
+        response: "Response",
+        site: "Site",
+        delete: "Delete",
+      },
     },
 
     // CV Improver
@@ -548,6 +860,7 @@ export const translations = {
       jobDescription: "Job Description (Optional)",
       jobDescriptionPlaceholder: "Paste the job description for surgical personalization...",
       placeholder: "Your AI-optimized cover letter will appear here after processing.",
+      positionPlaceholder: "E.g.: M&A Analyst, Product Manager...",
       tone: {
         formal: "Formal",
         dynamic: "Dynamic",
@@ -556,6 +869,15 @@ export const translations = {
       },
       copy: "Copy",
       download: "Download",
+      contractTypes: {
+        internship: "Internship",
+        apprenticeship: "Apprenticeship",
+        fulltime: "Full-time",
+      },
+      languages: {
+        french: "French",
+        english: "English",
+      },
     },
 
     // Assistant Page
@@ -647,6 +969,86 @@ export const translations = {
       theme: "Theme",
       save: "Save",
       saved: "Saved",
+      subtitle: "Profile configuration and strategic preferences",
+      avatar: {
+        title: "Visual Identity",
+        description: "Customize your professional profile",
+        placeholder: "Your image URL (e.g., LinkedIn, Gravatar...)",
+        update: "Update",
+        remove: "Remove",
+        recommended: "Recommended: 200x200px",
+        updateSuccess: "Avatar updated successfully! Refresh the page to see changes.",
+        updateError: "Error updating avatar",
+        removeSuccess: "Avatar removed successfully! Refresh the page to see changes.",
+        removeError: "Error removing avatar",
+        removeConfirm: "Remove your avatar?",
+      },
+      cv: {
+        title: "Document Base",
+        description: "Automatic AI extraction for precise matching",
+        processing: "Intelligence Engine Processing...",
+        processingDescription: "Semantic analysis of your background",
+        clickToImport: "Click to import your CV",
+        format: "PDF or DOCX (Max 5MB)",
+        changeFile: "Change file",
+        selectFile: "Select file",
+        analyzing: "Analyzing CV...",
+        success: "CV analyzed! {skills} skills, {cities} cities, {domains} domains detected.",
+        warning: "CV uploaded but no data extracted. Check the file format.",
+        error: "Error uploading CV",
+        fileTooLarge: "File must be less than 5MB",
+        unsupportedFormat: "Unsupported format. Use PDF or DOCX",
+      },
+      skills: {
+        title: "Hard & Soft Skills",
+        placeholder: "Python, Finance, Leadership...",
+      },
+      searchPreferences: {
+        title: "Search Preferences",
+        cities: "Target cities",
+        citiesPlaceholder: "Paris, London, Remote...",
+        contractTypes: "Contract types",
+        domains: "Expertise domains",
+        domainsPlaceholder: "Banking, AI, Web Dev...",
+      },
+      alerts: {
+        title: "Strategic Alert System",
+        description: "Real-time monitoring of opportunity flows",
+        noAlerts: "No active monitoring configured.",
+        configuration: "Alert Configuration",
+        name: "Alert name *",
+        namePlaceholder: "E.g.: Banking London",
+        sectors: "Sectors *",
+        sectorsPlaceholder: "Tech, Luxury...",
+        locations: "Locations",
+        locationsPlaceholder: "Paris, New York...",
+        frequency: "Frequency",
+        realtime: "Real-time",
+        daily: "Daily",
+        weekly: "Weekly",
+        cancel: "Cancel",
+        enable: "Enable monitoring",
+        addNew: "Add new alert rule",
+        minScore: "Min Score",
+        global: "Global",
+      },
+      account: {
+        title: "System Commands",
+        export: {
+          title: "Data portability",
+          description: "GDPR archive download",
+          button: "Export",
+        },
+        delete: {
+          title: "Account deletion",
+          description: "This action is irreversible",
+          button: "Delete",
+          confirm: "Are you sure you want to delete your account? This action is irreversible.",
+        },
+      },
+      saveConfig: "Save configuration",
+      saveSuccess: "Settings saved successfully!",
+      saveError: "Error saving settings",
     },
 
     // Common
@@ -721,6 +1123,94 @@ export const translations = {
         mixtral: "Excellent for document analysis",
         gemma: "Compact and efficient Google model",
       },
+    },
+
+    // About Page
+    about: {
+      title: "Our",
+      titleHighlight: "Story",
+      subtitle: "How a simple idea became a mission to empower the next generation.",
+      kamTyping: "KAM is typing...",
+      kamAssistant: "Your AI Assistant",
+      stories: [
+        "We started with a simple observation: students deserve better tools to find internships. The job search process is broken, time-consuming, and often discouraging. We believed technology could change that.",
+        "StageFinder was born from a dream: to create a platform that truly helps students navigate their career journey. Every feature, every algorithm, every design choice is made with one goal in mind — your success.",
+        "But this is just the beginning. StageFinder is part of a larger vision. Every subscription helps us build something bigger — THEFINEXIA, our next venture. We're not just building a product; we're building a future.",
+        "Today, the only barrier between us and our vision is funding. By choosing StageFinder, you're not just investing in your career — you're investing in a future where ambition has no limits. Together, we will make THEFINEXIA explode."
+      ],
+      missionTitle: "Our",
+      missionHighlight: "Mission",
+      missions: {
+        empowering: {
+          title: "Empowering Students",
+          description: "We believe every student deserves access to the best opportunities, regardless of their background or network."
+        },
+        funding: {
+          title: "Funding Innovation",
+          description: "Your support directly fuels our ambitious projects. Each subscription brings us closer to building THEFINEXIA."
+        },
+        community: {
+          title: "Building Community",
+          description: "We're creating more than a tool — we're building a community of driven individuals ready to change the world."
+        },
+        barriers: {
+          title: "Breaking Barriers",
+          description: "The only barrier we face is funding. Together, we can remove it and unlock unlimited potential."
+        }
+      },
+      ctaTitle: "Join the",
+      ctaHighlight: "Movement",
+      ctaSubtitle: "Be part of something bigger than a job search platform.",
+      ctaButton: "Get Started",
+      footer: "Built with passion for the next generation of founders"
+    },
+
+    // Pricing Page
+    pricing: {
+      title: "Pricing",
+      titleHighlight: "Plans",
+      subtitle: "Choose the strategy that fits your career goals.",
+      monthly: "Monthly",
+      annual: "Annual (-20%)",
+      popular: "Popular",
+      billedMonthly: "Billed monthly",
+      billedAnnually: "Billed annually",
+      perMonth: "/ month",
+      plans: {
+        free: {
+          name: "Free",
+          description: "To discover the platform",
+          features: [
+            "5 applications every 3 days",
+            "Limited access to offers",
+            "Basic search"
+          ],
+          button: "Start for free"
+        },
+        student: {
+          name: "Student",
+          description: "For students getting started",
+          features: [
+            "10 applications per day",
+            "700 total AI requests",
+            "AI writing (letters, follow-ups)",
+            "Application tracking"
+          ],
+          button: "Get Started"
+        },
+        pro: {
+          name: "Pro",
+          description: "For active job seekers",
+          features: [
+            "10 applications per day",
+            "1500 total AI requests",
+            "Unlimited access to offers",
+            "Cover letter generation",
+            "Real-time alerts"
+          ],
+          button: "Try for free"
+        }
+      }
     },
 
     // Harvard vocabulary for applications

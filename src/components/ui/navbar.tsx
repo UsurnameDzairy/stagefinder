@@ -72,26 +72,8 @@ const landingNavigationLinks: NavLink[] = [
       },
     ],
   },
-  {
-    label: "Pricing",
-    submenu: true,
-    type: "simple",
-    items: [
-      { href: "#pricing", label: "Pro Plan" },
-      { href: "#pricing", label: "Student Plan" },
-      { href: "#pricing", label: "Free" },
-    ],
-  },
-  {
-    label: "About",
-    submenu: true,
-    type: "simple",
-    items: [
-      { href: "#about", label: "Our Mission" },
-      { href: "#about", label: "Team" },
-      { href: "#about", label: "Careers" },
-    ],
-  },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/about", label: "About" },
 ];
 
 // Navigation links are now generated dynamically using translations

@@ -164,7 +164,7 @@ export default function LandingPage() {
                 </li>
               </ul>
               <Link href="/sign-up" className="block">
-                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-serif">
+                <button className="w-full py-3 rounded-full bg-zinc-700 text-white font-semibold hover:bg-zinc-600 transition-all font-serif">
                   Start for free
                 </button>
               </Link>
@@ -203,7 +203,7 @@ export default function LandingPage() {
                 </li>
               </ul>
               <Link href="/pricing" className="block">
-                <button className="w-full py-3 rounded-full border border-zinc-700 text-white hover:bg-zinc-800 transition-all font-serif">
+                <button className="w-full py-3 rounded-full bg-zinc-700 text-white font-semibold hover:bg-zinc-600 transition-all font-serif">
                   Get Started
                 </button>
               </Link>
@@ -217,8 +217,8 @@ export default function LandingPage() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-white">
-                <span className="text-sm font-semibold text-black">Popular</span>
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-white" style={{ backgroundColor: '#ffffff' }}>
+                <span className="text-sm font-semibold text-black" style={{ color: '#000000' }}>Popular</span>
               </div>
               <h3 className="font-serif text-xl text-white mb-2">Pro</h3>
               <p className="text-sm text-zinc-400 italic mb-6">For active job seekers</p>
@@ -249,7 +249,7 @@ export default function LandingPage() {
                 </li>
               </ul>
               <Link href="/pricing" className="block">
-                <button className="w-full py-3 rounded-full font-serif font-semibold bg-white text-black hover:bg-zinc-200 transition-colors">
+                <button className="w-full py-3 rounded-full bg-zinc-700 text-white font-semibold hover:bg-zinc-600 transition-all font-serif">
                   Try for free
                 </button>
               </Link>
