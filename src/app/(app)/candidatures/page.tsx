@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Send, Calendar, FileText, MoreHorizontal, Plus, Mail, 
+import {
+  Send, Calendar, FileText, MoreHorizontal, Plus, Mail,
   MessageSquare, CheckCircle2, XCircle, Clock, TrendingUp,
   Copy, Download, Image, ChevronDown, ChevronUp, Sparkles,
-  Building2, ExternalLink, Upload, Search
+  Building2, ExternalLink, Upload, Search, Zap, GraduationCap
 } from "lucide-react";
 import { ProgressTracker, MiniProgressTracker } from "@/components/applications/progress-tracker";
 import { Loader } from "@/components/ui/loader";
@@ -68,6 +69,7 @@ const getStatusConfig = (t: (key: string) => string): Record<string, { label: st
 export default function CandidaturesPage() {
   const { t } = useTranslation();
   const { language: currentLanguage } = useLanguage();
+  const router = useRouter();
   const STATUS_CONFIG = getStatusConfig(t);
   const [applications, setApplications] = useState<Application[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -323,6 +325,28 @@ export default function CandidaturesPage() {
     } catch (error) {
       console.error("Error deleting application:", error);
     }
+  };
+
+  // Fonction pour préparer l'entretien avec l'IA
+  const prepareInterview = async (app: Application) => {
+    // Stocker les données de l'application dans localStorage pour l'assistant
+    const interviewContext = {
+      type: "interview_preparation",
+      applicationId: app.id,
+      companyName: app.companyName,
+      jobTitle: app.jobTitle,
+      responseType: app.responseType,
+      interviewAt: app.interviewAt,
+      notes: app.notes,
+      feedback: app.feedback,
+      timeline: app.timeline,
+      cvText: cvText,
+    };
+
+    localStorage.setItem("interviewContext", JSON.stringify(interviewContext));
+
+    // Rediriger vers l'assistant
+    router.push("/assistant?mode=interview");
   };
 
   const copyToClipboard = (text: string) => {
@@ -662,6 +686,20 @@ export default function CandidaturesPage() {
                             <TrendingUp className="h-3.5 w-3.5 mr-2" />
                             {t("applications.feedback.button")}
                           </Button>
+                          {/* Bouton Prepare Interview - visible si réponse positive ou entretien */}
+                          {(app.responseType === "positive" || app.responseType === "interview" || app.status === "INTERVIEW") && (
+                            <Button
+                              size="sm"
+                              className="h-9 px-6 rounded-full text-[10px] font-serif italic tracking-tight bg-gradient-to-r from-zinc-800 to-zinc-700 hover:from-zinc-700 hover:to-zinc-600 text-white border border-zinc-600 shadow-lg transition-all hover:scale-105"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                prepareInterview(app);
+                              }}
+                            >
+                              <GraduationCap className="h-3.5 w-3.5 mr-2" />
+                              {t("applications.interviewPrep.button")}
+                            </Button>
+                          )}
                           {app.companyUrl && (
                             <a href={app.companyUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                               <Button variant="ghost" size="sm" className="h-9 text-[11px] font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-300 hover:bg-transparent">

@@ -294,6 +294,13 @@ export const translations = {
         save: "Enregistrer le feedback",
         saved: "Feedback enregistré",
       },
+      interviewPrep: {
+        button: "Préparer l'entretien",
+        title: "Préparation Entretien IA",
+        description: "L'IA va vous aider à préparer votre entretien avec toutes vos données",
+        preparing: "Préparation en cours...",
+        ready: "Prêt pour l'entretien !",
+      },
     },
 
     // CV Improver
@@ -309,6 +316,7 @@ export const translations = {
       yourCv: "Votre CV",
       uploadOrPaste: "Uploadez votre CV ou collez le contenu textuel",
       reading: "Lecture en cours...",
+      improving: "Amélioration en cours...",
       changeFile: "Changer le fichier",
       selectFile: "Sélectionner un fichier",
       orRawText: "OU TEXTE BRUT",
@@ -327,6 +335,9 @@ export const translations = {
       generateHarvardCv: "Générer un CV Harvard",
       generateDescription: "Créez un CV professionnel complet basé sur votre profil et les standards académiques Harvard.",
       generatePremiumCv: "Générer mon CV Premium",
+      downloadPdf: "Télécharger PDF",
+      generatingPdf: "Génération...",
+      autoImproveMessage: "Votre CV a été automatiquement amélioré !",
       verbCategories: {
         leadership: "Leadership",
         achievement: "Impact",
@@ -1029,6 +1040,13 @@ export const translations = {
         kamWillAnalyze: "Kam will analyze this data to improve your future applications",
         save: "Save Feedback",
         saved: "Feedback saved",
+      },
+      interviewPrep: {
+        button: "Prepare Interview",
+        title: "AI Interview Preparation",
+        description: "AI will help you prepare your interview with all your data",
+        preparing: "Preparing...",
+        ready: "Ready for interview!",
       },
     },
 

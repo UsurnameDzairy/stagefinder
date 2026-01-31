@@ -4,14 +4,11 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
 import {
   FileText, Upload, Sparkles, CheckCircle2, AlertTriangle,
-  Copy, Download, RefreshCw, TrendingUp, Lightbulb,
-  Zap
+  Copy, TrendingUp, Lightbulb, Zap, Download
 } from "lucide-react";
 
 import { useTranslation, useLanguage } from "@/lib/i18n";
@@ -20,6 +17,7 @@ interface CVAnalysis {
   score: number;
   strengths: string[];
   weaknesses: string[];
+  improvements?: string[];
   suggestions: {
     category: string;
     original: string;
@@ -49,13 +47,17 @@ export default function CVImproverPage() {
   const [generatedCV, setGeneratedCV] = useState<string | null>(null);
   const [actionVerbs, setActionVerbs] = useState<ActionVerbs | null>(null);
   const [activeTab, setActiveTab] = useState<"analyze" | "improve" | "generate" | "verbs">("analyze");
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
-  // Upload CV file (PDF) - also saves to database so Kam can access it
+  // State for PDF data
+  const [pdfDataUri, setPdfDataUri] = useState<string | null>(null);
+  const [pdfFilename, setPdfFilename] = useState<string | null>(null);
+
+  // Upload CV file (PDF) and automatically improve it
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file type
     if (!file.name.endsWith('.pdf') && !file.name.endsWith('.txt') && !file.name.endsWith('.docx')) {
       alert(t("applications.cvUpload.unsupportedFormat") || "Unsupported format. Use PDF, TXT or DOCX.");
       return;
@@ -63,50 +65,122 @@ export default function CVImproverPage() {
 
     setUploading(true);
     setUploadedFileName(file.name);
+    setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      // For PDF files, use the direct PDF improvement API
+      if (file.name.endsWith('.pdf')) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('language', language);
 
-      // First, extract the text for display
-      const parseRes = await fetch('/api/cv/parse', {
-        method: 'POST',
-        body: formData,
-      });
+        const res = await fetch('/api/cv/improve-pdf', {
+          method: 'POST',
+          body: formData,
+        });
 
-      const parseData = await parseRes.json();
+        const data = await res.json();
 
-      if (parseData.success && parseData.text) {
-        setCvText(parseData.text);
-
-        // Also save to database so Kam can access it later
-        // Create a new FormData for the user CV endpoint
-        const saveFormData = new FormData();
-        saveFormData.append('file', file);
-
-        try {
-          await fetch('/api/user/cv', {
-            method: 'POST',
-            body: saveFormData,
-          });
-          // Silent save - don't block the user experience if save fails
-          console.log("CV saved to database for Kam access");
-        } catch (saveError) {
-          console.error("Failed to save CV to database:", saveError);
-          // Continue anyway - the main functionality (text extraction) worked
+        if (data.success) {
+          setCvText(data.originalText);
+          setImprovedCV(data.improvedText);
+          setPdfDataUri(data.pdf);
+          setPdfFilename(data.filename);
+          setActiveTab("improve");
+        } else {
+          alert(data.error || "Error improving PDF");
         }
       } else {
-        alert(parseData.error || t("applications.cvUpload.errorReading") || "Error reading file");
+        // For TXT/DOCX, use the old method
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const parseRes = await fetch('/api/cv/parse', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const parseData = await parseRes.json();
+
+        if (parseData.success && parseData.text) {
+          setCvText(parseData.text);
+
+          const improveRes = await fetch("/api/generate/cv-improve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "improve", cvText: parseData.text, language }),
+          });
+          const improveData = await improveRes.json();
+
+          if (improveData.improvedCV) {
+            setImprovedCV(improveData.improvedCV);
+            if (improveData.analysis) {
+              setAnalysis({
+                score: improveData.analysis.score || 50,
+                strengths: improveData.analysis.strengths || [],
+                weaknesses: improveData.analysis.weaknesses || improveData.analysis.improvements || [],
+                suggestions: improveData.analysis.suggestions || [],
+              });
+            }
+            setActiveTab("improve");
+          }
+        } else {
+          alert(parseData.error || t("applications.cvUpload.errorReading") || "Error reading file");
+        }
       }
     } catch (error) {
       console.error("Upload error:", error);
       alert(t("applications.cvUpload.errorUploading") || "Error uploading file");
     } finally {
       setUploading(false);
+      setLoading(false);
     }
   };
 
-  // Load suggestions on mount
+  // Download improved CV as PDF
+  const downloadPdf = async () => {
+    // If we already have the PDF from direct improvement, download it
+    if (pdfDataUri) {
+      const link = document.createElement("a");
+      link.href = pdfDataUri;
+      link.download = pdfFilename || "CV_Improved.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
+    // Otherwise generate from text
+    if (!improvedCV) return;
+
+    setGeneratingPdf(true);
+    try {
+      const res = await fetch("/api/cv/generate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cvText: improvedCV, userName: "Improved" }),
+      });
+      const data = await res.json();
+
+      if (data.success && data.pdf) {
+        const link = document.createElement("a");
+        link.href = data.pdf;
+        link.download = data.filename || "CV_Improved.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert("Error generating PDF");
+      }
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      alert("Error generating PDF");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
+  // Load action verbs on mount
   useEffect(() => {
     loadSuggestions();
   }, [language]);
@@ -138,7 +212,13 @@ export default function CVImproverPage() {
       });
       const data = await res.json();
       if (data.analysis) {
-        setAnalysis(data.analysis);
+        // Normalize the analysis object
+        setAnalysis({
+          score: data.analysis.score || 50,
+          strengths: data.analysis.strengths || [],
+          weaknesses: data.analysis.weaknesses || data.analysis.improvements || [],
+          suggestions: data.analysis.suggestions || [],
+        });
       }
     } catch (error) {
       console.error("Error analyzing CV:", error);
@@ -160,7 +240,12 @@ export default function CVImproverPage() {
       if (data.improvedCV) {
         setImprovedCV(data.improvedCV);
         if (data.analysis) {
-          setAnalysis(data.analysis);
+          setAnalysis({
+            score: data.analysis.score || 50,
+            strengths: data.analysis.strengths || [],
+            weaknesses: data.analysis.weaknesses || data.analysis.improvements || [],
+            suggestions: data.analysis.suggestions || [],
+          });
         }
       }
     } catch (error) {
@@ -214,7 +299,7 @@ export default function CVImproverPage() {
         </div>
       </div>
 
-      {/* Tabs Premium */}
+      {/* Tabs */}
       <div className="flex gap-1 p-1 bg-zinc-950/50 border border-zinc-900 rounded-2xl w-fit">
         {[
           { id: "analyze", icon: TrendingUp, label: t("cvImprover.tabs.analyze") },
@@ -251,7 +336,7 @@ export default function CVImproverPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-6 pb-6 space-y-6">
-              {/* Upload Zone Premium */}
+              {/* Upload Zone */}
               <div className="border-2 border-dashed border-zinc-900 hover:border-zinc-700 bg-zinc-950/30 rounded-2xl p-8 text-center transition-all duration-300 group cursor-pointer relative">
                 <input
                   type="file"
@@ -260,11 +345,11 @@ export default function CVImproverPage() {
                   className="absolute inset-0 opacity-0 cursor-pointer z-10"
                   disabled={uploading}
                 />
-                {uploading ? (
+                {uploading || loading ? (
                   <div className="flex flex-col items-center gap-3">
                     <Loader size="sm" />
                     <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest animate-pulse">
-                      {t("cvImprover.reading")}
+                      {loading ? (language === "fr" ? "Amélioration IA en cours..." : "AI improvement in progress...") : t("cvImprover.reading")}
                     </span>
                   </div>
                 ) : uploadedFileName ? (
@@ -316,7 +401,7 @@ export default function CVImproverPage() {
             </CardContent>
           </Card>
 
-          {/* Analysis Results Premium */}
+          {/* Analysis Results */}
           <Card className="bg-black border-zinc-900 shadow-none overflow-hidden">
             <CardHeader className="p-6">
               <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
@@ -327,7 +412,7 @@ export default function CVImproverPage() {
             <CardContent className="px-6 pb-6">
               {analysis ? (
                 <div className="space-y-8 animate-in fade-in duration-500">
-                  {/* Score Premium */}
+                  {/* Score */}
                   <div className="relative p-8 bg-zinc-950 border border-zinc-900 rounded-3xl overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
                       <Sparkles className="h-24 w-24 text-white" />
@@ -343,12 +428,12 @@ export default function CVImproverPage() {
                         <span className="text-zinc-700 font-bold text-xl">/100</span>
                       </div>
                       <div className="mt-6 h-1 bg-zinc-900 rounded-full w-48 mx-auto overflow-hidden">
-                        <div 
-                          className={cn("h-full transition-all duration-1000", 
-                            analysis.score >= 80 ? "bg-white" : 
+                        <div
+                          className={cn("h-full transition-all duration-1000",
+                            analysis.score >= 80 ? "bg-white" :
                             analysis.score >= 60 ? "bg-zinc-400" : "bg-zinc-700"
-                          )} 
-                          style={{ width: `${analysis.score}%` }} 
+                          )}
+                          style={{ width: `${analysis.score}%` }}
                         />
                       </div>
                     </div>
@@ -356,7 +441,7 @@ export default function CVImproverPage() {
 
                   {/* Strengths */}
                   <div className="grid grid-cols-1 gap-6">
-                    {analysis.strengths.length > 0 && (
+                    {analysis.strengths && analysis.strengths.length > 0 && (
                       <div className="space-y-4">
                         <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
@@ -373,7 +458,7 @@ export default function CVImproverPage() {
                     )}
 
                     {/* Weaknesses */}
-                    {analysis.weaknesses.length > 0 && (
+                    {analysis.weaknesses && analysis.weaknesses.length > 0 && (
                       <div className="space-y-4">
                         <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
@@ -391,8 +476,8 @@ export default function CVImproverPage() {
                     )}
                   </div>
 
-                  {/* Suggestions Premium */}
-                  {analysis.suggestions.length > 0 && (
+                  {/* Suggestions */}
+                  {analysis.suggestions && analysis.suggestions.length > 0 && (
                     <div className="space-y-4 pt-4 border-t border-zinc-900">
                       <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{t("cvImprover.harvardRecommendations")}</h4>
                       <div className="space-y-3">
@@ -467,10 +552,26 @@ export default function CVImproverPage() {
                 {t("cvImprover.optimizedResult")}
               </CardTitle>
               {improvedCV && (
-                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(improvedCV)} className="h-8 text-zinc-500 hover:text-white hover:bg-zinc-900">
-                  <Copy className="h-3.5 w-3.5 mr-2" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Copy</span>
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(improvedCV)} className="h-8 text-zinc-500 hover:text-white hover:bg-zinc-900">
+                    <Copy className="h-3.5 w-3.5 mr-2" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Copy</span>
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={downloadPdf}
+                    disabled={generatingPdf}
+                    className="h-8 bg-white text-black hover:bg-zinc-200"
+                  >
+                    {generatingPdf ? (
+                      <Loader size="sm" />
+                    ) : (
+                      <Download className="h-3.5 w-3.5 mr-2" />
+                    )}
+                    <span className="text-[10px] font-bold uppercase tracking-widest">PDF</span>
+                  </Button>
+                </div>
               )}
             </CardHeader>
             <CardContent className="px-6 pb-6">

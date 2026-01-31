@@ -19,6 +19,7 @@ import {
   PanelLeft,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import TextType from "@/components/ui/text-type";
@@ -531,7 +532,7 @@ const ConversationSidebar: React.FC<{
   }
 
   return (
-    <div className="w-96 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
+    <div className="w-64 h-full bg-black/60 backdrop-blur-xl border-r border-white/[0.08] flex flex-col shrink-0">
       {/* Header */}
       <div className="p-4">
         <button
@@ -700,6 +701,7 @@ function renderMarkdown(text: string) {
 export default function AssistantPage() {
   const { t } = useTranslation();
   const { language } = useLanguage();
+  const searchParams = useSearchParams();
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -707,6 +709,7 @@ export default function AssistantPage() {
   const [userName, setUserName] = useState<string>("");
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [interviewModeTriggered, setInterviewModeTriggered] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // Track which message is currently being typed (last assistant message)
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
@@ -785,6 +788,102 @@ export default function AssistantPage() {
 
     fetchConversations();
   }, [fetchConversations]);
+
+  // State to store pending interview prep message
+  const [pendingInterviewMessage, setPendingInterviewMessage] = useState<string | null>(null);
+
+  // Handle interview preparation mode from URL params
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+
+    if (mode === "interview" && !interviewModeTriggered && !isLoading) {
+      setInterviewModeTriggered(true);
+
+      // Get interview context from localStorage
+      const contextStr = localStorage.getItem("interviewContext");
+      if (contextStr) {
+        try {
+          const context = JSON.parse(contextStr);
+          localStorage.removeItem("interviewContext"); // Clean up
+
+          // Fetch full user context from API
+          const fetchAndPrepare = async () => {
+            try {
+              const res = await fetch(`/api/user/context?applicationId=${context.applicationId}`);
+              if (res.ok) {
+                const data = await res.json();
+                const userContext = data.context;
+
+                // Build comprehensive interview prep prompt
+                let prompt = language === "fr"
+                  ? `Je dois préparer mon entretien pour le poste de **${context.jobTitle}** chez **${context.companyName}**.`
+                  : `I need to prepare for my interview for the position of **${context.jobTitle}** at **${context.companyName}**.`;
+
+                prompt += "\n\n";
+
+                // Add user profile context
+                if (userContext.profile) {
+                  prompt += language === "fr"
+                    ? `**Mon profil:**\n- École: ${userContext.profile.school || "Non spécifié"}\n- Niveau: ${userContext.profile.educationLevel || "Non spécifié"}\n- Spécialité: ${userContext.profile.specialty || "Non spécifié"}\n`
+                    : `**My profile:**\n- School: ${userContext.profile.school || "Not specified"}\n- Level: ${userContext.profile.educationLevel || "Not specified"}\n- Specialty: ${userContext.profile.specialty || "Not specified"}\n`;
+                }
+
+                // Add skills
+                if (userContext.skills && userContext.skills.length > 0) {
+                  const skillsList = userContext.skills.map((s: { name: string }) => s.name).join(", ");
+                  prompt += language === "fr"
+                    ? `**Mes compétences:** ${skillsList}\n`
+                    : `**My skills:** ${skillsList}\n`;
+                }
+
+                // Add CV content if available
+                if (userContext.resume?.extractedText) {
+                  prompt += language === "fr"
+                    ? `\n**Mon CV:**\n${userContext.resume.extractedText.substring(0, 2000)}...\n`
+                    : `\n**My CV:**\n${userContext.resume.extractedText.substring(0, 2000)}...\n`;
+                }
+
+                // Add application details
+                if (userContext.targetApplication) {
+                  const app = userContext.targetApplication;
+                  if (app.interviewAt) {
+                    const interviewDate = new Date(app.interviewAt).toLocaleDateString(language === "fr" ? "fr-FR" : "en-US");
+                    prompt += language === "fr"
+                      ? `\n**Date de l'entretien:** ${interviewDate}\n`
+                      : `\n**Interview date:** ${interviewDate}\n`;
+                  }
+                  if (app.notes) {
+                    prompt += language === "fr"
+                      ? `**Notes sur la candidature:** ${app.notes}\n`
+                      : `**Application notes:** ${app.notes}\n`;
+                  }
+                }
+
+                // Add request for help
+                prompt += language === "fr"
+                  ? `\n\n**Aide-moi à:**\n1. Comprendre les questions typiques pour ce poste\n2. Préparer mes réponses en utilisant la méthode STAR\n3. Identifier mes points forts à mettre en avant\n4. Préparer des questions pertinentes à poser au recruteur\n5. Anticiper les points faibles potentiels et comment les aborder`
+                  : `\n\n**Help me with:**\n1. Understanding typical questions for this role\n2. Preparing my answers using the STAR method\n3. Identifying my strengths to highlight\n4. Preparing relevant questions to ask the recruiter\n5. Anticipating potential weaknesses and how to address them`;
+
+                // Store message to be sent
+                setPendingInterviewMessage(prompt);
+              }
+            } catch (error) {
+              console.error("Failed to fetch user context:", error);
+              // Fallback with basic context
+              const fallbackPrompt = language === "fr"
+                ? `Je dois préparer mon entretien pour le poste de ${context.jobTitle} chez ${context.companyName}. Aide-moi à me préparer.`
+                : `I need to prepare for my interview for the position of ${context.jobTitle} at ${context.companyName}. Help me prepare.`;
+              setPendingInterviewMessage(fallbackPrompt);
+            }
+          };
+
+          fetchAndPrepare();
+        } catch (e) {
+          console.error("Failed to parse interview context:", e);
+        }
+      }
+    }
+  }, [searchParams, interviewModeTriggered, isLoading, language]);
 
   // Get time-based greeting
   const getGreeting = () => {
@@ -924,6 +1023,14 @@ export default function AssistantPage() {
     setTimeout(() => fetchConversations(), 500);
   }, [fetchConversations]);
 
+  // Send pending interview message when ready
+  useEffect(() => {
+    if (pendingInterviewMessage && !isLoading) {
+      handleSendMessage(pendingInterviewMessage, [], [], DEFAULT_MODELS[0].apiModel);
+      setPendingInterviewMessage(null);
+    }
+  }, [pendingInterviewMessage, isLoading]);
+
   return (
     <div className="h-[calc(100vh-80px)] w-full flex overflow-hidden fixed inset-x-0 top-[80px]">
       {/* Sidebar */}
@@ -940,11 +1047,11 @@ export default function AssistantPage() {
       {/* Main content */}
       <div className="flex-1 flex justify-center items-center px-6 overflow-hidden">
         <div
-          className="w-full max-w-3xl relative h-full flex items-center"
+          className="w-full max-w-5xl relative h-full flex items-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="relative overflow-hidden rounded-[48px] border border-border bg-card shadow-sm h-[90%] max-h-[680px] w-full flex flex-col">
+          <div className="relative overflow-hidden rounded-[48px] border border-border bg-card shadow-sm h-[95%] max-h-[900px] w-full flex flex-col">
             <Suspense fallback={<div className="absolute inset-0 bg-muted/20" />}>
               <div className="absolute inset-0 z-0 pointer-events-none opacity-20 mix-blend-screen grayscale contrast-125">
                 <Dithering

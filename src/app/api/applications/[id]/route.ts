@@ -71,8 +71,6 @@ export async function PATCH(
       interviewAt,
       nextAction,
       nextActionAt,
-      feedback,
-      finalOutcome,
     } = body;
 
     // Préparer les données de mise à jour
@@ -85,8 +83,6 @@ export async function PATCH(
     if (interviewAt !== undefined) updateData.interviewAt = interviewAt ? new Date(interviewAt) : null;
     if (nextAction !== undefined) updateData.nextAction = nextAction;
     if (nextActionAt !== undefined) updateData.nextActionAt = nextActionAt ? new Date(nextActionAt) : null;
-    if (feedback !== undefined) updateData.feedback = feedback;
-    if (finalOutcome !== undefined) updateData.finalOutcome = finalOutcome;
 
     // Gérer l'envoi d'email
     if (emailSent && !existing.emailSent) {

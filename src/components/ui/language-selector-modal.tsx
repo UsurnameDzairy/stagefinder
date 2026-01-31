@@ -77,12 +77,8 @@ export function LanguageSelectorModal() {
                   }`}
                 >
                   <div className="flex items-center justify-between p-5">
-                    <div className="flex items-center gap-4">
-                      <span className="text-2xl">🇬🇧</span>
-                      <div className="text-left">
-                        <p className="text-[15px] font-medium text-white">English</p>
-                        <p className="text-[12px] text-zinc-500">United Kingdom</p>
-                      </div>
+                    <div className="text-left">
+                      <p className="text-[15px] font-medium text-white">English</p>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                       language === "en" ? "border-white bg-white" : "border-zinc-700"
@@ -107,12 +103,8 @@ export function LanguageSelectorModal() {
                   }`}
                 >
                   <div className="flex items-center justify-between p-5">
-                    <div className="flex items-center gap-4">
-                      <span className="text-2xl">🇫🇷</span>
-                      <div className="text-left">
-                        <p className="text-[15px] font-medium text-white">Fran&ccedil;ais</p>
-                        <p className="text-[12px] text-zinc-500">France</p>
-                      </div>
+                    <div className="text-left">
+                      <p className="text-[15px] font-medium text-white">Français</p>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                       language === "fr" ? "border-white bg-white" : "border-zinc-700"

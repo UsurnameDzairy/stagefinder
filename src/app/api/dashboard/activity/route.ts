@@ -1,120 +1,85 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch recent applications
-    const recentApplications = await prisma.application.findMany({
-      where: { userId: session.id },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
-
-    // Fetch recent saved offers with offer details
-    const recentSavedOffers = await prisma.savedOffer.findMany({
-      where: { userId: session.id },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      include: {
-        offer: {
-          select: {
-            title: true,
-            companyName: true,
-          },
+    const [applications, savedOffers, savedCompanies] = await Promise.all([
+      prisma.application.findMany({
+        where: { userId: session.id },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+      prisma.savedOffer.findMany({
+        where: { userId: session.id },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        include: {
+          offer: true,
         },
-      },
-    });
+      }),
+      prisma.savedCompany.findMany({
+        where: { userId: session.id },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        include: {
+          company: true,
+        },
+      }),
+    ]);
 
-    // Fetch recent saved companies (via SavedCompany junction table)
-    const recentSavedCompanies = await prisma.savedCompany.findMany({
-      where: { userId: session.id },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      include: {
-        company: true,
-      },
-    });
+    const activities = [
+      ...applications.map((app) => ({
+        id: app.id,
+        type: "application" as const,
+        title: app.jobTitle,
+        subtitle: app.companyName,
+        date: app.createdAt,
+      })),
+      ...savedOffers.map((so) => ({
+        id: so.id,
+        type: "saved_offer" as const,
+        title: so.offer.title,
+        subtitle: so.offer.companyName,
+        date: so.createdAt,
+      })),
+      ...savedCompanies.map((sc) => ({
+        id: sc.id,
+        type: "saved_company" as const,
+        title: sc.company.name,
+        subtitle: sc.company.sector || "Entreprise",
+        date: sc.createdAt,
+      })),
+    ]
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, 10)
+      .map((activity) => ({
+        ...activity,
+        date: formatDate(activity.date),
+      }));
 
-    // Combine and format activity
-    const activity: Array<{
-      id: string;
-      type: "application" | "saved_offer" | "saved_company" | "interview";
-      title: string;
-      subtitle: string;
-      date: string;
-    }> = [];
-
-    // Format applications
-    recentApplications.forEach((app) => {
-      const isInterview = app.status === "INTERVIEW";
-      activity.push({
-        id: `app-${app.id}`,
-        type: isInterview ? "interview" : "application",
-        title: app.jobTitle || "Application",
-        subtitle: app.companyName || "Company",
-        date: formatRelativeDate(app.createdAt),
-      });
-    });
-
-    // Format saved offers
-    recentSavedOffers.forEach((savedOffer) => {
-      activity.push({
-        id: `offer-${savedOffer.id}`,
-        type: "saved_offer",
-        title: savedOffer.offer?.title || "Saved offer",
-        subtitle: savedOffer.offer?.companyName || `Score: ${savedOffer.matchScore || 0}%`,
-        date: formatRelativeDate(savedOffer.createdAt),
-      });
-    });
-
-    // Format saved companies
-    recentSavedCompanies.forEach((savedCompany) => {
-      activity.push({
-        id: `company-${savedCompany.id}`,
-        type: "saved_company",
-        title: savedCompany.company.name,
-        subtitle: savedCompany.company.sector || "Company",
-        date: formatRelativeDate(savedCompany.createdAt),
-      });
-    });
-
-    // Sort by date (most recent first) and take top 10
-    activity.sort((a, b) => {
-      // Simple sort - newer items first
-      return 0; // Already sorted from DB
-    });
-
-    return NextResponse.json({ activity: activity.slice(0, 10) });
+    return NextResponse.json({ activities });
   } catch (error) {
-    console.error("Dashboard activity error:", error);
+    console.error("Error fetching dashboard activity:", error);
     return NextResponse.json({ error: "Failed to fetch activity" }, { status: 500 });
   }
 }
 
-function formatRelativeDate(date: Date): string {
+function formatDate(date: Date): string {
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diff = now.getTime() - new Date(date).getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
 
-  if (diffMins < 60) {
-    return diffMins <= 1 ? "Just now" : `${diffMins} min ago`;
-  }
-  if (diffHours < 24) {
-    return `${diffHours}h ago`;
-  }
-  if (diffDays === 1) {
-    return "Yesterday";
-  }
-  if (diffDays < 7) {
-    return `${diffDays} days ago`;
-  }
-  return date.toLocaleDateString("en-US");
+  if (minutes < 60) return `Il y a ${minutes}min`;
+  if (hours < 24) return `Il y a ${hours}h`;
+  if (days === 1) return "Hier";
+  if (days < 7) return `Il y a ${days}j`;
+  return new Date(date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }

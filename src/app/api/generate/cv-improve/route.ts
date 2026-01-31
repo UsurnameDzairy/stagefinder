@@ -1,25 +1,446 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { callOpenRouter } from "@/lib/openrouter";
 
-const ACTION_VERBS = {
-  fr: {
-    leadership: ["Dirigé", "Supervisé", "Coordonné", "Piloté", "Encadré", "Mené", "Orchestré", "Géré", "Administré"],
-    achievement: ["Atteint", "Réalisé", "Accompli", "Dépassé", "Obtenu", "Généré", "Augmenté", "Réduit", "Livré"],
-    analysis: ["Analysé", "Évalué", "Diagnostiqué", "Étudié", "Examiné", "Identifié", "Investigué", "Audité", "Mesuré"],
-    communication: ["Présenté", "Négocié", "Convaincu", "Formé", "Conseillé", "Rédigé", "Communiqué", "Transmis"],
-    creation: ["Créé", "Conçu", "Développé", "Élaboré", "Initié", "Lancé", "Fondé", "Implémenté", "Construit"],
-    improvement: ["Optimisé", "Amélioré", "Restructuré", "Modernisé", "Simplifié", "Automatisé", "Accéléré", "Renforcé"],
-  },
+/**
+ * Use AI to improve the CV while keeping the same structure and information
+ */
+async function improveWithAI(cvText: string, language: "fr" | "en"): Promise<string> {
+  const systemPrompt = language === "fr"
+    ? `Tu es un expert en rédaction de CV de la Harvard Business School. Tu DOIS transformer chaque phrase du CV pour la rendre plus percutante. Le CV doit rester EN FRANÇAIS.
+
+RÈGLES OBLIGATOIRES:
+1. REMPLACE SYSTÉMATIQUEMENT ces termes faibles:
+   - "je recherche" → "Aspirant à intégrer" ou "Déterminé à rejoindre"
+   - "Étudiant en" → "Candidat spécialisé en" ou "Expert en formation en"
+   - "Principaux cours" → "Expertise développée en" ou "Compétences acquises en"
+   - "Spécialités" → "Domaines d'excellence"
+   - "Stage" → "Mission stratégique" ou "Expérience professionnelle"
+   - "j'ai fait" → "Piloté" / "Orchestré" / "Réalisé"
+   - "travaillé sur" → "Contribué activement à" / "Mené"
+   - "responsable de" → "Dirigé" / "Supervisé"
+
+2. AJOUTE des verbes d'action Harvard au début de chaque bullet point:
+   Piloté, Orchestré, Optimisé, Développé, Conçu, Analysé, Structuré, Négocié, Coordonné, Implémenté
+
+3. TRANSFORME le profil/objectif en accroche percutante orientée résultats
+
+4. GARDE la même structure et les mêmes informations factuelles (dates, entreprises, chiffres)
+
+5. NE PAS inventer de nouvelles expériences
+
+Réponds UNIQUEMENT avec le CV amélioré EN FRANÇAIS, sans commentaires.`
+    : `You are a Harvard Business School CV writing expert. You MUST:
+1. TRANSLATE the entire CV to ENGLISH
+2. IMPROVE each sentence to make it more impactful
+
+MANDATORY RULES:
+1. TRANSLATE ALL CONTENT TO ENGLISH - every single word must be in English
+2. SYSTEMATICALLY REPLACE weak terms:
+   - "looking for" / "je recherche" → "Aspiring to join" or "Determined to integrate"
+   - "Student in" / "Étudiant en" → "Specialized candidate in" or "Expert in training"
+   - "Main courses" / "Principaux cours" → "Expertise developed in" or "Skills acquired in"
+   - "Specialties" / "Spécialités" → "Areas of excellence"
+   - "Internship" / "Stage" → "Strategic mission" or "Professional experience"
+   - "responsible for" → "Directed" / "Supervised" / "Spearheaded"
+
+3. ADD Harvard action verbs at the beginning of each bullet point:
+   Spearheaded, Orchestrated, Optimized, Developed, Designed, Analyzed, Structured, Negotiated, Coordinated, Implemented
+
+4. TRANSFORM the profile/objective into a results-oriented impactful hook
+
+5. KEEP the same structure and factual information (dates, companies, numbers)
+
+6. DO NOT invent new experiences
+
+CRITICAL: The output must be 100% in ENGLISH. Respond ONLY with the improved CV in English, no comments.`;
+
+  const userPrompt = language === "fr"
+    ? `Transforme ce CV en version Harvard percutante EN FRANÇAIS. Chaque phrase doit être améliorée:\n\n${cvText}`
+    : `TRANSLATE this CV to ENGLISH and transform it into an impactful Harvard version. The output MUST be entirely in English:\n\n${cvText}`;
+
+  const messages = [
+    { role: 'system' as const, content: systemPrompt },
+    { role: 'user' as const, content: userPrompt },
+  ];
+
+  const response = await callOpenRouter(messages, 'llama-3.3-70b-versatile', {
+    temperature: 0.7,
+    max_tokens: 4000,
+  });
+
+  return response;
+}
+
+/**
+ * Harvard-style CV Analyzer and Improver
+ * Analyzes CV content and suggests improvements using sophisticated vocabulary
+ */
+
+// Harvard-style action verbs by category
+const HARVARD_ACTION_VERBS = {
   en: {
-    leadership: ["Led", "Supervised", "Coordinated", "Directed", "Managed", "Oversaw", "Orchestrated", "Headed", "Spearheaded"],
-    achievement: ["Achieved", "Accomplished", "Exceeded", "Delivered", "Generated", "Increased", "Reduced", "Completed", "Drove"],
-    analysis: ["Analyzed", "Evaluated", "Diagnosed", "Examined", "Identified", "Investigated", "Assessed", "Audited", "Measured"],
-    communication: ["Presented", "Negotiated", "Persuaded", "Trained", "Advised", "Authored", "Communicated", "Conveyed"],
-    creation: ["Created", "Designed", "Developed", "Established", "Initiated", "Launched", "Founded", "Implemented", "Built"],
-    improvement: ["Optimized", "Enhanced", "Restructured", "Modernized", "Streamlined", "Automated", "Accelerated", "Strengthened"],
+    leadership: [
+      "Spearheaded", "Orchestrated", "Pioneered", "Championed", "Directed",
+      "Mobilized", "Galvanized", "Steered", "Helmed", "Catalyzed"
+    ],
+    achievement: [
+      "Accelerated", "Amplified", "Achieved", "Attained", "Surpassed",
+      "Exceeded", "Outperformed", "Maximized", "Optimized", "Transformed"
+    ],
+    analysis: [
+      "Synthesized", "Evaluated", "Assessed", "Investigated", "Examined",
+      "Diagnosed", "Scrutinized", "Dissected", "Interpreted", "Quantified"
+    ],
+    communication: [
+      "Articulated", "Conveyed", "Persuaded", "Negotiated", "Collaborated",
+      "Liaised", "Facilitated", "Presented", "Advocated", "Mediated"
+    ],
+    creation: [
+      "Conceptualized", "Devised", "Formulated", "Engineered", "Architected",
+      "Designed", "Developed", "Constructed", "Established", "Instituted"
+    ],
+    improvement: [
+      "Streamlined", "Revitalized", "Restructured", "Modernized", "Enhanced",
+      "Refined", "Elevated", "Revolutionized", "Reinvented", "Overhauled"
+    ],
+  },
+  fr: {
+    leadership: [
+      "Piloté", "Orchestré", "Dirigé", "Supervisé", "Coordonné",
+      "Encadré", "Mobilisé", "Fédéré", "Conduit", "Initié"
+    ],
+    achievement: [
+      "Accompli", "Atteint", "Dépassé", "Surpassé", "Optimisé",
+      "Maximisé", "Réalisé", "Concrétisé", "Obtenu", "Généré"
+    ],
+    analysis: [
+      "Analysé", "Évalué", "Diagnostiqué", "Examiné", "Investigué",
+      "Synthétisé", "Interprété", "Quantifié", "Mesuré", "Audité"
+    ],
+    communication: [
+      "Négocié", "Présenté", "Convaincu", "Collaboré", "Facilité",
+      "Articulé", "Communiqué", "Représenté", "Conseillé", "Formé"
+    ],
+    creation: [
+      "Conçu", "Développé", "Créé", "Élaboré", "Architecturé",
+      "Construit", "Établi", "Fondé", "Instauré", "Mis en place"
+    ],
+    improvement: [
+      "Optimisé", "Restructuré", "Modernisé", "Amélioré", "Transformé",
+      "Rationalisé", "Revitalisé", "Renforcé", "Perfectionné", "Rehaussé"
+    ],
   },
 };
+
+// Harvard-style phrases for CV sections
+const HARVARD_PHRASES = {
+  en: {
+    quantification: [
+      "resulting in a {percent}% increase in",
+      "driving {percent}% improvement in",
+      "achieving {number}+ in",
+      "managing a portfolio of ${amount}",
+      "leading a team of {number} professionals",
+      "impacting {number}+ stakeholders",
+    ],
+    impact: [
+      "directly contributing to organizational objectives",
+      "delivering measurable business outcomes",
+      "demonstrating quantifiable results",
+      "generating significant value creation",
+      "enhancing operational efficiency",
+    ],
+    skills: [
+      "leveraging expertise in",
+      "applying advanced knowledge of",
+      "utilizing proficiency in",
+      "demonstrating mastery of",
+      "employing sophisticated understanding of",
+    ],
+  },
+  fr: {
+    quantification: [
+      "générant une augmentation de {percent}% de",
+      "permettant une amélioration de {percent}% de",
+      "atteignant {number}+ en",
+      "gérant un portefeuille de {amount}€",
+      "encadrant une équipe de {number} collaborateurs",
+      "impactant {number}+ parties prenantes",
+    ],
+    impact: [
+      "contribuant directement aux objectifs stratégiques",
+      "délivrant des résultats mesurables",
+      "démontrant des performances quantifiables",
+      "générant une création de valeur significative",
+      "améliorant l'efficacité opérationnelle",
+    ],
+    skills: [
+      "mobilisant une expertise en",
+      "appliquant des connaissances avancées en",
+      "utilisant une maîtrise approfondie de",
+      "démontrant une expertise de",
+      "employant une compréhension sophistiquée de",
+    ],
+  },
+};
+
+interface CVAnalysis {
+  score: number;
+  strengths: string[];
+  weaknesses: string[];
+  suggestions: Suggestion[];
+  improvedSections: ImprovedSection[];
+}
+
+interface Suggestion {
+  category: string;
+  original: string;
+  improved: string;
+  reason: string;
+}
+
+interface ImprovedSection {
+  title: string;
+  originalContent: string;
+  improvedContent: string;
+}
+
+function analyzeCV(cvText: string, language: "fr" | "en"): CVAnalysis {
+  const lines = cvText.split("\n").filter(l => l.trim());
+  const strengths: string[] = [];
+  const weaknesses: string[] = [];
+  const suggestions: Suggestion[] = [];
+  let score = 50;
+
+  // Check for quantification
+  const hasNumbers = /\d+%|\d+\s*(k|K|M|€|\$)|\d{2,}/.test(cvText);
+  if (hasNumbers) {
+    strengths.push(language === "fr" 
+      ? "Utilisation de données chiffrées pour quantifier les réalisations"
+      : "Uses quantified data to demonstrate achievements");
+    score += 10;
+  } else {
+    weaknesses.push(language === "fr"
+      ? "Manque de données chiffrées pour quantifier l'impact"
+      : "Lacks quantified metrics to demonstrate impact");
+    score -= 5;
+  }
+
+  // Check for action verbs
+  const allVerbs = [
+    ...HARVARD_ACTION_VERBS[language].leadership,
+    ...HARVARD_ACTION_VERBS[language].achievement,
+    ...HARVARD_ACTION_VERBS[language].analysis,
+  ];
+  const hasStrongVerbs = allVerbs.some(verb => 
+    cvText.toLowerCase().includes(verb.toLowerCase())
+  );
+  
+  if (hasStrongVerbs) {
+    strengths.push(language === "fr"
+      ? "Utilisation de verbes d'action percutants"
+      : "Uses strong action verbs");
+    score += 10;
+  } else {
+    weaknesses.push(language === "fr"
+      ? "Verbes d'action faibles - utiliser des verbes plus percutants"
+      : "Weak action verbs - use more impactful verbs");
+    score -= 5;
+  }
+
+  // Check for common weak phrases
+  const weakPhrases = language === "fr"
+    ? ["responsable de", "en charge de", "j'ai fait", "j'ai travaillé", "participation à"]
+    : ["responsible for", "in charge of", "worked on", "helped with", "participated in"];
+  
+  weakPhrases.forEach(phrase => {
+    if (cvText.toLowerCase().includes(phrase.toLowerCase())) {
+      const verbCategory = Object.keys(HARVARD_ACTION_VERBS[language])[
+        Math.floor(Math.random() * Object.keys(HARVARD_ACTION_VERBS[language]).length)
+      ] as keyof typeof HARVARD_ACTION_VERBS["en"];
+      
+      const strongVerb = HARVARD_ACTION_VERBS[language][verbCategory][
+        Math.floor(Math.random() * HARVARD_ACTION_VERBS[language][verbCategory].length)
+      ];
+      
+      suggestions.push({
+        category: language === "fr" ? "Verbes d'action" : "Action Verbs",
+        original: phrase,
+        improved: strongVerb,
+        reason: language === "fr"
+          ? `"${phrase}" est passif. Utilisez "${strongVerb}" pour montrer votre impact direct.`
+          : `"${phrase}" is passive. Use "${strongVerb}" to show direct impact.`,
+      });
+      score -= 2;
+    }
+  });
+
+  // Check length
+  if (lines.length < 15) {
+    weaknesses.push(language === "fr"
+      ? "CV trop court - développez vos expériences avec plus de détails"
+      : "CV too short - expand on your experiences with more details");
+    score -= 5;
+  } else if (lines.length > 60) {
+    weaknesses.push(language === "fr"
+      ? "CV trop long - concentrez-vous sur les expériences les plus pertinentes"
+      : "CV too long - focus on most relevant experiences");
+    score -= 5;
+  } else {
+    strengths.push(language === "fr"
+      ? "Longueur appropriée du CV"
+      : "Appropriate CV length");
+    score += 5;
+  }
+
+  // Check for skills section
+  if (cvText.toLowerCase().includes("compétences") || cvText.toLowerCase().includes("skills")) {
+    strengths.push(language === "fr"
+      ? "Section compétences présente"
+      : "Skills section present");
+    score += 5;
+  }
+
+  // Check for education
+  if (cvText.toLowerCase().includes("formation") || cvText.toLowerCase().includes("education") || cvText.toLowerCase().includes("diplôme")) {
+    strengths.push(language === "fr"
+      ? "Section formation présente"
+      : "Education section present");
+    score += 5;
+  }
+
+  // Ensure score is within bounds
+  score = Math.max(0, Math.min(100, score));
+
+  return {
+    score,
+    strengths,
+    weaknesses,
+    suggestions,
+    improvedSections: [],
+  };
+}
+
+function improveCVContent(cvText: string, language: "fr" | "en"): string {
+  let improved = cvText;
+  
+  // Replace weak phrases with strong ones
+  const replacements: Record<string, Record<string, string>> = {
+    fr: {
+      "responsable de": "Piloté",
+      "en charge de": "Dirigé",
+      "j'ai fait": "Réalisé",
+      "j'ai travaillé": "Contribué activement à",
+      "participation à": "Participation active à",
+      "j'ai aidé": "Accompagné",
+      "bon": "excellent",
+      "bien": "avec excellence",
+      "travail en équipe": "collaboration transversale",
+      "problèmes": "défis",
+      "tâches": "missions stratégiques",
+    },
+    en: {
+      "responsible for": "Spearheaded",
+      "in charge of": "Directed",
+      "worked on": "Engineered",
+      "helped with": "Facilitated",
+      "participated in": "Actively contributed to",
+      "did": "Executed",
+      "made": "Developed",
+      "good": "exceptional",
+      "teamwork": "cross-functional collaboration",
+      "problems": "challenges",
+      "tasks": "strategic initiatives",
+    },
+  };
+
+  Object.entries(replacements[language]).forEach(([weak, strong]) => {
+    const regex = new RegExp(weak, "gi");
+    improved = improved.replace(regex, strong);
+  });
+
+  return improved;
+}
+
+function generateHarvardCV(
+  profile: {
+    name: string;
+    email?: string;
+    phone?: string;
+    education?: string;
+    skills: string[];
+    experiences?: string;
+  },
+  language: "fr" | "en"
+): string {
+  const { name, email, phone, education, skills, experiences } = profile;
+  
+  const header = language === "fr" ? `
+═══════════════════════════════════════════════════════════════
+                        ${name.toUpperCase()}
+═══════════════════════════════════════════════════════════════
+${email ? `Email: ${email}` : ""}${phone ? ` | Tél: ${phone}` : ""}
+
+───────────────────────────────────────────────────────────────
+                         PROFIL
+───────────────────────────────────────────────────────────────
+Professionnel ambitieux et rigoureux, doté d'une solide formation académique 
+et d'une capacité démontrée à générer des résultats mesurables. Expert en 
+résolution de problèmes complexes et en collaboration transversale.
+
+───────────────────────────────────────────────────────────────
+                       FORMATION
+───────────────────────────────────────────────────────────────
+${education || "• [Votre formation]"}
+
+───────────────────────────────────────────────────────────────
+                      COMPÉTENCES
+───────────────────────────────────────────────────────────────
+${skills.length > 0 ? skills.map(s => `• ${s}`).join("\n") : "• [Vos compétences]"}
+
+───────────────────────────────────────────────────────────────
+                      EXPÉRIENCES
+───────────────────────────────────────────────────────────────
+${experiences || `• Orchestré [projet/initiative], générant une amélioration de X% des résultats
+• Piloté une équipe de X collaborateurs dans la réalisation de [objectif]
+• Conçu et implémenté [solution], réduisant les coûts de X%
+• Collaboré avec les parties prenantes pour [réalisation]`}
+` : `
+═══════════════════════════════════════════════════════════════
+                        ${name.toUpperCase()}
+═══════════════════════════════════════════════════════════════
+${email ? `Email: ${email}` : ""}${phone ? ` | Phone: ${phone}` : ""}
+
+───────────────────────────────────────────────────────────────
+                         PROFILE
+───────────────────────────────────────────────────────────────
+Results-driven professional with rigorous academic training and demonstrated 
+ability to deliver measurable outcomes. Expert in complex problem-solving 
+and cross-functional collaboration.
+
+───────────────────────────────────────────────────────────────
+                        EDUCATION
+───────────────────────────────────────────────────────────────
+${education || "• [Your education]"}
+
+───────────────────────────────────────────────────────────────
+                         SKILLS
+───────────────────────────────────────────────────────────────
+${skills.length > 0 ? skills.map(s => `• ${s}`).join("\n") : "• [Your skills]"}
+
+───────────────────────────────────────────────────────────────
+                       EXPERIENCE
+───────────────────────────────────────────────────────────────
+${experiences || `• Spearheaded [project/initiative], driving X% improvement in outcomes
+• Led a team of X professionals in achieving [objective]
+• Architected and implemented [solution], reducing costs by X%
+• Collaborated with stakeholders to deliver [achievement]`}
+`;
+
+  return header.trim();
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,222 +449,101 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { action, cvText, language = "fr" } = await req.json();
-    const lang = language as "fr" | "en";
+    const body = await req.json();
+    const { action, cvText, language = "fr" } = body;
 
-    // Return action verbs for suggestions tab
-    if (action === "suggestions") {
-      return NextResponse.json({ actionVerbs: ACTION_VERBS[lang] || ACTION_VERBS.fr });
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      include: { profile: true, skills: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Analyze CV
-    if (action === "analyze") {
-      if (!cvText) {
-        return NextResponse.json({ error: "CV text required" }, { status: 400 });
-      }
+    const userName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || "";
+    const userSkills = user.skills.map(s => s.name);
+    const education = user.profile?.educationLevel
+      ? `${user.profile.educationLevel}${user.profile.schoolName ? ` - ${user.profile.schoolName}` : ""}`
+      : "";
 
-      const wordCount = cvText.split(/\s+/).length;
-      const hasQuantifiedResults = /\d+%|\d+ (euros?|€|\$|clients?|projets?|projects?|revenue|increase)/i.test(cvText);
-      const verbs = ACTION_VERBS[lang] || ACTION_VERBS.fr;
-      const hasActionVerbs = Object.values(verbs).flat().some(v => cvText.toLowerCase().includes(v.toLowerCase()));
-
-      const strengths: string[] = [];
-      const weaknesses: string[] = [];
-      const suggestions: { category: string; original: string; improved: string; reason: string }[] = [];
-
-      let score = 50;
-
-      if (wordCount > 200) { score += 10; strengths.push(lang === "fr" ? "CV détaillé" : "Detailed CV"); }
-      else { weaknesses.push(lang === "fr" ? "CV trop court" : "CV too short"); }
-
-      if (hasQuantifiedResults) { score += 15; strengths.push(lang === "fr" ? "Résultats quantifiés" : "Quantified results"); }
-      else {
-        score -= 5;
-        weaknesses.push(lang === "fr" ? "Manque de résultats chiffrés" : "Missing quantified results");
-        suggestions.push({
-          category: "Impact",
-          original: lang === "fr" ? "J'ai géré des projets" : "I managed projects",
-          improved: lang === "fr" ? "Piloté 5 projets générant +30% de revenus" : "Led 5 projects generating +30% revenue",
-          reason: lang === "fr" ? "Ajoutez des chiffres concrets" : "Add concrete numbers"
-        });
-      }
-
-      if (hasActionVerbs) { score += 10; strengths.push(lang === "fr" ? "Verbes d'action utilisés" : "Action verbs used"); }
-      else {
-        weaknesses.push(lang === "fr" ? "Manque de verbes d'action" : "Missing action verbs");
-        suggestions.push({
-          category: lang === "fr" ? "Vocabulaire" : "Vocabulary",
-          original: lang === "fr" ? "Responsable de l'équipe" : "Responsible for team",
-          improved: lang === "fr" ? "Dirigé une équipe de 8 personnes" : "Led a team of 8",
-          reason: lang === "fr" ? "Utilisez des verbes d'action" : "Use action verbs"
-        });
-      }
-
-      if (cvText.includes("@") || cvText.includes("linkedin")) {
-        score += 5;
-        strengths.push(lang === "fr" ? "Coordonnées présentes" : "Contact info present");
-      }
-
-      if (/master|bachelor|degree|diploma|university|école|ingénieur|licence/i.test(cvText)) {
-        score += 5;
-        strengths.push(lang === "fr" ? "Formation mentionnée" : "Education mentioned");
-      }
-
-      if (/skills?|compétences?|technical|technique/i.test(cvText)) {
-        score += 5;
-        strengths.push(lang === "fr" ? "Section compétences" : "Skills section");
-      }
-
-      score = Math.min(100, Math.max(0, score));
-
-      return NextResponse.json({ analysis: { score, strengths, weaknesses, suggestions } });
-    }
-
-    // Improve CV
-    if (action === "improve") {
-      if (!cvText) {
-        return NextResponse.json({ error: "CV text required" }, { status: 400 });
-      }
-
-      let improved = cvText;
-
-      const replacements = lang === "fr" ? [
-        { from: /responsable de/gi, to: "Dirigé" },
-        { from: /en charge de/gi, to: "Piloté" },
-        { from: /j'ai fait/gi, to: "Réalisé" },
-        { from: /j'ai travaillé sur/gi, to: "Développé" },
-        { from: /aidé à/gi, to: "Contribué à" },
-        { from: /participé à/gi, to: "Collaboré sur" },
-      ] : [
-        { from: /responsible for/gi, to: "Led" },
-        { from: /in charge of/gi, to: "Managed" },
-        { from: /helped with/gi, to: "Contributed to" },
-        { from: /worked on/gi, to: "Developed" },
-        { from: /participated in/gi, to: "Collaborated on" },
-        { from: /was involved in/gi, to: "Spearheaded" },
-      ];
-
-      for (const { from, to } of replacements) {
-        improved = improved.replace(from, to);
-      }
-
-      const wordCount = improved.split(/\s+/).length;
-      const hasQuantifiedResults = /\d+%|\d+ /i.test(improved);
-      const verbs = ACTION_VERBS[lang] || ACTION_VERBS.fr;
-      const hasActionVerbs = Object.values(verbs).flat().some(v => improved.toLowerCase().includes(v.toLowerCase()));
-
-      let score = 60;
-      if (wordCount > 200) score += 10;
-      if (hasQuantifiedResults) score += 15;
-      if (hasActionVerbs) score += 15;
-      score = Math.min(100, score);
-
-      return NextResponse.json({
-        improvedCV: improved,
-        analysis: {
-          score,
-          strengths: [
-            lang === "fr" ? "Verbes d'action renforcés" : "Enhanced action verbs",
-            lang === "fr" ? "Formulation professionnelle" : "Professional wording"
-          ],
-          weaknesses: [],
-          suggestions: []
+    switch (action) {
+      case "analyze": {
+        if (!cvText) {
+          return NextResponse.json({ error: "CV text required" }, { status: 400 });
         }
-      });
-    }
-
-    // Generate CV from profile
-    if (action === "generate") {
-      const user = await prisma.user.findUnique({
-        where: { id: session.id },
-        include: {
-          profile: true,
-          skills: true,
-        },
-      });
-
-      if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
+        
+        // Try AI-powered analysis first, fallback to rule-based if it fails
+        try {
+          const aiAnalysis = await analyzeCVWithAI(cvText);
+          return NextResponse.json({ success: true, analysis: aiAnalysis, method: 'ai' });
+        } catch (aiError) {
+          console.log('AI analysis failed, using rule-based analysis:', aiError);
+          const analysis = analyzeCV(cvText, language);
+          return NextResponse.json({ success: true, analysis, method: 'rules' });
+        }
       }
 
-      const profile = user.profile;
-      const skills = user.skills.map(s => s.name);
-      const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Your Name";
+      case "improve": {
+        if (!cvText) {
+          return NextResponse.json({ error: "CV text required" }, { status: 400 });
+        }
+        const lang = language as "fr" | "en";
 
-      const generatedCV = lang === "fr"
-        ? `${fullName.toUpperCase()}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // Use AI to improve the CV while keeping the same structure
+        try {
+          const improvedCV = await improveWithAI(cvText, lang);
+          const analysisResult = analyzeCV(improvedCV, lang);
+          // Boost score for AI-improved CV
+          analysisResult.score = Math.min(100, analysisResult.score + 15);
 
-${user.email}${profile?.phone ? ` | ${profile.phone}` : ""}
-${profile?.linkedinUrl ? `LinkedIn: ${profile.linkedinUrl}` : ""}
+          return NextResponse.json({
+            success: true,
+            improvedCV,
+            analysis: analysisResult,
+            method: 'ai',
+            actionVerbs: HARVARD_ACTION_VERBS[lang],
+          });
+        } catch (aiError) {
+          console.log('AI improvement failed, using rule-based improvement:', aiError);
+          const improvedCV = improveCVContent(cvText, lang);
+          const analysisResult = analyzeCV(improvedCV, lang);
+          return NextResponse.json({
+            success: true,
+            improvedCV,
+            analysis: analysisResult,
+            method: 'rules',
+            actionVerbs: HARVARD_ACTION_VERBS[lang],
+          });
+        }
+      }
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FORMATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      case "generate": {
+        const lang = language as "fr" | "en";
+        const generatedCV = generateHarvardCV({
+          name: userName,
+          email: user.email,
+          phone: user.profile?.phone || undefined,
+          education,
+          skills: userSkills,
+        }, lang);
+        return NextResponse.json({ success: true, generatedCV });
+      }
 
-${profile?.schoolName || "[Nom de l'école]"}
-${profile?.educationLevel || "[Niveau d'études]"} | ${profile?.specialty || "[Spécialité]"}
+      case "suggestions": {
+        const lang = language as "fr" | "en";
+        return NextResponse.json({
+          success: true,
+          actionVerbs: HARVARD_ACTION_VERBS[lang],
+          phrases: HARVARD_PHRASES[lang],
+        });
+      }
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EXPÉRIENCE PROFESSIONNELLE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[Titre du poste] | [Entreprise] | [Dates]
-• Dirigé [description avec résultats quantifiés]
-• Développé [description avec impact mesurable]
-• Optimisé [description avec pourcentages]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-COMPÉTENCES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-${skills.length > 0 ? skills.join(" | ") : "[Ajoutez vos compétences]"}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-LANGUES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-${profile?.languages || "Français (Natif) | Anglais (Courant)"}`
-        : `${fullName.toUpperCase()}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-${user.email}${profile?.phone ? ` | ${profile.phone}` : ""}
-${profile?.linkedinUrl ? `LinkedIn: ${profile.linkedinUrl}` : ""}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EDUCATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-${profile?.schoolName || "[University Name]"}
-${profile?.educationLevel || "[Degree Level]"} | ${profile?.specialty || "[Major]"}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROFESSIONAL EXPERIENCE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[Position Title] | [Company] | [Dates]
-• Led [description with quantified results]
-• Developed [description with measurable impact]
-• Optimized [description with percentages]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SKILLS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-${skills.length > 0 ? skills.join(" | ") : "[Add your skills]"}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-LANGUAGES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-${profile?.languages || "English (Native) | French (Fluent)"}`;
-
-      return NextResponse.json({ generatedCV });
+      default:
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
     console.error("CV improve error:", error);
-    return NextResponse.json({ error: "Failed to process" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to process CV" }, { status: 500 });
   }
 }
