@@ -49,6 +49,8 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "https://quizzical-fermat-95qshfbym2-crypto-finexia.vercel.app",
+    "https://quizzical-fermat-8lgrj5laz-crypto-finexia.vercel.app",
+    /^https:\/\/quizzical-fermat.*\.vercel\.app$/,
     process.env.NEXT_PUBLIC_APP_URL || "",
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
   ].filter(Boolean),
