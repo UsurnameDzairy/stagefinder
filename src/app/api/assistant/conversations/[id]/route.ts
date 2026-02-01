@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -12,9 +12,11 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const conversation = await prisma.aIConversation.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.id,
       },
       include: {
@@ -37,7 +39,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -45,15 +47,16 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const { title, summary, newMessage } = await req.json();
 
-    const updateData: any = {};
+    const updateData: Record<string, string> = {};
     if (title) updateData.title = title;
     if (summary) updateData.summary = summary;
 
     const conversation = await prisma.aIConversation.update({
       where: {
-        id: params.id,
+        id,
       },
       data: updateData,
       include: {
@@ -66,7 +69,7 @@ export async function PATCH(
     if (newMessage) {
       await prisma.aIMessage.create({
         data: {
-          conversationId: params.id,
+          conversationId: id,
           role: newMessage.role,
           content: newMessage.content,
           model: newMessage.model,
@@ -84,7 +87,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -92,9 +95,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     await prisma.aIConversation.delete({
       where: {
-        id: params.id,
+        id,
       },
     });
 
