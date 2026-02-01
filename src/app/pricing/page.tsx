@@ -9,6 +9,7 @@ import { useTranslation } from "@/lib/i18n/LanguageContext";
 import Navbar from "@/components/ui/navbar";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { STRIPE_PRICES } from "@/lib/stripe-config";
 
 interface PricingPlan {
   key: "free" | "student" | "pro";
@@ -34,8 +35,8 @@ const plansData: PricingPlan[] = [
     yearlyPrice: "2,99",
     href: "#",
     isPopular: false,
-    stripePriceId: "price_student_monthly", // TODO: Update with new Stripe price ID
-    stripeYearlyPriceId: "price_student_yearly", // TODO: Update with new Stripe price ID
+    stripePriceId: STRIPE_PRICES.student.monthly,
+    stripeYearlyPriceId: STRIPE_PRICES.student.yearly,
   },
   {
     key: "pro",
@@ -43,8 +44,8 @@ const plansData: PricingPlan[] = [
     yearlyPrice: "7,99",
     href: "#",
     isPopular: true,
-    stripePriceId: "price_pro_monthly", // TODO: Update with new Stripe price ID
-    stripeYearlyPriceId: "price_pro_yearly", // TODO: Update with new Stripe price ID
+    stripePriceId: STRIPE_PRICES.pro.monthly,
+    stripeYearlyPriceId: STRIPE_PRICES.pro.yearly,
   },
 ];
 
