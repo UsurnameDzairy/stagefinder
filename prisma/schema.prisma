@@ -439,3 +439,36 @@ model UsageTracking {
   @@unique([userId, type, periodStart])
   @@index([userId, type, periodEnd])
 }
+
+// Promo codes for discounts and VIP access
+model PromoCode {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  type            PromoType // STUDENT_DISCOUNT or VIP_UNLIMITED
+  discountPercent Int?      // For STUDENT_DISCOUNT: 50
+  description     String?
+  maxUses         Int?      // null = unlimited
+  usedCount       Int       @default(0)
+  validFrom       DateTime  @default(now())
+  validUntil      DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  redemptions     PromoRedemption[]
+}
+
+// Track promo code redemptions
+model PromoRedemption {
+  id          String    @id @default(cuid())
+  promoCodeId String
+  userId      String
+  appliedAt   DateTime  @default(now())
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+
+  @@unique([promoCodeId, userId])
+}
+
+enum PromoType {
+  STUDENT_DISCOUNT  // -50% first month for .edu emails
+  VIP_UNLIMITED     // Free Pro unlimited for collaborators/family
+}

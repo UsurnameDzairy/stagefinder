@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { Logo } from "./logo";
 import Link from "next/link";
-import { LogOut, Settings, User as UserIcon, Menu, X, Briefcase, Rocket, Code, TrendingUp, Award, Lightbulb, Crown } from "lucide-react";
+import { LogOut, Settings, User as UserIcon, Menu, X, Briefcase, Rocket, Code, TrendingUp, Award, Lightbulb, Crown, Shield, Ticket } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useTranslation, useLanguage } from "@/lib/i18n";
@@ -45,6 +45,7 @@ interface NavbarProps {
     firstName?: string | null;
     lastName?: string | null;
     image?: string | null;
+    role?: string | null;
   } | null;
 }
 
@@ -249,6 +250,14 @@ export default function Navbar({ user }: NavbarProps) {
                   <div className="px-3 py-2 mb-1">
                     <span className="text-[11px] text-zinc-400 font-medium">{user.email}</span>
                   </div>
+
+                  {/* Admin - Only for admins */}
+                  {user.role === "admin" && (
+                    <Link href="/admin/promo" className="flex items-center gap-3 px-3 py-2.5 text-[12px] font-medium text-amber-400 hover:text-amber-300 hover:bg-amber-500/5 rounded-lg transition-all">
+                      <Shield className="size-4 text-amber-500" />
+                      Admin Panel
+                    </Link>
+                  )}
 
                   {/* Settings */}
                   <Link href="/parametres" className="flex items-center gap-3 px-3 py-2.5 text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all">

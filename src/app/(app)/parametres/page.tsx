@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, Plus, Save, Trash2, Bell, BellRing, ToggleLeft, ToggleRight, Zap, Settings, User, Check, Briefcase, Rocket, Star, Flame, Brain, Target, Gem, Code, TrendingUp, Award, Lightbulb, Crown } from "lucide-react";
+import { Upload, X, Plus, Save, Trash2, Bell, BellRing, ToggleLeft, ToggleRight, Zap, Settings, User, Check, Briefcase, Rocket, Star, Flame, Brain, Target, Gem, Code, TrendingUp, Award, Lightbulb, Crown, Ticket, Gift } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/ui/loader";
@@ -60,7 +60,12 @@ export default function ParametresPage() {
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  
+
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoMessage, setPromoMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   // Alerts state
   const [alerts, setAlerts] = useState<JobAlert[]>([]);
   const [showAlertForm, setShowAlertForm] = useState(false);
@@ -294,6 +299,35 @@ export default function ParametresPage() {
   const handleDeleteAccount = () => {
     if (confirm(t("settings.account.delete.confirm"))) {
       alert("Account deletion feature to be implemented");
+    }
+  };
+
+  const handleApplyPromoCode = async () => {
+    if (!promoCode.trim()) return;
+
+    setPromoLoading(true);
+    setPromoMessage(null);
+
+    try {
+      const response = await fetch("/api/promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPromoMessage({ type: "success", text: data.message });
+        setPromoCode("");
+      } else {
+        setPromoMessage({ type: "error", text: data.error });
+      }
+    } catch (error) {
+      console.error("Promo code error:", error);
+      setPromoMessage({ type: "error", text: "Failed to apply promo code" });
+    } finally {
+      setPromoLoading(false);
     }
   };
 
@@ -685,6 +719,75 @@ export default function ParametresPage() {
                 {t("settings.alerts.addNew")}
               </Button>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Promo Code Section */}
+        <Card className="bg-black border-zinc-900 shadow-none overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+            <Gift className="h-32 w-32 text-white" />
+          </div>
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
+              <Ticket className="h-4 w-4 text-zinc-400" />
+              Code Promo
+            </CardTitle>
+            <CardDescription className="text-[13px] text-zinc-600 font-medium">
+              Enter a promo code to unlock special offers
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 pt-4 space-y-4">
+            <div className="flex gap-3">
+              <Input
+                placeholder="Enter your promo code"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && handleApplyPromoCode()}
+                className="h-12 bg-zinc-950 border-zinc-900 focus:border-white transition-all text-sm font-mono uppercase tracking-widest"
+                disabled={promoLoading}
+              />
+              <Button
+                onClick={handleApplyPromoCode}
+                disabled={promoLoading || !promoCode.trim()}
+                className="h-12 px-8 bg-black hover:bg-zinc-900 text-white font-serif italic text-sm rounded-xl border border-zinc-800 shadow-lg transition-all hover:scale-105 active:scale-95"
+              >
+                {promoLoading ? <Loader size="sm" /> : "Apply"}
+              </Button>
+            </div>
+
+            {promoMessage && (
+              <div className={cn(
+                "p-4 rounded-xl text-[12px] font-medium border animate-in fade-in slide-in-from-top-2",
+                promoMessage.type === "success"
+                  ? "bg-emerald-950/50 border-emerald-800/50 text-emerald-300"
+                  : "bg-red-950/50 border-red-800/50 text-red-300"
+              )}>
+                {promoMessage.text}
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-zinc-900/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-zinc-950/50 border border-zinc-900 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">🎓</span>
+                    <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-widest">Student Discount</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 leading-relaxed">
+                    50% off your first month with a valid .edu email address
+                  </p>
+                </div>
+                <div className="p-4 bg-zinc-950/50 border border-zinc-900 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">👑</span>
+                    <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-widest">VIP Access</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 leading-relaxed">
+                    Exclusive codes for collaborators and partners
+                  </p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
