@@ -30,21 +30,21 @@ const plansData: PricingPlan[] = [
   },
   {
     key: "student",
-    price: "10,79",
-    yearlyPrice: "8,99",
+    price: "2,99",
+    yearlyPrice: "1,99",
     href: "#",
     isPopular: false,
-    stripePriceId: "price_1Su4dcEZ2umRtYhgsugvViKb",
-    stripeYearlyPriceId: "price_1Su4eQEZ2umRtYhgP0jQr3p6",
+    stripePriceId: "price_student_monthly", // TODO: Update with new Stripe price ID
+    stripeYearlyPriceId: "price_student_yearly", // TODO: Update with new Stripe price ID
   },
   {
     key: "pro",
-    price: "23,99",
-    yearlyPrice: "19,99",
+    price: "7,99",
+    yearlyPrice: "5,99",
     href: "#",
     isPopular: true,
-    stripePriceId: "price_1Su4b2EZ2umRtYhgqMjeLJXg",
-    stripeYearlyPriceId: "price_1Su4bmEZ2umRtYhgXp1UEBLq",
+    stripePriceId: "price_pro_monthly", // TODO: Update with new Stripe price ID
+    stripeYearlyPriceId: "price_pro_yearly", // TODO: Update with new Stripe price ID
   },
 ];
 
