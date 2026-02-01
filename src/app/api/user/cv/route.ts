@@ -1,70 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile } from "fs/promises";
-import { join } from "path";
 import { parseCV } from "@/lib/cv-parser";
 import { extractTextFromPdf } from "@/lib/pdf-parser";
-
-/**
- * Nettoyer le texte extrait d'un PDF des métadonnées et données brutes
- */
-function cleanPdfText(text: string): string {
-  if (!text) return "";
-  
-  // Supprimer les métadonnées PDF courantes
-  let cleaned = text
-    // Supprimer les références xref et objets PDF
-    .replace(/\d+\s+\d+\s+obj[\s\S]*?endobj/gi, '')
-    .replace(/xref[\s\S]*?%%EOF/gi, '')
-    .replace(/startxref[\s\S]*$/gi, '')
-    .replace(/trailer[\s\S]*$/gi, '')
-    .replace(/%%EOF/gi, '')
-    // Supprimer les streams binaires
-    .replace(/stream[\s\S]*?endstream/gi, '')
-    // Supprimer les références d'objets
-    .replace(/\d+\s+\d+\s+R/g, '')
-    .replace(/\d+\s+\d+\s+n/g, '')
-    .replace(/\d+\s+\d+\s+f/g, '')
-    // Supprimer les métadonnées XMP
-    .replace(/<\?xpacket[\s\S]*?\?>/gi, '')
-    .replace(/xmp[:\w]+/gi, '')
-    .replace(/pdf[:\w]+/gi, '')
-    .replace(/dc[:\w]+/gi, '')
-    // Supprimer les codes hexadécimaux
-    .replace(/[A-F0-9]{4,}/gi, ' ')
-    // Supprimer les lignes avec uniquement des chiffres
-    .replace(/^\s*[\d\s]+\s*$/gm, '')
-    // Supprimer les caractères de contrôle et binaires
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '')
-    // Supprimer les lignes vides multiples
-    .replace(/\n{3,}/g, '\n\n')
-    // Supprimer les espaces multiples
-    .replace(/[ \t]{2,}/g, ' ')
-    // Nettoyer les lignes
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => {
-      // Garder seulement les lignes avec du contenu significatif
-      if (line.length < 2) return false;
-      // Ignorer les lignes qui ressemblent à des métadonnées PDF
-      if (/^(obj|endobj|stream|endstream|xref|trailer|startxref)$/i.test(line)) return false;
-      if (/^\d+\s+\d+\s+(obj|R|n|f)$/i.test(line)) return false;
-      if (/^[<>\[\]{}\/]+$/.test(line)) return false;
-      // Ignorer les lignes avec trop de caractères spéciaux
-      const specialChars = (line.match(/[^a-zA-ZÀ-ÿ0-9\s.,;:!?@\-'()]/g) || []).length;
-      if (specialChars > line.length * 0.5) return false;
-      return true;
-    })
-    .join('\n');
-  
-  return cleaned.trim();
-}
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -102,16 +45,16 @@ export async function POST(req: NextRequest) {
     // Extraire le texte du CV
     let extractedText = "";
     let parsedData = null;
-    
+
     if (file.type === "application/pdf") {
       try {
         // Utiliser unpdf pour extraire le texte du PDF
         console.log("🔍 Extracting text from PDF using unpdf...");
         extractedText = await extractTextFromPdf(buffer);
-        
+
         console.log("PDF text extracted, length:", extractedText.length);
         console.log("PDF text preview:", extractedText.substring(0, 500));
-        
+
         // Parser le CV pour extraire les informations
         if (extractedText && extractedText.length > 50) {
           parsedData = parseCV(extractedText);
@@ -119,57 +62,41 @@ export async function POST(req: NextRequest) {
         }
       } catch (error) {
         console.error("PDF parsing error:", error);
+        return NextResponse.json(
+          { error: "Error reading PDF. Try a different file or copy/paste the text." },
+          { status: 400 }
+        );
       }
     } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
       try {
-        // Pour DOCX, extraire le texte via décompression ZIP
-        const AdmZip = require("adm-zip");
-        const zip = new AdmZip(buffer);
-        const documentXml = zip.readAsText("word/document.xml");
-        
-        // Extraire le texte des balises w:t
-        const matches = documentXml.match(/<w:t[^>]*>([^<]*)<\/w:t>/g);
-        if (matches) {
-          extractedText = matches
-            .map((m: string) => m.replace(/<[^>]+>/g, ""))
-            .join(" ");
-        }
-        
+        // Pour DOCX, utiliser mammoth
+        const mammoth = await import("mammoth");
+        const result = await mammoth.extractRawText({ buffer });
+        extractedText = result.value;
+
         console.log("DOCX text extracted, length:", extractedText.length);
-        
-        if (extractedText) {
+
+        if (extractedText && extractedText.length > 50) {
           parsedData = parseCV(extractedText);
           console.log("Parsed DOCX data:", JSON.stringify(parsedData, null, 2));
         }
       } catch (error) {
         console.error("DOCX parsing error:", error);
-        // Fallback basique
-        try {
-          const text = buffer.toString("utf-8");
-          const matches = text.match(/<w:t[^>]*>([^<]+)<\/w:t>/g);
-          if (matches) {
-            extractedText = matches.map((m) => m.replace(/<[^>]+>/g, "")).join(" ");
-            parsedData = parseCV(extractedText);
-          }
-        } catch (fallbackError) {
-          console.error("DOCX fallback error:", fallbackError);
-        }
+        return NextResponse.json(
+          { error: "Error reading DOCX. Try a different file or copy/paste the text." },
+          { status: 400 }
+        );
       }
     }
 
-    // Créer un nom de fichier unique
-    const timestamp = Date.now();
-    const fileName = `cv-${session.id}-${timestamp}.${file.name.split(".").pop()}`;
-    const uploadDir = join(process.cwd(), "public", "uploads", "cv");
-    
-    // Créer le dossier s'il n'existe pas
-    const { mkdir } = await import("fs/promises");
-    await mkdir(uploadDir, { recursive: true });
+    if (!extractedText || extractedText.length < 50) {
+      return NextResponse.json(
+        { error: "Could not extract text from file. The file may be empty or image-based." },
+        { status: 400 }
+      );
+    }
 
-    const filePath = join(uploadDir, fileName);
-    await writeFile(filePath, buffer);
-
-    // Sauvegarder dans la base de données
+    // Sauvegarder dans la base de données (sans le fichier physique)
     const resume = await prisma.resume.create({
       data: {
         userId: session.id,
@@ -198,19 +125,19 @@ export async function POST(req: NextRequest) {
     if (parsedData) {
       try {
         console.log("=== CV PARSING RESULTS ===");
-        console.log("Nom complet:", parsedData.fullName);
-        console.log("Prénom:", parsedData.firstName);
-        console.log("Nom:", parsedData.lastName);
+        console.log("Full name:", parsedData.fullName);
+        console.log("First name:", parsedData.firstName);
+        console.log("Last name:", parsedData.lastName);
         console.log("Email:", parsedData.email);
-        console.log("Téléphone:", parsedData.phone);
-        console.log("Compétences:", parsedData.skills.length, "trouvées");
-        console.log("Compétences par catégorie:", JSON.stringify(parsedData.skillsByCategory, null, 2));
-        console.log("Villes:", parsedData.cities);
-        console.log("Niveau d'études:", parsedData.educationLevel);
-        console.log("École:", parsedData.schoolName);
-        console.log("Expériences:", parsedData.experiences.length, "trouvées");
-        console.log("Langues:", parsedData.languages);
-        console.log("Domaines:", parsedData.domains);
+        console.log("Phone:", parsedData.phone);
+        console.log("Skills:", parsedData.skills.length, "found");
+        console.log("Skills by category:", JSON.stringify(parsedData.skillsByCategory, null, 2));
+        console.log("Cities:", parsedData.cities);
+        console.log("Education level:", parsedData.educationLevel);
+        console.log("School:", parsedData.schoolName);
+        console.log("Experiences:", parsedData.experiences.length, "found");
+        console.log("Languages:", parsedData.languages);
+        console.log("Domains:", parsedData.domains);
         console.log("=========================");
 
         // Mettre à jour le nom/prénom de l'utilisateur si trouvés
@@ -260,7 +187,7 @@ export async function POST(req: NextRequest) {
           // Collecter toutes les compétences uniques
           const allSkillsSet = new Set<string>();
           const skillsWithCategory: { name: string; category: string }[] = [];
-          
+
           // 1. Ajouter les compétences par catégorie (de la base de données)
           for (const [category, skills] of Object.entries(parsedData.skillsByCategory)) {
             for (const skill of skills) {
@@ -270,7 +197,7 @@ export async function POST(req: NextRequest) {
               }
             }
           }
-          
+
           // 2. Ajouter les compétences extraites directement du CV (texte exact)
           for (const skill of parsedData.skills) {
             if (!allSkillsSet.has(skill.toLowerCase()) && skill.length >= 2) {
@@ -278,8 +205,8 @@ export async function POST(req: NextRequest) {
               skillsWithCategory.push({ name: skill, category: "extracted" });
             }
           }
-          
-          console.log("Compétences à sauvegarder:", skillsWithCategory.map(s => s.name));
+
+          console.log("Skills to save:", skillsWithCategory.map(s => s.name));
 
           await prisma.userSkill.createMany({
             data: skillsWithCategory.map((skill) => ({
@@ -300,7 +227,6 @@ export async function POST(req: NextRequest) {
       success: true,
       resume,
       parsedData,
-      filePath: `/uploads/cv/${fileName}`,
     });
   } catch (error) {
     console.error("CV upload error:", error);
@@ -314,7 +240,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
