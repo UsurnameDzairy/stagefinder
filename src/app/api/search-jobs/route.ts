@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { scrapeAllJobSites } from "@/lib/scrapers/real-scraper";
+import { scrapeAllViaSerpAPI } from "@/lib/scrapers/serpapi-scraper";
 import { checkJobAlertsForUser } from "@/lib/notifications";
 import { canPerformAction, incrementUsage } from "@/lib/usage-limits";
 
@@ -131,17 +131,17 @@ async function runSearchJob(jobId: string) {
       }
     }, 1000);
     
-    // Utiliser le REAL SCRAPER avec Puppeteer/Chromium
-    console.log("🚀 REAL SCRAPER (Puppeteer/Chromium) - Scraping des vrais sites...");
-    
+    // Utiliser SerpAPI (compatible serverless/Vercel)
+    console.log("🚀 SERPAPI SCRAPER - Scraping via Google Jobs API...");
+
     try {
-      const realResults = await scrapeAllJobSites(
+      const realResults = await scrapeAllViaSerpAPI(
         job.query,
         job.location || "Paris"
       );
       
       clearInterval(progressInterval);
-      console.log(`✅ Real Scraper: ${realResults.length} vraies offres trouvées`);
+      console.log(`✅ SerpAPI Scraper: ${realResults.length} vraies offres trouvées`);
       
       // FILTRE PAR LOCALISATION - Plus flexible pour inclure les offres pertinentes
       const requestedLocation = (job.location || "").toLowerCase().trim();
@@ -308,7 +308,7 @@ async function runSearchJob(jobId: string) {
         publishedAt: jobOffer.postedDate,
       }));
     } catch (error) {
-      console.error("⚠️ Real Scraper error:", error);
+      console.error("⚠️ SerpAPI Scraper error:", error);
     }
     
     await prisma.searchJob.update({
