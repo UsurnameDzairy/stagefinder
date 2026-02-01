@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { callOpenRouter } from "@/lib/openrouter";
+import { callOpenRouter, analyzeCVWithAI } from "@/lib/openrouter";
 
 /**
  * Use AI to improve the CV while keeping the same structure and information
