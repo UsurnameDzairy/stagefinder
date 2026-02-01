@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, Plus, Save, Trash2, Bell, BellRing, ToggleLeft, ToggleRight, Zap, Settings, User, Check } from "lucide-react";
+import { Upload, X, Plus, Save, Trash2, Bell, BellRing, ToggleLeft, ToggleRight, Zap, Settings, User, Check, Briefcase, Rocket, Star, Flame, Brain, Target, Gem, Code, TrendingUp, Award, Lightbulb, Crown } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/ui/loader";
@@ -34,16 +34,16 @@ export default function ParametresPage() {
   const [selectedColor, setSelectedColor] = useState<string>("zinc");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-  // Predefined avatars (emoji-style)
+  // Predefined avatars (Lucide icons)
   const avatarOptions = [
-    { id: "default", icon: "user" },
-    { id: "briefcase", icon: "💼" },
-    { id: "rocket", icon: "🚀" },
-    { id: "star", icon: "⭐" },
-    { id: "fire", icon: "🔥" },
-    { id: "brain", icon: "🧠" },
-    { id: "target", icon: "🎯" },
-    { id: "diamond", icon: "💎" },
+    { id: "default", icon: User, label: "Default" },
+    { id: "briefcase", icon: Briefcase, label: "Business" },
+    { id: "rocket", icon: Rocket, label: "Startup" },
+    { id: "code", icon: Code, label: "Developer" },
+    { id: "trending", icon: TrendingUp, label: "Growth" },
+    { id: "award", icon: Award, label: "Achievement" },
+    { id: "lightbulb", icon: Lightbulb, label: "Creative" },
+    { id: "crown", icon: Crown, label: "Leader" },
   ];
 
   // Predefined colors
@@ -343,14 +343,14 @@ export default function ParametresPage() {
             <div className="flex flex-col sm:flex-row items-start gap-6 p-5 bg-zinc-950 border border-zinc-900 rounded-2xl">
               {/* Avatar Preview */}
               <div className={cn(
-                "h-24 w-24 rounded-full flex items-center justify-center text-3xl shrink-0 transition-all duration-300",
+                "h-24 w-24 rounded-full flex items-center justify-center shrink-0 transition-all duration-300",
                 colorOptions.find(c => c.id === selectedColor)?.color || "bg-zinc-800"
               )}>
-                {selectedAvatar && selectedAvatar !== "default" ? (
-                  <span>{avatarOptions.find(a => a.id === selectedAvatar)?.icon}</span>
-                ) : (
-                  <User className="h-10 w-10 text-white/80" />
-                )}
+                {(() => {
+                  const avatarOption = avatarOptions.find(a => a.id === (selectedAvatar || "default"));
+                  const IconComponent = avatarOption?.icon || User;
+                  return <IconComponent className="h-10 w-10 text-white/90" />;
+                })()}
               </div>
 
               <div className="flex-1 space-y-5 w-full">
@@ -382,24 +382,27 @@ export default function ParametresPage() {
                 <div className="space-y-3">
                   <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Avatar Style</label>
                   <div className="flex flex-wrap gap-2">
-                    {avatarOptions.map((avatar) => (
-                      <button
-                        key={avatar.id}
-                        onClick={() => setSelectedAvatar(avatar.id)}
-                        className={cn(
-                          "h-10 w-10 rounded-xl bg-zinc-900 border transition-all duration-200 flex items-center justify-center text-lg",
-                          selectedAvatar === avatar.id
-                            ? "border-white bg-zinc-800 scale-110"
-                            : "border-zinc-800 hover:border-zinc-600 hover:scale-105"
-                        )}
-                      >
-                        {avatar.icon === "user" ? (
-                          <User className="h-5 w-5 text-zinc-400" />
-                        ) : (
-                          <span>{avatar.icon}</span>
-                        )}
-                      </button>
-                    ))}
+                    {avatarOptions.map((avatar) => {
+                      const IconComponent = avatar.icon;
+                      return (
+                        <button
+                          key={avatar.id}
+                          onClick={() => setSelectedAvatar(avatar.id)}
+                          className={cn(
+                            "h-10 w-10 rounded-xl bg-zinc-900 border transition-all duration-200 flex items-center justify-center",
+                            (selectedAvatar || "default") === avatar.id
+                              ? "border-white bg-zinc-800 scale-110"
+                              : "border-zinc-800 hover:border-zinc-600 hover:scale-105"
+                          )}
+                          title={avatar.label}
+                        >
+                          <IconComponent className={cn(
+                            "h-5 w-5",
+                            (selectedAvatar || "default") === avatar.id ? "text-white" : "text-zinc-400"
+                          )} />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
