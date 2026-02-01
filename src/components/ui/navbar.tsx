@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { Logo } from "./logo";
 import Link from "next/link";
-import { LogOut, Settings, User as UserIcon, Menu, X } from "lucide-react";
+import { LogOut, Settings, User as UserIcon, Menu, X, Briefcase, Rocket, Code, TrendingUp, Award, Lightbulb, Crown } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useTranslation, useLanguage } from "@/lib/i18n";
@@ -47,6 +47,48 @@ interface NavbarProps {
     image?: string | null;
   } | null;
 }
+
+// Avatar icon mapping
+const avatarIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  default: UserIcon,
+  briefcase: Briefcase,
+  rocket: Rocket,
+  code: Code,
+  trending: TrendingUp,
+  award: Award,
+  lightbulb: Lightbulb,
+  crown: Crown,
+};
+
+// Color mapping
+const avatarColors: Record<string, string> = {
+  zinc: "bg-zinc-800",
+  blue: "bg-blue-600",
+  purple: "bg-purple-600",
+  green: "bg-emerald-600",
+  orange: "bg-orange-600",
+  pink: "bg-pink-600",
+  cyan: "bg-cyan-600",
+  red: "bg-red-600",
+};
+
+// Parse avatar data (format: "color:icon")
+const parseAvatarData = (imageData: string | null | undefined) => {
+  if (!imageData) return { color: "zinc", icon: "default" };
+
+  // Check if it's the new format (color:icon)
+  if (imageData.includes(":")) {
+    const [color, icon] = imageData.split(":");
+    return { color: color || "zinc", icon: icon || "default" };
+  }
+
+  // Old format (URL) - return default
+  if (imageData.startsWith("http")) {
+    return { color: "zinc", icon: "default", isUrl: true, url: imageData };
+  }
+
+  return { color: "zinc", icon: "default" };
+};
 
 const getLandingNavigationLinks = (t: (key: string) => string): NavLink[] => [
   { href: "/", label: t("nav.home") },
@@ -182,13 +224,23 @@ export default function Navbar({ user }: NavbarProps) {
                     </span>
                     <span className="text-[9px] text-zinc-500 uppercase tracking-[0.2em] group-hover:text-zinc-400 transition-colors font-medium leading-none">{t("nav.account")}</span>
                   </div>
-                  <div className="size-9 rounded-full border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden transition-all group-hover:border-white/20 shadow-lg group-hover:scale-105">
-                    {user.image ? (
-                      <img src={user.image} alt="Profile" className="size-full object-cover" />
-                    ) : (
-                      <UserIcon className="size-4 text-zinc-500 group-hover:text-zinc-300" />
-                    )}
-                  </div>
+                  {(() => {
+                    const avatarData = parseAvatarData(user.image);
+                    if (avatarData.isUrl && avatarData.url) {
+                      return (
+                        <div className="size-9 rounded-full border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden transition-all group-hover:border-white/20 shadow-lg group-hover:scale-105">
+                          <img src={avatarData.url} alt="Profile" className="size-full object-cover" />
+                        </div>
+                      );
+                    }
+                    const IconComponent = avatarIcons[avatarData.icon] || UserIcon;
+                    const bgColor = avatarColors[avatarData.color] || "bg-zinc-800";
+                    return (
+                      <div className={cn("size-9 rounded-full border border-white/10 flex items-center justify-center overflow-hidden transition-all group-hover:border-white/20 shadow-lg group-hover:scale-105", bgColor)}>
+                        <IconComponent className="size-4 text-white/90" />
+                      </div>
+                    );
+                  })()}
                 </button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-64 p-3 bg-zinc-950/95 border border-zinc-800/50 backdrop-blur-3xl mt-4 rounded-2xl shadow-3xl">
@@ -276,9 +328,23 @@ export default function Navbar({ user }: NavbarProps) {
                   {/* Plan info */}
                   <div className="flex items-center justify-between px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <div className="size-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-bold text-black">
-                        {user.firstName ? user.firstName[0].toUpperCase() : user.email[0].toUpperCase()}
-                      </div>
+                      {(() => {
+                        const avatarData = parseAvatarData(user.image);
+                        if (avatarData.isUrl && avatarData.url) {
+                          return (
+                            <div className="size-6 rounded-full overflow-hidden">
+                              <img src={avatarData.url} alt="Profile" className="size-full object-cover" />
+                            </div>
+                          );
+                        }
+                        const IconComponent = avatarIcons[avatarData.icon] || UserIcon;
+                        const bgColor = avatarColors[avatarData.color] || "bg-zinc-800";
+                        return (
+                          <div className={cn("size-6 rounded-full flex items-center justify-center", bgColor)}>
+                            <IconComponent className="size-3 text-white/90" />
+                          </div>
+                        );
+                      })()}
                       <span className="text-[11px] font-medium text-white">{user.firstName || user.email.split('@')[0]}</span>
                     </div>
                     <span className="text-[10px] text-zinc-500 font-medium">Plan Free</span>
