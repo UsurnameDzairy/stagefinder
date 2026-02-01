@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import Navbar from "@/components/ui/navbar";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { STRIPE_PRICES } from "@/lib/stripe-config";
+import { CheckCircle } from "lucide-react";
 
 interface PricingPlan {
   key: "free" | "student" | "pro";
@@ -55,6 +56,29 @@ export default function PricingPage() {
   const router = useRouter();
   const [isMonthly, setIsMonthly] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [userSubscription, setUserSubscription] = useState<{
+    plan: string;
+    status: string;
+    isAdmin: boolean;
+  } | null>(null);
+
+  // Récupérer l'abonnement de l'utilisateur
+  useEffect(() => {
+    if (session?.user) {
+      fetch("/api/subscription/usage")
+        .then(res => res.json())
+        .then(data => {
+          if (data.subscription) {
+            setUserSubscription({
+              plan: data.subscription.plan?.toLowerCase() || "free",
+              status: data.subscription.status || "ACTIVE",
+              isAdmin: data.isAdmin || false,
+            });
+          }
+        })
+        .catch(console.error);
+    }
+  }, [session]);
 
   const handleToggle = (monthly: boolean) => {
     if (isMonthly === monthly) return;
@@ -230,22 +254,42 @@ export default function PricingPage() {
                       </li>
                     ))}
                   </ul>
-                  {plan.stripePriceId ? (
-                    <button
-                      onClick={() => handleCheckout(plan)}
-                      disabled={loadingPlan === plan.key}
-                      className="w-full py-3 rounded-full font-serif transition-all disabled:opacity-50 bg-zinc-700 text-white font-semibold hover:bg-zinc-600"
-                    >
-                      {loadingPlan === plan.key ? t("common.loading") : planData.button}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleFreePlan}
-                      className="w-full py-3 rounded-full font-serif transition-all bg-zinc-700 text-white font-semibold hover:bg-zinc-600"
-                    >
-                      {planData.button}
-                    </button>
-                  )}
+                  {/* Check if user already has this plan or is admin */}
+                  {(() => {
+                    const isCurrentPlan = userSubscription?.plan === plan.key;
+                    const isAdminWithAccess = userSubscription?.isAdmin && (plan.key === "pro" || plan.key === "student");
+                    const hasActivePlan = isCurrentPlan || isAdminWithAccess;
+
+                    if (hasActivePlan && plan.key !== "free") {
+                      return (
+                        <div className="w-full py-3 rounded-full font-serif bg-green-900/50 border border-green-700 text-green-400 font-semibold flex items-center justify-center gap-2">
+                          <CheckCircle className="w-5 h-5" />
+                          {userSubscription?.isAdmin ? t("pricing.adminAccess") || "Admin Access" : t("pricing.currentPlan") || "Current Plan"}
+                        </div>
+                      );
+                    }
+
+                    if (plan.stripePriceId) {
+                      return (
+                        <button
+                          onClick={() => handleCheckout(plan)}
+                          disabled={loadingPlan === plan.key}
+                          className="w-full py-3 rounded-full font-serif transition-all disabled:opacity-50 bg-zinc-700 text-white font-semibold hover:bg-zinc-600"
+                        >
+                          {loadingPlan === plan.key ? t("common.loading") : planData.button}
+                        </button>
+                      );
+                    }
+
+                    return (
+                      <button
+                        onClick={handleFreePlan}
+                        className="w-full py-3 rounded-full font-serif transition-all bg-zinc-700 text-white font-semibold hover:bg-zinc-600"
+                      >
+                        {planData.button}
+                      </button>
+                    );
+                  })()}
                 </motion.div>
               );
             })}

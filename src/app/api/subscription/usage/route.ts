@@ -18,6 +18,11 @@ export async function GET(req: NextRequest) {
         aiRequestsRemaining: Infinity,
         jobSearchesRemaining: Infinity,
         isUnlimited: true,
+        isAdmin: true,
+        subscription: {
+          plan: "PRO",
+          status: "ACTIVE",
+        },
       });
     }
 
@@ -57,6 +62,11 @@ export async function GET(req: NextRequest) {
       aiRequestsRemaining: limits.ai === Infinity ? "Illimité" : limits.ai,
       jobSearchesRemaining: limits.searches,
       isUnlimited: limits.ai === Infinity,
+      isAdmin: false,
+      subscription: {
+        plan: subscription.plan,
+        status: subscription.status,
+      },
     });
   } catch (error) {
     console.error("Usage fetch error:", error);

@@ -679,6 +679,8 @@ export const translations = {
       billedMonthly: "Facturé mensuellement",
       billedAnnually: "Facturé annuellement",
       perMonth: "/ mois",
+      currentPlan: "Abonnement actif",
+      adminAccess: "Accès Admin",
       plans: {
         free: {
           name: "Gratuit",
@@ -1424,6 +1426,8 @@ export const translations = {
       billedMonthly: "Billed monthly",
       billedAnnually: "Billed annually",
       perMonth: "/ month",
+      currentPlan: "Current Plan",
+      adminAccess: "Admin Access",
       plans: {
         free: {
           name: "Free",
