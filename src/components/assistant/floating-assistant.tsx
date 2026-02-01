@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
 import { Bot, X, Send, Minimize2, Maximize2, RotateCcw, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage, useTranslation } from "@/lib/i18n";
 
 interface Message {
   role: "user" | "assistant";
@@ -32,12 +33,16 @@ export function FloatingAssistant() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const { language } = useLanguage();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (messages.length === 0 && isOpen) {
       const pageContext = PAGE_CONTEXTS[pathname] || "";
-      const greeting = `Hello! I'm your AI assistant.${pageContext ? `\n\n${pageContext}` : ""}\n\nHow can I help you?`;
-      
+      const greeting = language === "fr"
+        ? `Bonjour ! Je suis votre assistant IA.${pageContext ? `\n\n${pageContext}` : ""}\n\nComment puis-je vous aider ?`
+        : `Hello! I'm your AI assistant.${pageContext ? `\n\n${pageContext}` : ""}\n\nHow can I help you?`;
+
       setMessages([
         {
           role: "assistant",
@@ -45,7 +50,7 @@ export function FloatingAssistant() {
         },
       ]);
     }
-  }, [isOpen, pathname]);
+  }, [isOpen, pathname, language]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,8 +61,8 @@ export function FloatingAssistant() {
 
     const userMessage: Message = { role: "user", content: input };
     const pageContext = PAGE_CONTEXTS[pathname] || "";
-    const contextualInput = pageContext 
-      ? `[Contexte: ${pageContext}] ${input}`
+    const contextualInput = pageContext
+      ? `[Context: ${pageContext}] ${input}`
       : input;
 
     setMessages((prev) => [...prev, userMessage]);
@@ -70,6 +75,7 @@ export function FloatingAssistant() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [...messages, { role: "user", content: contextualInput }],
+          language: language,
         }),
       });
 
@@ -81,7 +87,7 @@ export function FloatingAssistant() {
         ...prev,
         {
           role: "assistant",
-          content: "Sorry, an error occurred. Please try again.",
+          content: t("common.error") || "Sorry, an error occurred. Please try again.",
         },
       ]);
     } finally {
@@ -92,8 +98,8 @@ export function FloatingAssistant() {
   const handleMorphSubmit = async (message: string) => {
     const userMessage: Message = { role: "user", content: message };
     const pageContext = PAGE_CONTEXTS[pathname] || "";
-    const contextualInput = pageContext 
-      ? `[Contexte: ${pageContext}] ${message}`
+    const contextualInput = pageContext
+      ? `[Context: ${pageContext}] ${message}`
       : message;
 
     setMessages((prev) => [...prev, userMessage]);
@@ -106,6 +112,7 @@ export function FloatingAssistant() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [...messages, { role: "user", content: contextualInput }],
+          language: language,
         }),
       });
 
@@ -117,7 +124,7 @@ export function FloatingAssistant() {
         ...prev,
         {
           role: "assistant",
-          content: "Sorry, an error occurred. Please try again.",
+          content: t("common.error") || "Sorry, an error occurred. Please try again.",
         },
       ]);
     } finally {
@@ -200,11 +207,13 @@ export function FloatingAssistant() {
               onClick={() => {
                 setMessages([]);
                 const pageContext = PAGE_CONTEXTS[pathname] || "";
-                const greeting = `Hello! I'm your AI assistant.${pageContext ? `\n\n${pageContext}` : ""}\n\nHow can I help you?`;
+                const greeting = language === "fr"
+                  ? `Bonjour ! Je suis votre assistant IA.${pageContext ? `\n\n${pageContext}` : ""}\n\nComment puis-je vous aider ?`
+                  : `Hello! I'm your AI assistant.${pageContext ? `\n\n${pageContext}` : ""}\n\nHow can I help you?`;
                 setMessages([{ role: "assistant", content: greeting }]);
               }}
               className="h-8 w-8 rounded-lg border border-zinc-900 bg-black text-zinc-600 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all"
-              title="Reset"
+              title={t("common.reset") || "Reset"}
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </button>

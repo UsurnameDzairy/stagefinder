@@ -46,6 +46,9 @@ interface NavbarProps {
     lastName?: string | null;
     image?: string | null;
     role?: string | null;
+    subscription?: {
+      plan: "FREE" | "STUDENT" | "PRO";
+    } | null;
   } | null;
 }
 
@@ -356,7 +359,14 @@ export default function Navbar({ user }: NavbarProps) {
                       })()}
                       <span className="text-[11px] font-medium text-white">{user.firstName || user.email.split('@')[0]}</span>
                     </div>
-                    <span className="text-[10px] text-zinc-500 font-medium">Plan Free</span>
+                    <span className={cn(
+                      "text-[10px] font-medium px-2 py-0.5 rounded-full",
+                      user.subscription?.plan === "PRO" ? "bg-amber-500/20 text-amber-400" :
+                      user.subscription?.plan === "STUDENT" ? "bg-blue-500/20 text-blue-400" :
+                      "text-zinc-500"
+                    )}>
+                      {user.subscription?.plan || "Free"}
+                    </span>
                   </div>
                 </div>
               </PopoverContent>

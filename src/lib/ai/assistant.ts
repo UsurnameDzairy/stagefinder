@@ -386,12 +386,12 @@ export async function generateAssistantResponse(
   const userMessage = lastMessage.content.toLowerCase();
   const originalMessage = lastMessage.content;
 
-  // Extraire le contexte de page si présent
-  const pageContextMatch = lastMessage.content.match(/\[Contexte: ([^\]]+)\]/);
+  // Extract page context if present (supports both French and English tags)
+  const pageContextMatch = lastMessage.content.match(/\[(?:Contexte|Context): ([^\]]+)\]/);
   const pageContext = pageContextMatch ? pageContextMatch[1] : "";
 
-  // Nettoyer le message du contexte pour l'analyse
-  const cleanMessage = originalMessage.replace(/\[Contexte: [^\]]+\]\s*/g, '').trim();
+  // Clean message of context for analysis
+  const cleanMessage = originalMessage.replace(/\[(?:Contexte|Context): [^\]]+\]\s*/g, '').trim();
 
   // Toutes les requêtes passent par GPT
   try {

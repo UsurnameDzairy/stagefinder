@@ -25,11 +25,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Récupérer le contexte utilisateur (ou contexte vide si CV fourni)
+    // Get user context (or empty context if CV provided)
     let context;
     if (ignoreStoredProfile) {
-      // Si un CV est fourni, utiliser un contexte vide pour que l'IA analyse le CV
-      console.log("[Assistant] CV fourni - ignorant le profil stocké");
+      // If a CV is provided, use empty context so AI analyzes the CV
+      console.log("[Assistant] CV provided - ignoring stored profile");
       context = {
         profile: null,
         skills: [],

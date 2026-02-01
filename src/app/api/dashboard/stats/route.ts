@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Color palette for skills
+const skillColors = [
+  "bg-white",
+  "bg-blue-500",
+  "bg-purple-500",
+  "bg-emerald-500",
+  "bg-amber-500",
+  "bg-pink-500",
+  "bg-cyan-500",
+  "bg-zinc-400",
+];
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
@@ -9,38 +21,89 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const [savedOffers, savedCompanies, applications, interviews, matchTrend, skillsCoverage, searchActivity, applicationStatus] = await Promise.all([
+    // Get user's skills from database
+    const userSkills = await prisma.userSkill.findMany({
+      where: { userId: session.id },
+    });
+
+    // Group skills by category and calculate coverage
+    const categoryMap: Record<string, string[]> = {};
+    for (const skill of userSkills) {
+      const category = skill.category || "other";
+      if (!categoryMap[category]) {
+        categoryMap[category] = [];
+      }
+      categoryMap[category].push(skill.name);
+    }
+
+    // Create skills coverage data
+    // For now, we'll show each category with a "coverage" based on number of skills
+    // In a real app, this would match against job requirements
+    const skillsCoverage = Object.entries(categoryMap)
+      .map(([category, skills], index) => {
+        // Calculate a pseudo-coverage based on number of skills in category
+        // More skills = higher coverage (max 100%)
+        const baseValue = Math.min(100, 50 + skills.length * 10);
+
+        // Format category name nicely
+        const categoryLabels: Record<string, string> = {
+          programming: "Programming",
+          data: "Data & Analytics",
+          finance: "Finance",
+          business: "Business & Strategy",
+          softSkills: "Soft Skills",
+          languages: "Languages",
+          extracted: "Other Skills",
+          other: "Other",
+        };
+
+        return {
+          label: categoryLabels[category] || category,
+          value: baseValue,
+          color: skillColors[index % skillColors.length],
+          skills: skills, // Include actual skills for tooltip/details
+        };
+      })
+      .sort((a, b) => b.value - a.value); // Sort by coverage descending
+
+    // Get application stats
+    const applications = await prisma.application.findMany({
+      where: { userId: session.id },
+      select: { status: true },
+    });
+
+    const totalApps = applications.length;
+    const appliedApps = applications.filter(a => a.status !== "NOT_APPLIED").length;
+    const interviewApps = applications.filter(a => a.status === "INTERVIEW" || a.status === "OFFER").length;
+    const rejectedApps = applications.filter(a => a.status === "REJECTED").length;
+    const pendingApps = applications.filter(a => a.status === "APPLIED" || a.status === "IN_PROGRESS").length;
+
+    // Calculate real percentages
+    const applicationStatus = totalApps > 0 ? {
+      pending: Math.round((pendingApps / totalApps) * 100),
+      interview: Math.round((interviewApps / totalApps) * 100),
+      rejected: Math.round((rejectedApps / totalApps) * 100),
+      responseRate: appliedApps > 0 ? Math.round(((interviewApps + rejectedApps) / appliedApps) * 100) : 0,
+    } : {
+      pending: 0,
+      interview: 0,
+      rejected: 0,
+      responseRate: 0,
+    };
+
+    const [savedOffers, savedCompanies] = await Promise.all([
       prisma.savedOffer.count({ where: { userId: session.id } }),
       prisma.savedCompany.count({ where: { userId: session.id } }),
-      prisma.application.count({ where: { userId: session.id, status: { not: "NOT_APPLIED" } } }),
-      prisma.application.count({ where: { userId: session.id, status: "INTERVIEW" } }),
-      // Mocked for now, but structured to be easily replaceable with real logic
-      Promise.resolve([65, 68, 72, 70, 75, 78, 82, 85, 80, 88, 92, 95]),
-      Promise.resolve([
-        { label: "Finance & Analyse", value: 85, color: "bg-white" },
-        { label: "Python & Data", value: 65, color: "bg-zinc-400" },
-        { label: "Communication", value: 92, color: "bg-zinc-200" },
-        { label: "Stratégie", value: 45, color: "bg-zinc-700" },
-      ]),
-      Promise.resolve([40, 70, 45, 90, 65, 80, 55, 95, 75, 60, 85, 100]),
-      Promise.resolve({
-        pending: 45,
-        interview: 25,
-        rejected: 30,
-        responseRate: 65
-      })
     ]);
 
     return NextResponse.json({
       stats: {
         savedOffers,
         savedCompanies,
-        applications,
-        interviews,
-        matchTrend,
-        skillsCoverage,
-        searchActivity,
-        applicationStatus,
+        applications: appliedApps,
+        interviews: interviewApps,
+        skillsCoverage: skillsCoverage.length > 0 ? skillsCoverage : null,
+        applicationStatus: totalApps > 0 ? applicationStatus : null,
       },
     });
   } catch (error) {
