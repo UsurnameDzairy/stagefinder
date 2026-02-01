@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, Plus, Save, Trash2, Bell, BellRing, ToggleLeft, ToggleRight, Zap, Settings } from "lucide-react";
+import { Upload, X, Plus, Save, Trash2, Bell, BellRing, ToggleLeft, ToggleRight, Zap, Settings, User, Check } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/ui/loader";
@@ -30,8 +30,33 @@ export default function ParametresPage() {
   const [contractTypes, setContractTypes] = useState<string[]>([]);
   const [domains, setDomains] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string>("zinc");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // Predefined avatars (emoji-style)
+  const avatarOptions = [
+    { id: "default", icon: "user" },
+    { id: "briefcase", icon: "💼" },
+    { id: "rocket", icon: "🚀" },
+    { id: "star", icon: "⭐" },
+    { id: "fire", icon: "🔥" },
+    { id: "brain", icon: "🧠" },
+    { id: "target", icon: "🎯" },
+    { id: "diamond", icon: "💎" },
+  ];
+
+  // Predefined colors
+  const colorOptions = [
+    { id: "zinc", color: "bg-zinc-800", border: "border-zinc-600" },
+    { id: "blue", color: "bg-blue-600", border: "border-blue-400" },
+    { id: "purple", color: "bg-purple-600", border: "border-purple-400" },
+    { id: "green", color: "bg-emerald-600", border: "border-emerald-400" },
+    { id: "orange", color: "bg-orange-600", border: "border-orange-400" },
+    { id: "pink", color: "bg-pink-600", border: "border-pink-400" },
+    { id: "cyan", color: "bg-cyan-600", border: "border-cyan-400" },
+    { id: "red", color: "bg-red-600", border: "border-red-400" },
+  ];
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -272,48 +297,24 @@ export default function ParametresPage() {
     }
   };
 
-  const handleAvatarUrlSubmit = async () => {
-    if (!avatarUrl.trim()) return;
-    
+  const handleAvatarSave = async () => {
     setUploadingAvatar(true);
     try {
+      const avatarData = `${selectedColor}:${selectedAvatar || "default"}`;
       const response = await fetch("/api/user/avatar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: avatarUrl }),
+        body: JSON.stringify({ avatarData }),
       });
 
       if (response.ok) {
         alert(t("settings.avatar.updateSuccess"));
-        setAvatarUrl("");
       } else {
         alert(t("settings.avatar.updateError"));
       }
     } catch (error) {
       console.error("Avatar update error:", error);
       alert(t("settings.avatar.updateError"));
-    } finally {
-      setUploadingAvatar(false);
-    }
-  };
-
-  const handleRemoveAvatar = async () => {
-    if (!confirm(t("settings.avatar.removeConfirm"))) return;
-
-    setUploadingAvatar(true);
-    try {
-      const response = await fetch("/api/user/avatar", {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        alert(t("settings.avatar.removeSuccess"));
-      } else {
-        alert(t("settings.avatar.removeError"));
-      }
-    } catch (error) {
-      console.error("Avatar delete error:", error);
-      alert(t("settings.avatar.removeError"));
     } finally {
       setUploadingAvatar(false);
     }
@@ -339,45 +340,77 @@ export default function ParametresPage() {
             <CardDescription className="text-[13px] text-zinc-600 font-medium">{t("settings.avatar.description")}</CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-4 space-y-6">
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-zinc-950 border border-zinc-900 rounded-2xl">
-              <div className="h-20 w-20 rounded-full border-2 border-zinc-800 bg-black flex items-center justify-center overflow-hidden">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar Preview" className="h-full w-full object-cover" />
+            <div className="flex flex-col sm:flex-row items-start gap-6 p-5 bg-zinc-950 border border-zinc-900 rounded-2xl">
+              {/* Avatar Preview */}
+              <div className={cn(
+                "h-24 w-24 rounded-full flex items-center justify-center text-3xl shrink-0 transition-all duration-300",
+                colorOptions.find(c => c.id === selectedColor)?.color || "bg-zinc-800"
+              )}>
+                {selectedAvatar && selectedAvatar !== "default" ? (
+                  <span>{avatarOptions.find(a => a.id === selectedAvatar)?.icon}</span>
                 ) : (
-                  <Upload className="h-8 w-8 text-zinc-800" />
+                  <User className="h-10 w-10 text-white/80" />
                 )}
               </div>
-              <div className="flex-1 space-y-4 w-full">
-                <div className="flex gap-2">
-                  <Input
-                    type="url"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder={t("settings.avatar.placeholder")}
-                    disabled={uploadingAvatar}
-                    className="h-10 bg-black border-zinc-900 focus:border-white transition-all text-sm"
-                  />
-                  <Button 
-                    onClick={handleAvatarUrlSubmit} 
-                    disabled={uploadingAvatar || !avatarUrl.trim()}
-                    className="bg-black hover:bg-zinc-900 text-white font-serif italic text-sm px-8 h-10 rounded-full border border-zinc-800 shadow-lg transition-all hover:scale-105 active:scale-95"
-                  >
-                    {uploadingAvatar ? <Loader size="sm" /> : t("settings.avatar.update")}
-                  </Button>
+
+              <div className="flex-1 space-y-5 w-full">
+                {/* Color Selection */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Background Color</label>
+                  <div className="flex flex-wrap gap-2">
+                    {colorOptions.map((color) => (
+                      <button
+                        key={color.id}
+                        onClick={() => setSelectedColor(color.id)}
+                        className={cn(
+                          "h-8 w-8 rounded-full transition-all duration-200 flex items-center justify-center",
+                          color.color,
+                          selectedColor === color.id
+                            ? `ring-2 ring-offset-2 ring-offset-zinc-950 ${color.border} scale-110`
+                            : "hover:scale-110 opacity-70 hover:opacity-100"
+                        )}
+                      >
+                        {selectedColor === color.id && (
+                          <Check className="h-4 w-4 text-white" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleRemoveAvatar}
-                    disabled={uploadingAvatar}
-                    className="h-8 px-4 rounded-full text-[10px] font-bold uppercase tracking-widest border-zinc-900 text-zinc-500 hover:text-red-400 transition-all"
-                  >
-                    <Trash2 className="h-3.5 w-3.5 mr-2" />
-                    {t("settings.avatar.remove")}
-                  </Button>
-                  <span className="text-[10px] font-medium text-zinc-700 self-center uppercase tracking-wider">{t("settings.avatar.recommended")}</span>
+
+                {/* Avatar Icon Selection */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Avatar Style</label>
+                  <div className="flex flex-wrap gap-2">
+                    {avatarOptions.map((avatar) => (
+                      <button
+                        key={avatar.id}
+                        onClick={() => setSelectedAvatar(avatar.id)}
+                        className={cn(
+                          "h-10 w-10 rounded-xl bg-zinc-900 border transition-all duration-200 flex items-center justify-center text-lg",
+                          selectedAvatar === avatar.id
+                            ? "border-white bg-zinc-800 scale-110"
+                            : "border-zinc-800 hover:border-zinc-600 hover:scale-105"
+                        )}
+                      >
+                        {avatar.icon === "user" ? (
+                          <User className="h-5 w-5 text-zinc-400" />
+                        ) : (
+                          <span>{avatar.icon}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Save Button */}
+                <Button
+                  onClick={handleAvatarSave}
+                  disabled={uploadingAvatar}
+                  className="bg-black hover:bg-zinc-900 text-white font-serif italic text-sm px-8 h-10 rounded-full border border-zinc-800 shadow-lg transition-all hover:scale-105 active:scale-95"
+                >
+                  {uploadingAvatar ? <Loader size="sm" /> : t("settings.avatar.update")}
+                </Button>
               </div>
             </div>
           </CardContent>

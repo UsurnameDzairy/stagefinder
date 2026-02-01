@@ -5,25 +5,28 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { imageUrl } = body;
+    const { imageUrl, avatarData } = body;
 
-    if (!imageUrl || typeof imageUrl !== "string") {
+    // Support both old URL format and new avatarData format
+    const avatarValue = avatarData || imageUrl;
+
+    if (!avatarValue || typeof avatarValue !== "string") {
       return NextResponse.json(
-        { error: "Image URL is required" },
+        { error: "Avatar data is required" },
         { status: 400 }
       );
     }
 
-    // Mettre à jour l'avatar de l'utilisateur
+    // Update user avatar
     const updatedUser = await prisma.user.update({
       where: { id: session.id },
-      data: { image: imageUrl },
+      data: { image: avatarValue },
       select: {
         id: true,
         email: true,
