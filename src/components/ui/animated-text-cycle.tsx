@@ -39,7 +39,7 @@ export default function AnimatedTextCycle({
 
   // Container animation for the whole word
   const containerVariants = {
-    hidden: { 
+    hidden: {
       y: -20,
       opacity: 0,
       filter: "blur(8px)"
@@ -50,16 +50,16 @@ export default function AnimatedTextCycle({
       filter: "blur(0px)",
       transition: {
         duration: 0.4,
-        ease: "easeOut"
+        ease: [0, 0, 0.2, 1] as const
       }
     },
-    exit: { 
+    exit: {
       y: 20,
       opacity: 0,
       filter: "blur(8px)",
-      transition: { 
-        duration: 0.3, 
-        ease: "easeIn"
+      transition: {
+        duration: 0.3,
+        ease: [0.4, 0, 1, 1] as const
       }
     },
   };
