@@ -1,13 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { PlanType, hasReachedAILimit, hasReachedJobSearchLimit, hasFeatureAccess } from "./subscription-limits";
+import { PlanType } from "./subscription-limits";
 
 export interface SubscriptionCheck {
   allowed: boolean;
   plan: PlanType;
   remaining?: number;
   message?: string;
+}
+
+// Plan limits
+const PLAN_LIMITS = {
+  FREE: { ai: 10, searches: 1 },
+  STUDENT: { ai: 100, searches: 10 },
+  PRO: { ai: Infinity, searches: Infinity },
+};
+
+/**
+ * Get or create usage tracking for a user
+ */
+async function getOrCreateUsage(userId: string, type: "ai" | "search") {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+  let usage = await prisma.usageTracking.findFirst({
+    where: {
+      userId,
+      type,
+      periodStart: startOfDay,
+    },
+  });
+
+  if (!usage) {
+    usage = await prisma.usageTracking.create({
+      data: {
+        userId,
+        type,
+        periodStart: startOfDay,
+        periodEnd: endOfDay,
+        count: 0,
+      },
+    });
+  }
+
+  return usage;
 }
 
 /**
@@ -20,60 +58,46 @@ export async function checkAIRequestLimit(userId: string): Promise<SubscriptionC
 
   if (!subscription) {
     // Create default FREE subscription if none exists
-    const newSubscription = await prisma.subscription.create({
+    await prisma.subscription.create({
       data: {
         userId,
         plan: "FREE",
         status: "ACTIVE",
       },
     });
-    
+
     return {
       allowed: true,
       plan: "FREE" as PlanType,
-      remaining: 9, // 10 - 1 (this request)
+      remaining: PLAN_LIMITS.FREE.ai - 1,
     };
   }
 
   const plan = subscription.plan as PlanType;
-  
-  // Check if user has reached limit
-  const hasReached = hasReachedAILimit(
-    plan,
-    subscription.aiRequestsUsed,
-    subscription.lastResetAt
-  );
+  const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.FREE;
 
-  if (hasReached) {
+  // Pro has unlimited
+  if (limits.ai === Infinity) {
+    return { allowed: true, plan };
+  }
+
+  // Get today's usage
+  const usage = await getOrCreateUsage(userId, "ai");
+
+  if (usage.count >= limits.ai) {
     return {
       allowed: false,
       plan,
-      message: plan === "STUDENT" 
-        ? "Vous avez atteint votre limite de 700 requêtes IA. Passez au plan Pro pour continuer."
-        : "Limite quotidienne atteinte. Revenez demain ou passez à un plan supérieur.",
+      message: plan === "FREE"
+        ? "You've reached your daily AI limit. Upgrade to Student or Pro for more."
+        : "Daily AI limit reached. Come back tomorrow or upgrade to Pro.",
     };
-  }
-
-  // Check if we need to reset daily counter
-  const now = new Date();
-  const hoursSinceReset = (now.getTime() - subscription.lastResetAt.getTime()) / (1000 * 60 * 60);
-  const shouldReset = hoursSinceReset >= 24;
-
-  if (shouldReset) {
-    // Reset daily counters
-    await prisma.subscription.update({
-      where: { userId },
-      data: {
-        aiRequestsUsed: 0,
-        jobSearchesUsed: 0,
-        lastResetAt: now,
-      },
-    });
   }
 
   return {
     allowed: true,
     plan,
+    remaining: limits.ai - usage.count - 1,
   };
 }
 
@@ -81,12 +105,27 @@ export async function checkAIRequestLimit(userId: string): Promise<SubscriptionC
  * Increment AI request usage
  */
 export async function incrementAIUsage(userId: string): Promise<void> {
-  await prisma.subscription.update({
-    where: { userId },
-    data: {
-      aiRequestsUsed: {
-        increment: 1,
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+  await prisma.usageTracking.upsert({
+    where: {
+      userId_type_periodStart: {
+        userId,
+        type: "ai",
+        periodStart: startOfDay,
       },
+    },
+    update: {
+      count: { increment: 1 },
+    },
+    create: {
+      userId,
+      type: "ai",
+      periodStart: startOfDay,
+      periodEnd: endOfDay,
+      count: 1,
     },
   });
 }
@@ -100,56 +139,44 @@ export async function checkJobSearchLimit(userId: string): Promise<SubscriptionC
   });
 
   if (!subscription) {
-    const newSubscription = await prisma.subscription.create({
+    await prisma.subscription.create({
       data: {
         userId,
         plan: "FREE",
         status: "ACTIVE",
       },
     });
-    
+
     return {
       allowed: true,
       plan: "FREE" as PlanType,
-      remaining: 0, // 1 - 1 (this request)
+      remaining: 0,
     };
   }
 
   const plan = subscription.plan as PlanType;
-  
-  const hasReached = hasReachedJobSearchLimit(
-    plan,
-    subscription.jobSearchesUsed,
-    subscription.lastResetAt
-  );
+  const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.FREE;
 
-  if (hasReached) {
+  // Pro has unlimited
+  if (limits.searches === Infinity) {
+    return { allowed: true, plan };
+  }
+
+  // Get today's usage
+  const usage = await getOrCreateUsage(userId, "search");
+
+  if (usage.count >= limits.searches) {
     return {
       allowed: false,
       plan,
-      message: "Limite quotidienne de recherches d'emploi atteinte. Passez à un plan supérieur.",
+      message: "Daily job search limit reached. Upgrade for more searches.",
     };
-  }
-
-  // Check if we need to reset
-  const now = new Date();
-  const hoursSinceReset = (now.getTime() - subscription.lastResetAt.getTime()) / (1000 * 60 * 60);
-  const shouldReset = hoursSinceReset >= 24;
-
-  if (shouldReset) {
-    await prisma.subscription.update({
-      where: { userId },
-      data: {
-        aiRequestsUsed: 0,
-        jobSearchesUsed: 0,
-        lastResetAt: now,
-      },
-    });
   }
 
   return {
     allowed: true,
     plan,
+    remaining: limits.searches - usage.count - 1,
   };
 }
 
@@ -157,12 +184,27 @@ export async function checkJobSearchLimit(userId: string): Promise<SubscriptionC
  * Increment job search usage
  */
 export async function incrementJobSearchUsage(userId: string): Promise<void> {
-  await prisma.subscription.update({
-    where: { userId },
-    data: {
-      jobSearchesUsed: {
-        increment: 1,
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+  await prisma.usageTracking.upsert({
+    where: {
+      userId_type_periodStart: {
+        userId,
+        type: "search",
+        periodStart: startOfDay,
       },
+    },
+    update: {
+      count: { increment: 1 },
+    },
+    create: {
+      userId,
+      type: "search",
+      periodStart: startOfDay,
+      periodEnd: endOfDay,
+      count: 1,
     },
   });
 }
@@ -179,13 +221,15 @@ export async function checkFeatureAccess(
   });
 
   const plan = (subscription?.plan || "FREE") as PlanType;
-  const allowed = hasFeatureAccess(plan, feature);
+
+  // All features available to all plans for now
+  const allowed = true;
 
   if (!allowed) {
     return {
       allowed: false,
       plan,
-      message: "Cette fonctionnalité nécessite un abonnement supérieur.",
+      message: "This feature requires a higher subscription.",
     };
   }
 
@@ -200,7 +244,7 @@ export async function checkFeatureAccess(
  */
 export async function requireSubscription(req: NextRequest, minPlan?: PlanType) {
   const session = await getSession();
-  
+
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -223,10 +267,10 @@ export async function requireSubscription(req: NextRequest, minPlan?: PlanType) 
   if (minPlan) {
     const plan = subscription?.plan || "FREE";
     const planOrder = { FREE: 0, STUDENT: 1, PRO: 2 };
-    
+
     if (planOrder[plan as PlanType] < planOrder[minPlan]) {
       return NextResponse.json(
-        { error: "Abonnement insuffisant", requiredPlan: minPlan },
+        { error: "Insufficient subscription", requiredPlan: minPlan },
         { status: 403 }
       );
     }
