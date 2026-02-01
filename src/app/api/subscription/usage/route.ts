@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { PlanType, getRemainingAIRequests, getRemainingJobSearches } from "@/lib/subscription-limits";
 
 export async function GET(req: NextRequest) {
   try {
@@ -44,24 +43,20 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const plan = subscription.plan as PlanType;
-    const aiRemaining = getRemainingAIRequests(
-      plan,
-      subscription.aiRequestsUsed,
-      subscription.aiRequestsTotal,
-      subscription.lastResetAt
-    );
-    const jobSearchesRemaining = getRemainingJobSearches(
-      plan,
-      subscription.jobSearchesUsed,
-      subscription.lastResetAt
-    );
+    // Get limits based on plan
+    const planLimits: Record<string, { ai: number; searches: number }> = {
+      FREE: { ai: 10, searches: 1 },
+      STUDENT: { ai: 100, searches: 10 },
+      PRO: { ai: Infinity, searches: Infinity },
+    };
+
+    const limits = planLimits[subscription.plan] || planLimits.FREE;
 
     return NextResponse.json({
-      plan,
-      aiRequestsRemaining: aiRemaining === Infinity ? "Illimité" : aiRemaining,
-      jobSearchesRemaining,
-      isUnlimited: aiRemaining === Infinity,
+      plan: subscription.plan,
+      aiRequestsRemaining: limits.ai === Infinity ? "Illimité" : limits.ai,
+      jobSearchesRemaining: limits.searches,
+      isUnlimited: limits.ai === Infinity,
     });
   } catch (error) {
     console.error("Usage fetch error:", error);
