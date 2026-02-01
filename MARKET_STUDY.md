@@ -135,11 +135,11 @@ KamForJob est une plateforme SaaS B2C ciblant les étudiants et jeunes diplômé
 
 ### 5.2 Grille Tarifaire Proposée
 
-| Plan | Prix Mensuel | Prix Annuel | Économie |
-|------|-------------|-------------|----------|
+| Plan | Prix Mensuel | Prix Annuel (par mois) | Économie |
+|------|-------------|------------------------|----------|
 | **Free** | 0€ | 0€ | - |
-| **Student** | 2.99€ | 23.99€ | -33% |
-| **Pro** | 7.99€ | 71.99€ | -25% |
+| **Student** | 4.49€ | 2.99€ | -33% |
+| **Pro** | 9.49€ | 7.99€ | -16% |
 
 ### 5.3 Détail des Plans
 
@@ -156,7 +156,7 @@ KamForJob est une plateforme SaaS B2C ciblant les étudiants et jeunes diplômé
 | Préparation entretiens | Non |
 | Support | Communautaire |
 
-#### 🎓 STUDENT (2.99€/mois)
+#### 🎓 STUDENT (4.49€/mois ou 2.99€ annuel)
 **Cible** : Étudiants actifs en recherche de stage/alternance
 
 | Fonctionnalité | Limite |
@@ -176,7 +176,7 @@ KamForJob est une plateforme SaaS B2C ciblant les étudiants et jeunes diplômé
 - Prix d'un café = décision instantanée
 - Stratégie "land grab" pour capturer le marché étudiant
 
-#### 🚀 PRO (7.99€/mois)
+#### 🚀 PRO (9.49€/mois ou 7.99€ annuel)
 **Cible** : Jeunes diplômés, recherche intensive, plusieurs candidatures simultanées
 
 | Fonctionnalité | Limite |
@@ -196,7 +196,7 @@ KamForJob est une plateforme SaaS B2C ciblant les étudiants et jeunes diplômé
 
 | Fonctionnalité | KamForJob Student | Jobscan | Kickresume | Rezi |
 |----------------|-------------------|---------|------------|------|
-| **Prix/mois** | **2.99€** | $49.95 | $19 | $29 |
+| **Prix/mois** | **4.49€** (2.99€ annuel) | $49.95 | $19 | $29 |
 | Suivi candidatures | ✅ | ❌ | ❌ | ❌ |
 | Analyse CV IA | ✅ | ✅ | ✅ | ✅ |
 | Lettres motivation | ✅ | ❌ | ✅ | ✅ |
@@ -251,15 +251,15 @@ Acquisition (Free)     Activation           Conversion (Paid)
 - **Taux de conversion Free → Paid** : 10% (prix ultra-bas = conversion élevée)
 - **Churn mensuel** : 8% (élevé car marché saisonnier)
 - **Répartition Paid** : 70% Student / 30% Pro
-- **ARPU** (Average Revenue Per User) : 4.49€/mois (70% × 2.99€ + 30% × 7.99€)
+- **ARPU** (Average Revenue Per User) : 5.99€/mois (mix mensuel/annuel)
 
 ### 7.2 Scénarios à 12 mois
 
 | Scénario | Users Free | Users Paid | MRR | ARR |
 |----------|------------|------------|-----|-----|
-| **Pessimiste** | 5,000 | 500 | 2,245€ | 26,940€ |
-| **Réaliste** | 15,000 | 1,500 | 6,735€ | 80,820€ |
-| **Optimiste** | 30,000 | 3,000 | 13,470€ | 161,640€ |
+| **Pessimiste** | 5,000 | 500 | 2,995€ | 35,940€ |
+| **Réaliste** | 15,000 | 1,500 | 8,985€ | 107,820€ |
+| **Optimiste** | 30,000 | 3,000 | 17,970€ | 215,640€ |
 
 ### 7.3 Coûts Estimés
 
@@ -273,9 +273,9 @@ Acquisition (Free)     Activation           Conversion (Paid)
 
 ### 7.4 Point de Rentabilité
 
-**Break-even** : ~172 utilisateurs payants
-- 770€ / 4.49€ ARPU = 172 users
-- Avec un taux de conversion de 10%, il faut ~1,720 users gratuits
+**Break-even** : ~129 utilisateurs payants
+- 770€ / 5.99€ ARPU = 129 users
+- Avec un taux de conversion de 10%, il faut ~1,290 users gratuits
 
 ---
 

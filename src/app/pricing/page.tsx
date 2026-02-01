@@ -30,8 +30,8 @@ const plansData: PricingPlan[] = [
   },
   {
     key: "student",
-    price: "2,99",
-    yearlyPrice: "1,99",
+    price: "4,49",
+    yearlyPrice: "2,99",
     href: "#",
     isPopular: false,
     stripePriceId: "price_student_monthly", // TODO: Update with new Stripe price ID
@@ -39,8 +39,8 @@ const plansData: PricingPlan[] = [
   },
   {
     key: "pro",
-    price: "7,99",
-    yearlyPrice: "5,99",
+    price: "9,49",
+    yearlyPrice: "7,99",
     href: "#",
     isPopular: true,
     stripePriceId: "price_pro_monthly", // TODO: Update with new Stripe price ID
