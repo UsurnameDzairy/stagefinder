@@ -184,7 +184,7 @@ export default function LandingPage() {
               <h3 className="font-serif text-xl text-white mb-2">{t("landing.studentPlan")}</h3>
               <p className="text-sm text-zinc-500 italic mb-6">{t("landing.studentDesc")}</p>
               <div className="mb-6">
-                <span className="font-serif text-5xl font-light text-white">10,79€</span>
+                <span className="font-serif text-5xl font-light text-white">4,49€</span>
                 <span className="font-serif text-zinc-500 text-sm ml-2 italic">/ {t("landing.month")}</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-400">
@@ -226,7 +226,7 @@ export default function LandingPage() {
               <h3 className="font-serif text-xl text-white mb-2">{t("landing.proPlan")}</h3>
               <p className="text-sm text-zinc-400 italic mb-6">{t("landing.proDesc")}</p>
               <div className="mb-6">
-                <span className="font-serif text-5xl font-light text-white">23,99€</span>
+                <span className="font-serif text-5xl font-light text-white">9,49€</span>
                 <span className="font-serif text-zinc-400 text-sm ml-2 italic">/ {t("landing.month")}</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-zinc-300">

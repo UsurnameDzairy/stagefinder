@@ -63,23 +63,23 @@ export const translations = {
       freePlan: "Gratuit",
       freeDesc: "Pour découvrir la plateforme",
       month: "mois",
-      free1: "5 candidatures tous les 3 jours",
-      free2: "Accès limité aux offres",
-      free3: "Recherche basique",
+      free1: "10 candidatures max",
+      free2: "2 analyses CV par mois",
+      free3: "1 lettre de motivation par mois",
       startFree: "Commencer gratuitement",
       studentPlan: "Étudiant",
-      studentDesc: "Pour les étudiants qui débutent",
-      student1: "10 candidatures par jour",
-      student2: "700 requêtes IA au total",
-      student3: "Rédaction IA (lettres, relances)",
-      student4: "Suivi des candidatures",
+      studentDesc: "Pour les étudiants actifs",
+      student1: "50 candidatures max",
+      student2: "10 analyses CV par mois",
+      student3: "10 lettres de motivation par mois",
+      student4: "3 préparations entretien par mois",
       proPlan: "Pro",
-      proDesc: "Pour les chercheurs d'emploi actifs",
-      pro1: "10 candidatures par jour",
-      pro2: "1500 requêtes IA au total",
-      pro3: "Accès illimité aux offres",
-      pro4: "Génération de lettres de motivation",
-      pro5: "Alertes en temps réel",
+      proDesc: "Pour les chercheurs d'emploi intensifs",
+      pro1: "Candidatures illimitées",
+      pro2: "Analyses CV illimitées",
+      pro3: "Lettres de motivation illimitées",
+      pro4: "Préparation entretiens illimitée",
+      pro5: "Support prioritaire 24h",
       popular: "Populaire",
       tryFree: "Essayer gratuitement",
       missionTitle: "Notre",
@@ -684,34 +684,36 @@ export const translations = {
           name: "Gratuit",
           description: "Pour découvrir la plateforme",
           features: [
-            "5 candidatures tous les 3 jours",
-            "Accès limité aux offres",
-            "Recherche basique"
+            "10 candidatures max",
+            "2 analyses CV par mois",
+            "1 lettre de motivation par mois",
+            "Support communautaire"
           ],
           button: "Commencer gratuitement"
         },
         student: {
           name: "Étudiant",
-          description: "Pour les étudiants qui débutent",
+          description: "Pour les étudiants actifs",
           features: [
-            "10 candidatures par jour",
-            "700 requêtes IA au total",
-            "Rédaction IA (lettres, relances)",
-            "Suivi des candidatures"
+            "50 candidatures max",
+            "10 analyses CV par mois",
+            "10 lettres de motivation par mois",
+            "3 préparations entretien par mois",
+            "Export PDF professionnel"
           ],
-          button: "Commencer"
+          button: "Commencer - 4,49€/mois"
         },
         pro: {
           name: "Pro",
-          description: "Pour les chercheurs d'emploi actifs",
+          description: "Pour les chercheurs d'emploi intensifs",
           features: [
-            "10 candidatures par jour",
-            "1500 requêtes IA au total",
-            "Accès illimité aux offres",
-            "Génération de lettres de motivation",
-            "Alertes en temps réel"
+            "Candidatures illimitées",
+            "Analyses CV illimitées",
+            "Lettres de motivation illimitées",
+            "Préparation entretiens illimitée",
+            "Support prioritaire 24h"
           ],
-          button: "Essayer gratuitement"
+          button: "Commencer - 9,49€/mois"
         }
       }
     },
@@ -810,23 +812,23 @@ export const translations = {
       freePlan: "Free",
       freeDesc: "To discover the platform",
       month: "month",
-      free1: "5 applications every 3 days",
-      free2: "Limited access to offers",
-      free3: "Basic search",
+      free1: "10 applications max",
+      free2: "2 CV analyses per month",
+      free3: "1 cover letter per month",
       startFree: "Start for free",
       studentPlan: "Student",
-      studentDesc: "For students getting started",
-      student1: "10 applications per day",
-      student2: "700 total AI requests",
-      student3: "AI writing (letters, follow-ups)",
-      student4: "Application tracking",
+      studentDesc: "For active students",
+      student1: "50 applications max",
+      student2: "10 CV analyses per month",
+      student3: "10 cover letters per month",
+      student4: "3 interview preps per month",
       proPlan: "Pro",
-      proDesc: "For active job seekers",
-      pro1: "10 applications per day",
-      pro2: "1500 total AI requests",
-      pro3: "Unlimited access to offers",
-      pro4: "Cover letter generation",
-      pro5: "Real-time alerts",
+      proDesc: "For intensive job seekers",
+      pro1: "Unlimited applications",
+      pro2: "Unlimited CV analyses",
+      pro3: "Unlimited cover letters",
+      pro4: "Unlimited interview prep",
+      pro5: "Priority support 24h",
       popular: "Popular",
       tryFree: "Try for free",
       missionTitle: "Our",
@@ -1427,34 +1429,36 @@ export const translations = {
           name: "Free",
           description: "To discover the platform",
           features: [
-            "5 applications every 3 days",
-            "Limited access to offers",
-            "Basic search"
+            "10 applications max",
+            "2 CV analyses per month",
+            "1 cover letter per month",
+            "Community support"
           ],
           button: "Start for free"
         },
         student: {
           name: "Student",
-          description: "For students getting started",
+          description: "For active students",
           features: [
-            "10 applications per day",
-            "700 total AI requests",
-            "AI writing (letters, follow-ups)",
-            "Application tracking"
+            "50 applications max",
+            "10 CV analyses per month",
+            "10 cover letters per month",
+            "3 interview preps per month",
+            "Professional PDF export"
           ],
-          button: "Get Started"
+          button: "Get Started - €4.49/mo"
         },
         pro: {
           name: "Pro",
-          description: "For active job seekers",
+          description: "For intensive job seekers",
           features: [
-            "10 applications per day",
-            "1500 total AI requests",
-            "Unlimited access to offers",
-            "Cover letter generation",
-            "Real-time alerts"
+            "Unlimited applications",
+            "Unlimited CV analyses",
+            "Unlimited cover letters",
+            "Unlimited interview prep",
+            "Priority support 24h"
           ],
-          button: "Try for free"
+          button: "Get Started - €9.49/mo"
         }
       }
     },
